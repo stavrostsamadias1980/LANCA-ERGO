@@ -152,9 +152,16 @@ def clean_num(val):
         return 0.0
     if isinstance(val, (int, float)):
         return float(val)
-    val_str = str(val).strip().replace(".", "").replace(",", ".").replace("-", "").strip()
+    val_str = str(val).strip()
+    is_neg = False
+    if val_str.startswith("-") or val_str.endswith("-"):
+        is_neg = True
+        val_str = val_str.replace("-", "").strip()
+    
+    val_str = val_str.replace(".", "").replace(",", ".")
     try:
-        return float(val_str)
+        num = float(val_str)
+        return -num if is_neg else num
     except:
         return 0.0
 
@@ -926,7 +933,7 @@ def get_reconciled_contracts_from_db():
                 "payment_freq": freq_str,
                 "duration": f"{dur_num} έτη",
                 "year": year_num,
-                "net": net if net != 0 else 0.0,
+                "net": 0.0,
                 "comm_syn": 0.0,
                 "pct_syn": 0.0,
                 "comm_agn": 0.0,
@@ -936,24 +943,41 @@ def get_reconciled_contracts_from_db():
                 "limit": "€500.000 / έτος",
                 "room": "Α' Θέση",
                 "network": "100% Δίκτυο 4U",
-                "deductible": "€1.500"
+                "deductible": "€1.500",
+                "has_syn_row": False
             }
             
         if is_agency:
             reconciled[key]["comm_agn"] += comm
+            if not reconciled[key]["has_syn_row"]:
+                reconciled[key]["net"] += net
         else:
+            if not reconciled[key]["has_syn_row"]:
+                reconciled[key]["net"] = 0.0
+                reconciled[key]["has_syn_row"] = True
             reconciled[key]["comm_syn"] += comm
-            if net != 0:
-                reconciled[key]["net"] = net
+            reconciled[key]["net"] += net
                 
-    result_list = list(reconciled.values())
-    for item in result_list:
+    result_list = []
+    for item in reconciled.values():
+        item["net"] = round(item["net"], 2)
+        item["comm_syn"] = round(item["comm_syn"], 2)
+        item["comm_agn"] = round(item["comm_agn"], 2)
         item["comm_tot"] = round(item["comm_syn"] + item["comm_agn"], 2)
+        
+        # If contract cancels out to €0.00 net and €0.00 commission (e.g. Vamvatsikos cancellation), omit from active list
+        if abs(item["net"]) < 0.01 and abs(item["comm_tot"]) < 0.01:
+            continue
+            
         net_val = item["net"]
-        if net_val != 0:
+        if abs(net_val) > 0.01:
             item["pct_syn"] = round((item["comm_syn"] / net_val) * 100, 2)
             item["pct_agn"] = round((item["comm_agn"] / net_val) * 100, 2)
             item["pct_tot"] = round((item["comm_tot"] / net_val) * 100, 2)
+        
+        item.pop("has_syn_row", None)
+        item["rec_id"] = len(result_list) + 1
+        result_list.append(item)
             
     return result_list
 

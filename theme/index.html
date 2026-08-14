@@ -734,6 +734,25 @@
                 white-space: nowrap !important;
             }
 
+            tr.unselected-for-print {
+                display: none !important;
+            }
+
+            td button {
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+                color: #000000 !important;
+                font-weight: 700 !important;
+                font-size: 9px !important;
+                box-shadow: none !important;
+            }
+
+            td button[onclick*="deleteSingleRecord"],
+            td button span:last-child {
+                display: none !important;
+            }
+
         }
     </style>
 </head>
@@ -2182,12 +2201,16 @@
             tbody.innerHTML = "";
 
             data.forEach(r => {
-                const isChecked = selectedPolicyKeys.has(r.rec_id) ? "checked" : "";
-
+                const isChecked = selectedPolicyKeys.has(r.rec_id);
+                const checkedAttr = isChecked ? "checked" : "";
                 const row = document.createElement("tr");
+                if (!isChecked) {
+                    row.classList.add("unselected-for-print");
+                }
+
                 row.innerHTML = `
                     <td class="checkbox-cell">
-                        <input type="checkbox" ${isChecked} onchange="toggleSingleRow(${r.rec_id}, this.checked)">
+                        <input type="checkbox" ${checkedAttr} onchange="toggleSingleRow(${r.rec_id}, this.checked)">
                     </td>
                     <td>${r.date}</td>
                     <td><span class="badge-month">${r.month}</span></td>
@@ -2349,10 +2372,46 @@
             window.location.href = "/api/export-excel";
         }
 
-        // OFFICIAL PDF EXPORT
+        // OFFICIAL PDF EXPORT (EXPORTS ONLY SELECTED CONTRACTS)
         function exportToPDF() {
-            window.print();
+            const selectedRecs = (currentFilteredRecords || rawRecords || []).filter(r => selectedPolicyKeys.has(r.rec_id));
+            if (selectedRecs.length === 0) {
+                alert("⚠️ Παρακαλώ επιλέξτε τουλάχιστον ένα συμβόλαιο με το checkbox για εκτύπωση / εξαγωγή σε PDF!");
+                return;
+            }
+
+            const todayStr = new Date().toLocaleDateString('el-GR');
+            const pdfMetaElem = document.getElementById("pdfPrintDate");
+            if (pdfMetaElem) {
+                pdfMetaElem.innerText = `Ημερομηνία Έκδοσης: ${todayStr} (${selectedRecs.length} Επιλεγμένα Συμβόλαια)`;
+            }
+
+            // Temporarily render ONLY selected rows for crystal clear printing
+            renderTable(selectedRecs);
+            updateKPICards(selectedRecs);
+
+            setTimeout(() => {
+                window.print();
+                // Restore all filtered records after print dialog closes
+                setTimeout(() => {
+                    renderTable(currentFilteredRecords);
+                    updateKPICards(currentFilteredRecords);
+                }, 500);
+            }, 150);
         }
+
+        window.addEventListener('beforeprint', () => {
+            const selectedRecs = (currentFilteredRecords || rawRecords || []).filter(r => selectedPolicyKeys.has(r.rec_id));
+            if (selectedRecs.length > 0) {
+                renderTable(selectedRecs);
+                updateKPICards(selectedRecs);
+            }
+        });
+
+        window.addEventListener('afterprint', () => {
+            renderTable(currentFilteredRecords);
+            updateKPICards(currentFilteredRecords);
+        });
 
         // KEYCLOAK OIDC SSO & GDPR AUTHENTICATION INTEGRATION
         let userAuthToken = null;

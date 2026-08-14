@@ -301,6 +301,8 @@ def init_databases():
         agency_overriding_amount REAL NOT NULL,
         agency_overriding_rate REAL DEFAULT 0.2000,
         total_office_revenue REAL NOT NULL,
+        has_agency_role INTEGER DEFAULT 0,
+        has_producer_role INTEGER DEFAULT 0,
         is_zero_offset INTEGER DEFAULT 0,
         reconciliation_status TEXT DEFAULT 'MATCHED_IN_ACCOUNT_57',
         notes TEXT,
@@ -591,17 +593,21 @@ def run_etl_seeder(force=False):
                     "net_tot": 0.0,
                     "producer_prom_tot": 0.0,
                     "agency_prom_tot": 0.0,
-                    "has_syn_row": False
+                    "has_syn_row": False,
+                    "has_agency_role": 0,
+                    "has_producer_role": 0
                 }
                 
             is_agn = ("AGENCY" in role.upper() or "OVERRIDE" in role.upper() or "ΥΠΕΡ" in role.upper())
             if is_agn:
+                events[k]["has_agency_role"] = 1
                 events[k]["agency_prom_tot"] += comm_t
                 if not events[k]["has_syn_row"]:
                     events[k]["net_tot"] += net_t
                     events[k]["net_bk"] += net_b
                     events[k]["net_sk"] += net_s
             else:
+                events[k]["has_producer_role"] = 1
                 if not events[k]["has_syn_row"]:
                     events[k]["net_tot"] = 0.0
                     events[k]["net_bk"] = 0.0
@@ -646,9 +652,9 @@ def run_etl_seeder(force=False):
         
         cur.execute("""
         INSERT OR REPLACE INTO financial_movements
-        (movement_id, policy_number, receipt_number, statement_month, statement_file_ref, movement_date, iso_date, movement_type, client_name, package_name, gross_premium, net_premium_basic, net_premium_supp, net_premium_total, policy_fee, tax_amount, producer_partner_code, producer_commission_amount, producer_commission_rate, agency_partner_code, agency_overriding_amount, agency_overriding_rate, total_office_revenue, is_zero_offset, reconciliation_status, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (mov_id, pol, rec, st_month, m["file"], m["enarki"], iso_d, mov_type, c_name, prd_name, g_val, m["net_bk"], m["net_sk"], net_final, round(g_val - net_final, 2), 0.0, "1411", syn_final, comm_pct, "1411", agn_final, agn_pct, tot_rev, is_zero, "MATCHED_IN_ACCOUNT_57", ""))
+        (movement_id, policy_number, receipt_number, statement_month, statement_file_ref, movement_date, iso_date, movement_type, client_name, package_name, gross_premium, net_premium_basic, net_premium_supp, net_premium_total, policy_fee, tax_amount, producer_partner_code, producer_commission_amount, producer_commission_rate, agency_partner_code, agency_overriding_amount, agency_overriding_rate, total_office_revenue, has_agency_role, has_producer_role, is_zero_offset, reconciliation_status, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (mov_id, pol, rec, st_month, m["file"], m["enarki"], iso_d, mov_type, c_name, prd_name, g_val, m["net_bk"], m["net_sk"], net_final, round(g_val - net_final, 2), 0.0, "1411", syn_final, comm_pct, "1411", agn_final, agn_pct, tot_rev, m["has_agency_role"], m["has_producer_role"], is_zero, "MATCHED_IN_ACCOUNT_57", ""))
 
         cur.execute("""
         INSERT INTO ergo_statements_1411 
@@ -976,7 +982,7 @@ def api_get_contracts():
 
 @app.route("/api/agency", methods=["GET"])
 def api_get_agency():
-    """Returns Agency overridings (Κλίμακα Γ - 20%)."""
+    """Returns Agency overridings (Sheet 8 - 16 rows, €260.00)."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -986,7 +992,7 @@ def api_get_agency():
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
         LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
-        WHERE m.agency_overriding_amount > 0 OR m.is_zero_offset = 1
+        WHERE m.has_agency_role = 1
         ORDER BY m.iso_date, m.policy_number;
     """)
     rows = [dict(r) for r in cur.fetchall()]
@@ -1000,7 +1006,7 @@ def api_get_agency():
 
 @app.route("/api/producers", methods=["GET"])
 def api_get_producers():
-    """Returns Producer commissions (Κατηγορία Α)."""
+    """Returns Producer commissions (Sheet 9 - 12 rows, €926.53)."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -1010,7 +1016,7 @@ def api_get_producers():
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
         LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
-        WHERE m.producer_commission_amount > 0 OR (m.is_zero_offset = 1)
+        WHERE m.has_producer_role = 1
         ORDER BY m.iso_date, m.policy_number;
     """)
     rows = [dict(r) for r in cur.fetchall()]

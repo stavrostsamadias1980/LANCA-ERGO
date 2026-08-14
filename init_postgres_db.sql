@@ -239,3 +239,142 @@ ORDER BY cm.statement_date ASC, c.policy_number ASC;
 
 -- SUCCESS MESSAGE
 SELECT 'PostgreSQL ergo_insurance_db schema and views initialized successfully!' AS status;
+
+
+-- =============================================================================
+-- ENHANCED 10-MODULE SCHEMA (3NF RELATIONAL TABLES)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS clients (
+    client_id VARCHAR(50) PRIMARY KEY,
+    ergo_client_code VARCHAR(30),
+    full_name VARCHAR(150) NOT NULL,
+    afm VARCHAR(20),
+    phone_mobile VARCHAR(30),
+    phone_landline VARCHAR(30),
+    email VARCHAR(100),
+    address_street VARCHAR(150),
+    city VARCHAR(100),
+    postal_code VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS insured_persons (
+    insured_id VARCHAR(50) PRIMARY KEY,
+    client_id VARCHAR(50) NOT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    birth_date DATE,
+    gender VARCHAR(10),
+    relationship_type VARCHAR(30) DEFAULT 'PRIMARY',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (client_id) REFERENCES clients(client_id)
+);
+
+CREATE TABLE IF NOT EXISTS insurance_products (
+    product_id VARCHAR(50) PRIMARY KEY,
+    product_code VARCHAR(30) NOT NULL,
+    product_name VARCHAR(150) NOT NULL,
+    branch_category VARCHAR(50) NOT NULL,
+    hospital_class VARCHAR(20),
+    max_coverage_limit NUMERIC(12,2),
+    default_comm_rate_first_year NUMERIC(5,4),
+    default_comm_rate_renewal NUMERIC(5,4),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS policies (
+    policy_number VARCHAR(30) PRIMARY KEY,
+    client_id VARCHAR(50) NOT NULL,
+    primary_insured_id VARCHAR(50),
+    producer_partner_code VARCHAR(20) NOT NULL,
+    agency_partner_code VARCHAR(20) NOT NULL,
+    product_id VARCHAR(50) NOT NULL,
+    issue_date DATE,
+    start_date DATE,
+    expiry_date DATE,
+    payment_frequency VARCHAR(30) DEFAULT 'Ετήσια',
+    duration_years INT DEFAULT 1,
+    current_policy_year INT DEFAULT 1,
+    status VARCHAR(30) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (client_id) REFERENCES clients(client_id),
+    FOREIGN KEY (product_id) REFERENCES insurance_products(product_id)
+);
+
+CREATE TABLE IF NOT EXISTS policy_coverages (
+    coverage_id VARCHAR(50) PRIMARY KEY,
+    policy_number VARCHAR(30) NOT NULL,
+    coverage_code VARCHAR(30) NOT NULL,
+    coverage_description VARCHAR(200) NOT NULL,
+    insured_capital NUMERIC(12,2) DEFAULT 0.00,
+    deductible_amount NUMERIC(10,2) DEFAULT 0.00,
+    hospital_class INT DEFAULT 1,
+    net_premium NUMERIC(10,2) NOT NULL,
+    annual_net_premium NUMERIC(10,2),
+    producer_commission_rate NUMERIC(5,4),
+    producer_commission_amount NUMERIC(10,2) NOT NULL,
+    agency_overriding_amount NUMERIC(10,2) NOT NULL,
+    statement_month VARCHAR(10),
+    receipt_number VARCHAR(30),
+    FOREIGN KEY (policy_number) REFERENCES policies(policy_number)
+);
+
+CREATE TABLE IF NOT EXISTS financial_movements (
+    movement_id VARCHAR(50) PRIMARY KEY,
+    policy_number VARCHAR(30) NOT NULL,
+    receipt_number VARCHAR(30) NOT NULL,
+    statement_month VARCHAR(10) NOT NULL,
+    statement_file_ref VARCHAR(100),
+    movement_date VARCHAR(20) NOT NULL,
+    iso_date VARCHAR(20),
+    movement_type VARCHAR(50) NOT NULL,
+    client_name VARCHAR(150),
+    package_name VARCHAR(150),
+    gross_premium NUMERIC(10,2) NOT NULL,
+    net_premium_basic NUMERIC(10,2) DEFAULT 0.00,
+    net_premium_supp NUMERIC(10,2) DEFAULT 0.00,
+    net_premium_total NUMERIC(10,2) NOT NULL,
+    policy_fee NUMERIC(8,2) DEFAULT 0.00,
+    tax_amount NUMERIC(8,2) DEFAULT 0.00,
+    producer_partner_code VARCHAR(20) NOT NULL,
+    producer_commission_amount NUMERIC(10,2) NOT NULL,
+    producer_commission_rate NUMERIC(5,4),
+    agency_partner_code VARCHAR(20) NOT NULL,
+    agency_overriding_amount NUMERIC(10,2) NOT NULL,
+    agency_overriding_rate NUMERIC(5,4) DEFAULT 0.2000,
+    total_office_revenue NUMERIC(10,2) NOT NULL,
+    is_zero_offset INT DEFAULT 0,
+    reconciliation_status VARCHAR(30) DEFAULT 'MATCHED_IN_ACCOUNT_57',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (policy_number) REFERENCES policies(policy_number)
+);
+
+CREATE TABLE IF NOT EXISTS account_57_transactions (
+    transaction_id VARCHAR(50) PRIMARY KEY,
+    transaction_date VARCHAR(20) NOT NULL,
+    iso_date VARCHAR(20),
+    description VARCHAR(250) NOT NULL,
+    branch_category VARCHAR(50) NOT NULL,
+    debit_amount NUMERIC(12,2) DEFAULT 0.00,
+    credit_amount NUMERIC(12,2) DEFAULT 0.00,
+    running_balance NUMERIC(12,2) NOT NULL,
+    matched_statement_month VARCHAR(10),
+    is_reconciled INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS monthly_reconciliations (
+    reconciliation_id VARCHAR(50) PRIMARY KEY,
+    statement_month VARCHAR(10) NOT NULL UNIQUE,
+    statement_producer_comm NUMERIC(10,2) NOT NULL,
+    statement_agency_overriding NUMERIC(10,2) NOT NULL,
+    statement_total_amount NUMERIC(10,2) NOT NULL,
+    account_57_release_date VARCHAR(20),
+    account_57_release_month VARCHAR(20),
+    account_57_released_amount NUMERIC(10,2) NOT NULL,
+    variance_amount NUMERIC(10,2) DEFAULT 0.00,
+    match_status VARCHAR(30) DEFAULT 'PERFECT_MATCH',
+    notes TEXT,
+    verified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -965,15 +965,15 @@ def get_reconciled_contracts_from_db():
         item["comm_agn"] = round(item["comm_agn"], 2)
         item["comm_tot"] = round(item["comm_syn"] + item["comm_agn"], 2)
         
-        # If contract cancels out to €0.00 net and €0.00 commission (e.g. Vamvatsikos cancellation), omit from active list
-        if abs(item["net"]) < 0.01 and abs(item["comm_tot"]) < 0.01:
-            continue
-            
         net_val = item["net"]
         if abs(net_val) > 0.01:
             item["pct_syn"] = round((item["comm_syn"] / net_val) * 100, 2)
             item["pct_agn"] = round((item["comm_agn"] / net_val) * 100, 2)
             item["pct_tot"] = round((item["comm_tot"] / net_val) * 100, 2)
+        else:
+            item["pct_syn"] = 0.0
+            item["pct_agn"] = 0.0
+            item["pct_tot"] = 0.0
         
         item.pop("has_syn_row", None)
         item["rec_id"] = len(result_list) + 1

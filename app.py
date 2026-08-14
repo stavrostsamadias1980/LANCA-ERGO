@@ -428,14 +428,17 @@ def init_databases():
         print("[LANCA DB Init] PostgreSQL table init note:", e)
 
 def find_candidate_files(filename_pattern):
-    """Searches for files across YPOLOGISMOS, root DB_DIR, and current directory."""
+    """Searches for files across YPOLOGISMOS, root DB_DIR, and current directory, deduplicating by basename."""
+    seen_basenames = set()
     results = []
     search_dirs = [YPOLOGISMOS_DIR, DB_DIR, os.path.dirname(os.path.abspath(__file__)), "."]
     for s_dir in search_dirs:
         if os.path.exists(s_dir):
             matches = glob.glob(os.path.join(s_dir, filename_pattern))
             for m in matches:
-                if m not in results:
+                bname = os.path.basename(m)
+                if bname not in seen_basenames:
+                    seen_basenames.add(bname)
                     results.append(m)
     return sorted(results)
 
@@ -568,8 +571,9 @@ def run_etl_seeder(force=False):
             comm_t = clean_num(p[20])
             tax_v = clean_num(p[21]) if len(p) > 21 else 0.0
             
-            # Key per contract per month
-            k = f"{pol_no}_{st_month}"
+            # Key per contract per receipt per month per sign (matching 20 Master Excel rows)
+            sign_key = "neg" if net_t < 0 else "pos"
+            k = f"{pol_no}_{rcpt_no}_{st_month}_{sign_key}"
             if k not in events:
                 events[k] = {
                     "month": st_month,

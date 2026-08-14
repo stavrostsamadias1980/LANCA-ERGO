@@ -469,6 +469,9 @@ def process_file_and_update_db(file_path):
         );
     """)
     
+    # Delete previous entries for this month before inserting to avoid duplicates
+    cur_sq.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(month_statement) = ? OR month_statement LIKE ?", (month_code, f"%{month_code}%"))
+    
     added_count = 0
     records_to_insert = []
     for idx, row in df.iterrows():
@@ -533,6 +536,7 @@ def process_file_and_update_db(file_path):
                     policy_year NUMERIC(5,2)
                 );
             """)
+            pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(month_statement) = %s OR month_statement LIKE %s", (month_code, f"%{month_code}%"))
             for rec_tuple in records_to_insert:
                 pg_cur.execute("""
                     INSERT INTO ergo_statements_1411 

@@ -12,10 +12,11 @@ except ImportError:
 import requests
 import pandas as pd
 from functools import wraps
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, send_from_directory, session, send_file
 from werkzeug.middleware.proxy_fix import ProxyFix
 import psycopg2
 import pymupdf
+import openpyxl
 
 app = Flask(__name__, static_folder="theme", static_url_path="")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)

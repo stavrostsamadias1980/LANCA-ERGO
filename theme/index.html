@@ -881,6 +881,56 @@
         </div>
     </div>
 
+    <!-- 🗑️ DELETE STATEMENT MODAL -->
+    <div id="deleteStatementModal" onclick="if(event.target===this) closeDeleteStatementModal()" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(12px); z-index:99997; justify-content:center; align-items:center;">
+        <div style="background: linear-gradient(145deg, #1E293B, #0F172A); border: 2px solid #EF4444; padding: 28px 36px; border-radius: 20px; width: 620px; max-width: 92vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 35px rgba(239, 68, 68, 0.3); color: #F8FAFC; position:relative;">
+            
+            <button onclick="closeDeleteStatementModal()" style="position:absolute; top:20px; right:20px; background:rgba(239, 68, 68, 0.2); border:1px solid #EF4444; color:#F87171; width:36px; height:36px; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer;">✕</button>
+
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                <div style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.4); padding:10px; border-radius:12px; font-size:24px;">🗑️</div>
+                <div>
+                    <h3 style="font-size:20px; font-weight:800; color:#EF4444; margin:0;">Διαγραφή Εκκαθάρισης / Statement</h3>
+                    <div style="font-size:13px; color:#94A3B8;">Οριστική αφαίρεση μηνιαίου statement ή όλων των αρχείων από τη Βάση Δεδομένων</div>
+                </div>
+            </div>
+
+            <div style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255, 255, 255, 0.1); border-radius:12px; padding:18px; margin-bottom:20px;">
+                <label style="display:block; font-size:13px; font-weight:700; color:#F8FAFC; margin-bottom:8px;">
+                    📅 Επιλέξτε Μήνα Statement προς διαγραφή:
+                </label>
+                <select id="statementMonthSelect" style="width:100%; padding:10px 14px; background:#1E293B; border:1px solid rgba(255,255,255,0.2); border-radius:10px; color:#FFF; font-size:14px; font-weight:600; font-family:inherit; outline:none; margin-bottom:14px;">
+                    <!-- Populated dynamically -->
+                </select>
+
+                <div style="display:flex; gap:10px;">
+                    <button onclick="confirmDeleteSelectedMonthStatement()" style="flex:1; padding:12px; background:linear-gradient(135deg, #EF4444, #DC2626); border:none; color:#FFF; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        🗑️ Διαγραφή Επιλεγμένου Μήνα Statement
+                    </button>
+                </div>
+            </div>
+
+            <!-- Danger Zone: Wipe All -->
+            <div style="background:rgba(239, 68, 68, 0.08); border:1px dashed rgba(239, 68, 68, 0.4); border-radius:12px; padding:16px; margin-bottom:20px;">
+                <div style="font-size:13px; font-weight:800; color:#F87171; margin-bottom:6px;">⚠️ Προχωρημένες Επιλογές Καθαρισμού:</div>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                    <button onclick="confirmDeleteAllStatements()" style="width:100%; padding:10px; background:rgba(239,68,68,0.2); border:1px solid #EF4444; color:#FCA5A5; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;">
+                        💥 Διαγραφή ΟΛΩΝ των Statements Προμηθειών (Όλοι οι Μήνες)
+                    </button>
+                    <button onclick="confirmDeleteAllPayouts()" style="width:100%; padding:10px; background:rgba(168,85,247,0.2); border:1px solid #A855F7; color:#E9D5FF; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;">
+                        ⚖️ Διαγραφή Όλων των Αποδεσμεύσεων Τράπεζας (PDF 57)
+                    </button>
+                </div>
+            </div>
+
+            <div style="text-align:right;">
+                <button onclick="closeDeleteStatementModal()" style="padding:10px 22px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:10px; font-weight:800; cursor:pointer;">
+                    ✖️ Κλείσιμο
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Printable PDF Banner Header with Official LANCA PNG Logo -->
     <div class="pdf-print-header">
         <div class="pdf-header-top">
@@ -1039,8 +1089,14 @@
             </button>
 
             <button class="action-btn btn-delete-db" onclick="deleteSelectedFromDB()"
-                title="Διαγράψτε ΜΟΝΙΜΑ τα επιλεγμένα συμβόλαια από τη Βάση Δεδομένων PostgreSQL & SQLite!">
-                🗑️ Διαγραφή Επιλεγμένων από τη Βάση
+                title="Διαγράψτε ΜΟΝΙΜΑ τα επιλεγμένα συμβόλαια από τη Βάση Δεδομένων!">
+                🗑️ Διαγραφή Επιλεγμένων
+            </button>
+
+            <button class="action-btn"
+                style="background: linear-gradient(135deg, #EF4444, #F59E0B); color:#FFF; font-weight:700;"
+                onclick="openDeleteStatementModal()" title="Διαγράψτε ολόκληρο μηνιαίο statement ή όλα τα statements από τη Βάση Δεδομένων">
+                🗑️ Διαγραφή Statement Μήνα
             </button>
 
             <button class="action-btn btn-excel" onclick="exportToExcel()">
@@ -2480,6 +2536,117 @@
         function closeGdprAuditModal() {
             const modal = document.getElementById("gdprAuditModal");
             if (modal) modal.style.display = "none";
+        }
+
+        // ==========================================
+        // 🗑️ DELETE STATEMENTS MANAGEMENT FUNCTIONS
+        // ==========================================
+        function openDeleteStatementModal() {
+            const sel = document.getElementById("statementMonthSelect");
+            if (sel) {
+                sel.innerHTML = "";
+                const monthCounts = {};
+                (rawRecords || []).forEach(r => {
+                    if (r.month) {
+                        monthCounts[r.month] = (monthCounts[r.month] || 0) + 1;
+                    }
+                });
+                const sortedMonths = Object.keys(monthCounts).sort();
+                if (sortedMonths.length === 0) {
+                    sel.innerHTML = '<option value="">Δεν υπάρχουν διαθέσιμα statements στη βάση</option>';
+                } else {
+                    sortedMonths.forEach(m => {
+                        const opt = document.createElement("option");
+                        opt.value = m;
+                        opt.textContent = `Μήνας ${m} (${monthCounts[m]} συμβόλαια)`;
+                        sel.appendChild(opt);
+                    });
+                }
+            }
+            const modal = document.getElementById("deleteStatementModal");
+            if (modal) modal.style.display = "flex";
+        }
+
+        function closeDeleteStatementModal() {
+            const modal = document.getElementById("deleteStatementModal");
+            if (modal) modal.style.display = "none";
+        }
+
+        function confirmDeleteSelectedMonthStatement() {
+            const sel = document.getElementById("statementMonthSelect");
+            const month = sel ? sel.value : "";
+            if (!month) {
+                alert("⚠️ Δεν έχει επιλεγεί μήνας statement.");
+                return;
+            }
+
+            if (!confirm(`⚠️ ΠΡΟΣΟΧΗ!\n\nΕίστε σίγουροι ότι θέλετε να διαγράψετε ΜΟΝΙΜΑ ΟΛΟΚΛΗΡΟ το Statement Προμηθειών του μήνα '${month}' από τη Βάση Δεδομένων;`)) {
+                return;
+            }
+
+            fetch("/api/delete-statement", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ month: month })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("🗑️ " + data.message);
+                    closeDeleteStatementModal();
+                    loadDataFromDB();
+                } else {
+                    alert("⚠️ " + (data.error || "Σφάλμα κατά τη διαγραφή του statement"));
+                }
+            })
+            .catch(err => alert("❌ Σφάλμα: " + err.message));
+        }
+
+        function confirmDeleteAllStatements() {
+            if (!confirm(`⚠️ ΠΡΟΣΟΧΗ: ΕΞΑΙΡΕΤΙΚΑ ΣΗΜΑΝΤΙΚΟ!\n\nΕίστε 100% σίγουροι ότι θέλετε να διαγράψετε ΜΟΝΙΜΑ ΟΛΑ ΤΑ STATEMENTS ΠΡΟΜΗΘΕΙΩΝ από τη Βάση Δεδομένων;\n\nΌλα τα συμβόλαια θα αφαιρεθούν!`)) {
+                return;
+            }
+
+            fetch("/api/delete-statement", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ all: true })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("💥 " + data.message);
+                    closeDeleteStatementModal();
+                    rawRecords = [];
+                    loadDataFromDB();
+                } else {
+                    alert("⚠️ " + (data.error || "Σφάλμα κατά τη διαγραφή"));
+                }
+            })
+            .catch(err => alert("❌ Σφάλμα: " + err.message));
+        }
+
+        function confirmDeleteAllPayouts() {
+            if (!confirm(`⚠️ Είστε σίγουροι ότι θέλετε να διαγράψετε όλες τις εγγραφές αποδεσμεύσεων PDF 57 από τη Βάση Δεδομένων;`)) {
+                return;
+            }
+
+            fetch("/api/delete-statement", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "payouts" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("⚖️ " + data.message);
+                    closeDeleteStatementModal();
+                    loadDataFromDB();
+                } else {
+                    alert("⚠️ " + (data.error || "Σφάλμα κατά τη διαγραφή"));
+                }
+            })
+            .catch(err => alert("❌ Σφάλμα: " + err.message));
         }
 
         // Init Load

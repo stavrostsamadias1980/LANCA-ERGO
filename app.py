@@ -718,6 +718,114 @@ def delete_records():
         "deleted_count": len(records_to_delete)
     })
 
+# API ENDPOINT FOR DELETING ENTIRE MONTHLY STATEMENT(S) OR ALL COMMISSIONS STATEMENTS
+@app.route("/api/delete-statement", methods=["POST"])
+def delete_statement():
+    user = get_authenticated_user()
+    payload = request.get_json(force=True) or {}
+    
+    month_to_delete = str(payload.get("month", "")).strip()
+    delete_all = payload.get("all", False)
+    delete_type = payload.get("type", "statements") # "statements" or "payouts"
+
+    deleted_sq_count = 0
+    deleted_pg_count = 0
+
+    if delete_type == "payouts":
+        # Delete PDF 57 payouts
+        try:
+            conn_sq = sqlite3.connect(SQLITE_PATH)
+            cur_sq = conn_sq.cursor()
+            cur_sq.execute("DELETE FROM ergo_company_payouts;")
+            deleted_sq_count = cur_sq.rowcount
+            conn_sq.commit()
+            conn_sq.close()
+        except Exception as e:
+            print("[Delete Payouts SQLite Note]", e)
+
+        try:
+            pg_conn = get_pg_connection()
+            if pg_conn:
+                pg_cur = pg_conn.cursor()
+                pg_cur.execute("DELETE FROM ergo_company_payouts;")
+                deleted_pg_count = pg_cur.rowcount
+                pg_conn.commit()
+                pg_conn.close()
+        except Exception as e:
+            print("[Delete Payouts PG Note]", e)
+
+        log_gdpr_audit(user["username"], "DELETE_PAYOUTS_57", "Cleared all PDF 57 reconciliation payouts from DB")
+        return jsonify({
+            "status": "success",
+            "message": "Διαγράφηκαν ΜΟΝΙΜΑ όλες οι αποδεσμεύσεις PDF 57 από τη Βάση Δεδομένων!",
+            "deleted_count": deleted_pg_count or deleted_sq_count
+        })
+
+    # Delete commission statements (specific month or all)
+    if delete_all:
+        try:
+            conn_sq = sqlite3.connect(SQLITE_PATH)
+            cur_sq = conn_sq.cursor()
+            cur_sq.execute("DELETE FROM ergo_statements_1411;")
+            deleted_sq_count = cur_sq.rowcount
+            conn_sq.commit()
+            conn_sq.close()
+        except Exception as e:
+            print("[Delete All Statements SQLite Note]", e)
+
+        try:
+            pg_conn = get_pg_connection()
+            if pg_conn:
+                pg_cur = pg_conn.cursor()
+                pg_cur.execute("DELETE FROM ergo_statements_1411;")
+                deleted_pg_count = pg_cur.rowcount
+                pg_conn.commit()
+                pg_conn.close()
+        except Exception as e:
+            print("[Delete All Statements PG Note]", e)
+
+        log_gdpr_audit(user["username"], "DELETE_ALL_STATEMENTS", "Permanently deleted ALL commission statements from DB")
+        return jsonify({
+            "status": "success",
+            "message": "Διαγράφηκαν ΜΟΝΙΜΑ ΟΛΑ τα statements προμηθειών από τη Βάση Δεδομένων!",
+            "deleted_count": deleted_pg_count or deleted_sq_count
+        })
+
+    if not month_to_delete:
+        return jsonify({"error": "Παρακαλώ προσδιορίστε τον μήνα του statement προς διαγραφή"}), 400
+
+    # Delete specific month
+    try:
+        conn_sq = sqlite3.connect(SQLITE_PATH)
+        cur_sq = conn_sq.cursor()
+        cur_sq.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(month_statement) = ? OR month_statement LIKE ?", (month_to_delete, f"%{month_to_delete}%"))
+        deleted_sq_count = cur_sq.rowcount
+        conn_sq.commit()
+        conn_sq.close()
+    except Exception as e:
+        print("[Delete Month Statement SQLite Note]", e)
+
+    try:
+        pg_conn = get_pg_connection()
+        if pg_conn:
+            pg_cur = pg_conn.cursor()
+            pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(month_statement) = %s OR month_statement LIKE %s", (month_to_delete, f"%{month_to_delete}%"))
+            deleted_pg_count = pg_cur.rowcount
+            pg_conn.commit()
+            pg_conn.close()
+    except Exception as e:
+        print("[Delete Month Statement PG Note]", e)
+
+    total_del = deleted_pg_count or deleted_sq_count
+    log_gdpr_audit(user["username"], "DELETE_MONTH_STATEMENT", f"Permanently deleted statement for month '{month_to_delete}' ({total_del} records)")
+
+    return jsonify({
+        "status": "success",
+        "message": f"Διαγράφηκε ΜΟΝΙΜΑ η εκκαθάριση του μήνα '{month_to_delete}' ({total_del} εγγραφές) από τη Βάση Δεδομένων!",
+        "deleted_count": total_del,
+        "month": month_to_delete
+    })
+
 def get_reconciled_contracts_from_db():
     rows = []
     pg_success = False

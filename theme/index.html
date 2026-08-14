@@ -1767,12 +1767,12 @@
                 return;
             }
 
-            if (!confirm(`⚠️ ΠΡΟΣΟΧΗ!\n\nΕίστε σίγουροι ότι θέλετε να διαγράψετε ΜΟΝΙΜΑ ${selectedArray.length} επιλεγμένα συμβόλαια από τη Βάση Δεδομένων PostgreSQL & SQLite;`)) {
+            if (!confirm(`⚠️ ΠΡΟΣΟΧΗ!\n\nΕίστε σίγουροι ότι θέλετε να διαγράψετε ΜΟΝΙΜΑ ${selectedArray.length} επιλεγμένα συμβόλαια από τη Βάση Δεδομένων;`)) {
                 return;
             }
 
             const recordsToDelete = selectedArray.map(recId => {
-                const rec = rawRecords.find(r => r.rec_id === recId);
+                const rec = rawRecords.find(r => r.rec_id === recId) || currentFilteredRecords.find(r => r.rec_id === recId);
                 return rec ? { policy: rec.policy, month: rec.month, receipt: rec.receipt } : null;
             }).filter(item => item !== null);
 
@@ -1784,8 +1784,38 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
-                        alert("🗑️ " + data.message);
+                        selectedArray.forEach(id => selectedPolicyKeys.delete(id));
                         loadDataFromDB();
+                        alert("🗑️ " + data.message);
+                    } else {
+                        alert("⚠️ " + (data.error || "Σφάλμα κατά τη διαγραφή"));
+                    }
+                })
+                .catch(err => {
+                    alert("❌ Σφάλμα κατά τη διαγραφή: " + err.message);
+                });
+        }
+
+        // DELETE SINGLE CONTRACT IMMEDIATELY (1-CLICK)
+        function deleteSingleRecord(recId) {
+            const rec = rawRecords.find(r => r.rec_id === recId) || currentFilteredRecords.find(r => r.rec_id === recId);
+            if (!rec) return;
+
+            if (!confirm(`⚠️ Είστε σίγουροι ότι θέλετε να διαγράψετε ΜΟΝΙΜΑ το συμβόλαιο #${rec.policy} (${rec.client}) του μήνα ${rec.month} από τη Βάση Δεδομένων;`)) {
+                return;
+            }
+
+            fetch("/api/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ records: [{ policy: rec.policy, month: rec.month, receipt: rec.receipt }] })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        selectedPolicyKeys.delete(recId);
+                        loadDataFromDB();
+                        alert("🗑️ " + data.message);
                     } else {
                         alert("⚠️ " + (data.error || "Σφάλμα κατά τη διαγραφή"));
                     }
@@ -2105,9 +2135,12 @@
                     </td>
                     <td>${r.date}</td>
                     <td><span class="badge-month">${r.month}</span></td>
-                    <td style="font-weight:600; color:#38BDF8;">
+                    <td style="font-weight:600; color:#38BDF8; white-space:nowrap;">
                         <button onclick="openPolicyModal(${r.rec_id})" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4); color: #38BDF8; padding: 4px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; font-size:12px; transition: all 0.2s ease-in-out; display:inline-flex; align-items:center; gap:6px;" title="🛡️ Προβολή Καλύψεων & Οικονομικών Στοιχείων">
                             <span>${r.policy}</span> <span style="font-size:11px;">🛡️</span>
+                        </button>
+                        <button onclick="deleteSingleRecord(${r.rec_id})" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #EF4444; padding: 4px 8px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 11px; margin-left: 4px; transition: all 0.2s ease-in-out;" title="🗑️ Διαγραφή αυτού του συμβολαίου από τη βάση">
+                            🗑️
                         </button>
                     </td>
                     <td style="font-size:12px; color:#94A3B8;">${r.receipt}</td>

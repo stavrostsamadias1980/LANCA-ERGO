@@ -283,16 +283,10 @@ def init_databases():
     except Exception as e:
         print("[LANCA DB Init] PostgreSQL table init note:", e)
 
-    # 3. Auto-load __57.pdf if payouts table is empty
-    try:
-        payouts_count = 0
-        conn_sq = sqlite3.connect(SQLITE_PATH)
-        cur_sq = conn_sq.cursor()
-        cur_sq.execute("SELECT COUNT(*) FROM ergo_company_payouts;")
-        payouts_count = cur_sq.fetchone()[0]
-        conn_sq.close()
-
-        if payouts_count == 0:
+    # 3. Auto-load __57.pdf and CSVs ONLY once during initial setup (prevent re-seeding after deletion)
+    seed_flag_path = os.path.join(DB_DIR, ".lanca_db_seeded")
+    if not os.path.exists(seed_flag_path):
+        try:
             pdf_candidates = [
                 os.path.join(DB_DIR, "__57.pdf"),
                 os.path.join(os.path.dirname(os.path.abspath(__file__)), "__57.pdf"),
@@ -303,19 +297,10 @@ def init_databases():
                     print(f"[LANCA DB Init] Auto-seeding reconciliation payouts from {p_path}...")
                     process_pdf_reconciliation(p_path)
                     break
-    except Exception as e:
-        print("[LANCA DB Init] Auto-seed PDF note:", e)
+        except Exception as e:
+            print("[LANCA DB Init] Auto-seed PDF note:", e)
 
-    # 4. Auto-load CSV statements if statements table is empty
-    try:
-        stmt_count = 0
-        conn_sq = sqlite3.connect(SQLITE_PATH)
-        cur_sq = conn_sq.cursor()
-        cur_sq.execute("SELECT COUNT(*) FROM ergo_statements_1411;")
-        stmt_count = cur_sq.fetchone()[0]
-        conn_sq.close()
-
-        if stmt_count == 0:
+        try:
             search_dirs = [DB_DIR, os.path.dirname(os.path.abspath(__file__)), "."]
             csv_files = []
             for s_dir in search_dirs:
@@ -328,8 +313,14 @@ def init_databases():
                 print(f"[LANCA DB Init] Auto-seeding {len(csv_files)} CSV statement files...")
                 for cf in csv_files:
                     process_file_and_update_db(cf)
-    except Exception as e:
-        print("[LANCA DB Init] Auto-seed CSV note:", e)
+        except Exception as e:
+            print("[LANCA DB Init] Auto-seed CSV note:", e)
+
+        try:
+            with open(seed_flag_path, "w", encoding="utf-8") as f:
+                f.write(f"Seeded at {datetime.datetime.now().isoformat()}\n")
+        except Exception as e:
+            print("[LANCA DB Init] Flag write note:", e)
 
 def process_pdf_reconciliation(pdf_path):
     print(f"[PDF Reconciliation] Processing: {pdf_path}")
@@ -679,20 +670,20 @@ def delete_records():
         return jsonify({"error": "Δεν επιλέχθηκαν συμβόλαια προς διαγραφή"}), 400
 
     deleted_sq_count = 0
+    deleted_pg_count = 0
+
+    # 1. Delete from SQLite
     try:
         conn_sq = sqlite3.connect(SQLITE_PATH)
         cur_sq = conn_sq.cursor()
         for item in records_to_delete:
             pol = str(item.get("policy", "")).strip()
             month = str(item.get("month", "")).strip()
-            receipt = str(item.get("receipt", "")).strip()
             
-            if pol and month and receipt:
-                cur_sq.execute("DELETE FROM ergo_statements_1411 WHERE policy_number = ? AND (month_statement = ? OR month_statement LIKE ?) AND receipt_number = ?", (pol, month, f"%{month}%", receipt))
-            elif pol and month:
-                cur_sq.execute("DELETE FROM ergo_statements_1411 WHERE policy_number = ? AND (month_statement = ? OR month_statement LIKE ?)", (pol, month, f"%{month}%"))
+            if pol and month:
+                cur_sq.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(policy_number) = ? AND (TRIM(month_statement) = ? OR month_statement LIKE ?)", (pol, month, f"%{month}%"))
             elif pol:
-                cur_sq.execute("DELETE FROM ergo_statements_1411 WHERE policy_number = ?", (pol,))
+                cur_sq.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(policy_number) = ?", (pol,))
             deleted_sq_count += cur_sq.rowcount
                 
         conn_sq.commit()
@@ -700,6 +691,7 @@ def delete_records():
     except Exception as e:
         print("[Delete SQLite Note]", e)
 
+    # 2. Delete from PostgreSQL
     try:
         pg_conn = get_pg_connection()
         if pg_conn:
@@ -707,16 +699,14 @@ def delete_records():
             for item in records_to_delete:
                 pol = str(item.get("policy", "")).strip()
                 month = str(item.get("month", "")).strip()
-                receipt = str(item.get("receipt", "")).strip()
-                if pol and month and receipt:
-                    pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE policy_number = %s AND (month_statement = %s OR month_statement LIKE %s) AND receipt_number = %s", (pol, month, f"%{month}%", receipt))
-                elif pol and month:
-                    pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE policy_number = %s AND (month_statement = %s OR month_statement LIKE %s)", (pol, month, f"%{month}%"))
+                if pol and month:
+                    pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(policy_number) = %s AND (TRIM(month_statement) = %s OR month_statement LIKE %s)", (pol, month, f"%{month}%"))
                 elif pol:
-                    pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE policy_number = %s", (pol,))
+                    pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(policy_number) = %s", (pol,))
+                deleted_pg_count += pg_cur.rowcount
             pg_conn.commit()
             pg_conn.close()
-            print("[Delete PostgreSQL] Records deleted successfully!")
+            print(f"[Delete PostgreSQL] Deleted {deleted_pg_count} contract records successfully!")
     except Exception as e:
         print("[Delete PostgreSQL Note]", e)
 
@@ -724,12 +714,14 @@ def delete_records():
 
     return jsonify({
         "status": "success",
-        "message": f"Διαγράφηκαν ΜΟΝΙΜΑ {len(records_to_delete)} επιλεγμένα συμβόλαια από τη Βάση Δεδομένων PostgreSQL & SQLite!",
+        "message": f"Διαγράφηκαν ΜΟΝΙΜΑ {len(records_to_delete)} επιλεγμένα συμβόλαια από τη Βάση Δεδομένων!",
         "deleted_count": len(records_to_delete)
     })
 
 def get_reconciled_contracts_from_db():
     rows = []
+    pg_success = False
+
     # 1. Try PostgreSQL
     try:
         pg_conn = get_pg_connection()
@@ -747,11 +739,13 @@ def get_reconciled_contracts_from_db():
             raw_pg_rows = pg_cur.fetchall()
             rows = [dict(zip(col_names, r)) for r in raw_pg_rows]
             pg_conn.close()
+            pg_success = True
     except Exception as e:
         print("[PG Contracts Query Note, falling back to SQLite]", e)
+        pg_success = False
 
-    # 2. Fallback to SQLite if PostgreSQL returned nothing or failed
-    if not rows:
+    # 2. Fallback to SQLite ONLY if PostgreSQL connection failed
+    if not pg_success:
         try:
             conn_sq = sqlite3.connect(SQLITE_PATH)
             conn_sq.row_factory = sqlite3.Row

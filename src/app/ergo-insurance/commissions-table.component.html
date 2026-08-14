@@ -1,0 +1,109 @@
+<div class="material-container">
+  <div class="table-header-bar">
+    <h2>📋 Αναλυτικός Πίνακας Εκκαθαρίσεων & Ποσοστών (Angular Material)</h2>
+    <p>Φιλτράρισμα, ταξινόμηση και προβολή δικαιωμάτων Συνεργάτη & Agency ανά ημερομηνία</p>
+  </div>
+
+  <div class="filter-toolbar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>🔍 Αναζήτηση Πελάτη ή Συμβολαίου</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="π.χ. ΤΕΖΚΟΣΑΡ ή 2026000161">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="select-field">
+      <mat-label>📅 Μήνας Εκκαθάρισης</mat-label>
+      <mat-select [value]="selectedMonth" (selectionChange)="filterByMonth($event.value)">
+        <mat-option value="ALL">Όλοι οι Μήνες (02-07/2026)</mat-option>
+        <mat-option value="02/2026">Φεβρουάριος 2026 (02/2026)</mat-option>
+        <mat-option value="03/2026">Μάρτιος 2026 (03/2026)</mat-option>
+        <mat-option value="04/2026">Απρίλιος 2026 (04/2026)</mat-option>
+        <mat-option value="05/2026">Μάιος 2026 (05/2026)</mat-option>
+        <mat-option value="06/2026">Ιούνιος 2026 (06/2026)</mat-option>
+        <mat-option value="07/2026">Ιούλιος 2026 (07/2026)</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="mat-elevation-z8 table-responsive">
+    <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
+
+      <!-- Date Column -->
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Ημερομηνία </th>
+        <td mat-cell *matCellDef="let element"> {{element.date}} </td>
+      </ng-container>
+
+      <!-- Month Column -->
+      <ng-container matColumnDef="month">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Μήνας </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="month-chip">{{element.month}}</span>
+        </td>
+      </ng-container>
+
+      <!-- Policy Number -->
+      <ng-container matColumnDef="policyNumber">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Αρ. Συμβολαίου </th>
+        <td mat-cell *matCellDef="let element" class="bold-text"> {{element.policyNumber}} </td>
+      </ng-container>
+
+      <!-- Client Name -->
+      <ng-container matColumnDef="clientName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Ονοματεπώνυμο Πελάτη </th>
+        <td mat-cell *matCellDef="let element"> {{element.clientName}} </td>
+      </ng-container>
+
+      <!-- Product Name -->
+      <ng-container matColumnDef="productName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Προϊόν ERGO </th>
+        <td mat-cell *matCellDef="let element"> {{element.productName}} </td>
+      </ng-container>
+
+      <!-- Net Premium -->
+      <ng-container matColumnDef="cleanTotal">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Καθαρά (€) </th>
+        <td mat-cell *matCellDef="let element" class="euro-text"> €{{element.cleanTotal | number:'1.2-2'}} </td>
+      </ng-container>
+
+      <!-- Agent Comm € -->
+      <ng-container matColumnDef="commTotal">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Προμήθεια (€) </th>
+        <td mat-cell *matCellDef="let element" class="agent-text"> €{{element.commTotal | number:'1.2-2'}} </td>
+      </ng-container>
+
+      <!-- Agent Comm % -->
+      <ng-container matColumnDef="commPct">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> % Συνεργάτη </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="pct-badge-agent">{{element.commPct | number:'1.2-2'}}%</span>
+        </td>
+      </ng-container>
+
+      <!-- Agency Override € -->
+      <ng-container matColumnDef="agencyOverride">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Override (€) </th>
+        <td mat-cell *matCellDef="let element" class="agency-text"> €{{element.agencyOverride | number:'1.2-2'}} </td>
+      </ng-container>
+
+      <!-- Agency Override % -->
+      <ng-container matColumnDef="agencyPct">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> % Agency </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="pct-badge-agency">{{element.agencyPct | number:'1.2-2'}}%</span>
+        </td>
+      </ng-container>
+
+      <!-- Total Payout -->
+      <ng-container matColumnDef="totalPayout">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Σύνολο (€) </th>
+        <td mat-cell *matCellDef="let element" class="total-text"> €{{element.totalPayout | number:'1.2-2'}} </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Επιλέξτε σελίδα"></mat-paginator>
+  </div>
+</div>

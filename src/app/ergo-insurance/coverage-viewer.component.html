@@ -1,0 +1,105 @@
+<div class="coverage-container">
+  <div class="viewer-header">
+    <h2>🛡️ Προβολέας Καλύψεων & Ποσοστών Συμβολαίων (Angular Material)</h2>
+    <p>Αναλυτική αντιστοίχιση τεχνικών καλύψεων, ορίων και οικονομικών ποσοστών προμήθειας ανά συμβόλαιο</p>
+  </div>
+
+  <div class="viewer-grid" *ngIf="selectedRecord">
+    <!-- Policy Selection Sidebar List -->
+    <mat-card class="policy-list-card">
+      <mat-card-header>
+        <mat-card-title>📋 Επιλογή Συμβολαίου</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="policy-list-content">
+        <mat-nav-list>
+          <a mat-list-item *ngFor="let rec of records" 
+             [class.active-item]="rec.policyNumber === selectedRecord.policyNumber"
+             (click)="selectPolicy(rec)">
+            <mat-icon matListIcon>description</mat-icon>
+            <div matLine class="policy-item-title">{{rec.policyNumber}} - {{rec.clientName}}</div>
+            <div matLine class="policy-item-sub">{{rec.productName}} ({{rec.month}})</div>
+          </a>
+        </mat-nav-list>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Main Detail Panel with Tabs and Accordion -->
+    <div class="detail-panel">
+      <!-- Top Financial Summary Card -->
+      <mat-card class="financial-card">
+        <mat-card-header>
+          <mat-card-title class="card-title-blue">
+            {{selectedRecord.policyNumber}} | {{selectedRecord.clientName}}
+          </mat-card-title>
+          <mat-card-subtitle>{{selectedRecord.productName}} - Ημερ: {{selectedRecord.date}}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="financial-grid">
+            <div class="fin-item">
+              <span class="fin-label">Καθαρά Ασφάλιστρα:</span>
+              <span class="fin-value">€{{selectedRecord.cleanTotal | number:'1.2-2'}}</span>
+            </div>
+            <div class="fin-item">
+              <span class="fin-label">Προμήθεια Συνεργάτη:</span>
+              <span class="fin-value green-text">€{{selectedRecord.commTotal | number:'1.2-2'}} ({{selectedRecord.commPct | number:'1.2-2'}}%)</span>
+            </div>
+            <div class="fin-item">
+              <span class="fin-label">Override Agency:</span>
+              <span class="fin-value gold-text">€{{selectedRecord.agencyOverride | number:'1.2-2'}} ({{selectedRecord.agencyPct | number:'1.2-2'}}%)</span>
+            </div>
+            <div class="fin-item">
+              <span class="fin-label">Συνολικό Όφελος:</span>
+              <span class="fin-value blue-text">€{{selectedRecord.totalPayout | number:'1.2-2'}} ({{selectedRecord.totalPct | number:'1.2-2'}}%)</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Technical Coverages Material Tabs & Accordion -->
+      <mat-tab-group class="coverage-tabs" color="accent" backgroundColor="primary">
+        <mat-tab label="🏥 Νοσηλεία & Όρια">
+          <div class="tab-padding">
+            <mat-accordion multi="true">
+              <mat-expansion-panel [expanded]="true">
+                <mat-expansion-panel-header>
+                  <mat-panel-title><strong>Ανώτατο Όριο & Θέση Νοσηλείας</strong></mat-panel-title>
+                </mat-expansion-panel-header>
+                <p><strong>Ανώτατο Όριο Κάλυψης:</strong> {{selectedRecord.maxLimit}}</p>
+                <p><strong>Θέση Νοσηλείας:</strong> {{selectedRecord.roomTier}}</p>
+                <p><strong>Δίκτυο Νοσοκομείων:</strong> {{selectedRecord.network}}</p>
+              </mat-expansion-panel>
+
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title><strong>Απαλλαγή & Ποσοστά Συμμετοχής</strong></mat-panel-title>
+                </mat-expansion-panel-header>
+                <p><strong>Επιλογές Απαλλαγής:</strong> {{selectedRecord.deductible}}</p>
+                <p><strong>Κάλυψη Εντός Δικτύου:</strong> 100% μετά την απαλλαγή</p>
+                <p><strong>Κάλυψη Εκτός Δικτύου:</strong> 80% (Ελλάδα), 70-80% (Εξωτερικό)</p>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="🩺 Εξωνοσοκομειακά & Επείγοντα">
+          <div class="tab-padding">
+            <mat-card class="tab-inner-card">
+              <p><strong>Επείγοντα Περιστατικά (24/7):</strong> {{selectedRecord.outpatient}}</p>
+              <p><strong>Εξωνοσοκομειακές Διαγνωστικές Εξετάσεις:</strong> Περιλαμβάνεται σε συμβεβλημένο δίκτυο</p>
+              <p><strong>ERGOLIFE Assistance:</strong> {{selectedRecord.assistance}}</p>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="💰 Επιδόματα & Riders">
+          <div class="tab-padding">
+            <mat-card class="tab-inner-card">
+              <p><strong>Επιδόματα Νοσηλείας & Χειρουργικά:</strong> {{selectedRecord.allowance}}</p>
+              <p><strong>Συμπληρωματικές Καλύψεις (Riders):</strong> {{selectedRecord.riders}}</p>
+            </mat-card>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
+</div>

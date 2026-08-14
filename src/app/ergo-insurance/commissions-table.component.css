@@ -1,0 +1,117 @@
+.material-container {
+  padding: 24px;
+  background: #0F172A;
+  border-radius: 16px;
+  color: #F8FAFC;
+}
+
+.table-header-bar {
+  margin-bottom: 24px;
+}
+
+.table-header-bar h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #38BDF8;
+  margin-bottom: 4px;
+}
+
+.table-header-bar p {
+  font-size: 14px;
+  color: #94A3B8;
+}
+
+.filter-toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 2;
+  min-width: 280px;
+}
+
+.select-field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.table-responsive {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.full-width-table {
+  width: 100%;
+  background: #1E293B;
+}
+
+th.mat-header-cell {
+  background: #0F172A;
+  color: #94A3B8;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 16px;
+}
+
+td.mat-cell {
+  color: #E2E8F0;
+  font-size: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bold-text {
+  font-weight: 600;
+  color: #38BDF8;
+}
+
+.euro-text {
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.agent-text {
+  font-weight: 600;
+  color: #4ADE80;
+}
+
+.agency-text {
+  font-weight: 600;
+  color: #FBBF24;
+}
+
+.total-text {
+  font-weight: 700;
+  color: #38BDF8;
+}
+
+.month-chip {
+  padding: 4px 10px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pct-badge-agent {
+  padding: 4px 8px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ADE80;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.pct-badge-agency {
+  padding: 4px 8px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+}

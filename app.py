@@ -532,6 +532,187 @@ def delete_records():
         "deleted_count": len(records_to_delete)
     })
 
+def get_reconciled_contracts_from_db():
+    rows = []
+    try:
+        pg_conn = psycopg2.connect(**PG_CONFIG)
+        pg_cur = pg_conn.cursor()
+        pg_cur.execute("""
+            SELECT 
+                id, month_statement, receipt_number, policy_number, start_date, end_date,
+                client_lastname, client_firstname, product_code, tier,
+                net_total, commission_total, tax_amount, payment_freq, duration_years, policy_year
+            FROM ergo_statements_1411
+            ORDER BY id ASC
+        """)
+        col_names = [desc[0] for desc in pg_cur.description]
+        raw_pg_rows = pg_cur.fetchall()
+        rows = [dict(zip(col_names, r)) for r in raw_pg_rows]
+        pg_conn.close()
+    except Exception as e:
+        print("PG query note, falling back to SQLite:", e)
+        conn_sq = sqlite3.connect(SQLITE_PATH)
+        conn_sq.row_factory = sqlite3.Row
+        cur_sq = conn_sq.cursor()
+        cur_sq.execute("""
+            SELECT 
+                id, month_statement, receipt_number, policy_number, start_date, end_date,
+                client_lastname, client_firstname, product_code, tier,
+                net_total, commission_total, tax_amount, payment_freq, duration_years, policy_year
+            FROM ergo_statements_1411
+            ORDER BY id ASC
+        """)
+        rows = [dict(r) for r in cur_sq.fetchall()]
+        conn_sq.close()
+
+    reconciled = {}
+    for r in rows:
+        pol = str(r.get("policy_number", "")).strip()
+        if not pol or pol == "nan":
+            continue
+        month = str(r.get("month_statement", "")).strip()
+        key = f"{pol}_{month}"
+        
+        tier_str = str(r.get("tier", "")).upper()
+        is_agency = "AGENCY" in tier_str or "OVERRIDE" in tier_str or "ΥΠΕΡ" in tier_str
+        comm = float(r.get("commission_total") or 0.0)
+        net = float(r.get("net_total") or 0.0)
+        
+        if key not in reconciled:
+            freq_num = int(float(r.get("payment_freq") or 1))
+            freq_map = {1: "Ετήσιο", 2: "Εξαμηνιαίο", 4: "Τριμηνιαίο", 12: "Μηνιαίο"}
+            freq_str = freq_map.get(freq_num, "Ετήσιο")
+            
+            dur_num = int(float(r.get("duration_years") or 1))
+            year_num = int(float(r.get("policy_year") or 1))
+            
+            client_last = str(r.get("client_lastname") or "").strip()
+            client_first = str(r.get("client_firstname") or "").strip()
+            client_name = f"{client_last} {client_first}".strip()
+            if not client_name:
+                client_name = "ΠΕΛΑΤΗΣ ERGO"
+                
+            raw_date = str(r.get("start_date") or "01/02/2026").strip()
+            iso_date = "2026-02-01"
+            try:
+                parts = raw_date.split("/")
+                if len(parts) == 3:
+                    iso_date = f"{parts[2]}-{int(parts[1]):02d}-{int(parts[0]):02d}"
+            except:
+                pass
+                
+            prod_code = str(r.get("product_code", "20")).strip()
+            prod_name = "ERGO Health Care Superior" if prod_code == "20" else "ERGO Life & Riders"
+            
+            reconciled[key] = {
+                "rec_id": len(reconciled) + 1,
+                "date": raw_date,
+                "iso_date": iso_date,
+                "month": month,
+                "receipt": str(r.get("receipt_number") or "").strip(),
+                "policy": pol,
+                "client": client_name,
+                "product": prod_name,
+                "payment_freq": freq_str,
+                "duration": f"{dur_num} έτη",
+                "year": year_num,
+                "net": net if net != 0 else 0.0,
+                "comm_syn": 0.0,
+                "pct_syn": 0.0,
+                "comm_agn": 0.0,
+                "pct_agn": 0.0,
+                "comm_tot": 0.0,
+                "pct_tot": 0.0,
+                "limit": "€500.000 / έτος",
+                "room": "Α' Θέση",
+                "network": "100% Δίκτυο 4U",
+                "deductible": "€1.500"
+            }
+            
+        if is_agency:
+            reconciled[key]["comm_agn"] += comm
+        else:
+            reconciled[key]["comm_syn"] += comm
+            if net != 0:
+                reconciled[key]["net"] = net
+                
+    result_list = list(reconciled.values())
+    for item in result_list:
+        item["comm_tot"] = round(item["comm_syn"] + item["comm_agn"], 2)
+        net_val = item["net"]
+        if net_val != 0:
+            item["pct_syn"] = round((item["comm_syn"] / net_val) * 100, 2)
+            item["pct_agn"] = round((item["comm_agn"] / net_val) * 100, 2)
+            item["pct_tot"] = round((item["comm_tot"] / net_val) * 100, 2)
+            
+    return result_list
+
+def get_payouts_from_db():
+    try:
+        pg_conn = psycopg2.connect(**PG_CONFIG)
+        pg_cur = pg_conn.cursor()
+        pg_cur.execute("""
+            SELECT id, payout_date, deposit_month, month_statement, payment_code, credit_amount, debit_amount, raw_text
+            FROM ergo_company_payouts
+            ORDER BY id ASC
+        """)
+        rows = pg_cur.fetchall()
+        pg_conn.close()
+        return [{"id": r[0], "payout_date": r[1], "deposit_month": r[2], "month_statement": r[3], "payment_code": r[4], "credit_amount": float(r[5] or 0), "debit_amount": float(r[6] or 0), "raw_text": r[7]} for r in rows]
+    except Exception as e:
+        conn = sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
+        cur.execute("SELECT id, payout_date, deposit_month, month_statement, payment_code, credit_amount, debit_amount, raw_text FROM ergo_company_payouts ORDER BY id ASC")
+        rows = cur.fetchall()
+        conn.close()
+        return [{"id": r[0], "payout_date": r[1], "deposit_month": r[2], "month_statement": r[3], "payment_code": r[4], "credit_amount": float(r[5] or 0), "debit_amount": float(r[6] or 0), "raw_text": r[7]} for r in rows]
+
+@app.route("/api/contracts", methods=["GET"])
+def api_get_contracts():
+    user = get_authenticated_user()
+    records = get_reconciled_contracts_from_db()
+    payouts = get_payouts_from_db()
+    return jsonify({
+        "status": "success",
+        "total_records": len(records),
+        "records": records,
+        "payouts": payouts
+    })
+
+@app.route("/api/export-excel", methods=["GET"])
+def api_export_excel():
+    user = get_authenticated_user()
+    records = get_reconciled_contracts_from_db()
+    
+    export_rows = []
+    for r in records:
+        export_rows.append({
+            "Ημερομηνία": r["date"],
+            "Μήνας Εκκαθάρισης": r["month"],
+            "Αριθμός Συμβολαίου": r["policy"],
+            "Παραστατικό": r["receipt"],
+            "Ονοματεπώνυμο Πελάτη": r["client"],
+            "Προϊόν ERGO": r["product"],
+            "Τρόπος Πληρωμής": r["payment_freq"],
+            "Διάρκεια": r["duration"],
+            "Έτος": f"{r['year']}ο",
+            "Καθαρά (€)": r["net"],
+            "Προμήθεια Συνεργάτη (€)": r["comm_syn"],
+            "Ποσοστό Συνεργάτη (%)": f"{r['pct_syn']:.2f}%",
+            "Override Agency (€)": r["comm_agn"],
+            "Ποσοστό Agency (%)": f"{r['pct_agn']:.2f}%",
+            "Συνολική Αμοιβή (€)": r["comm_tot"],
+            "Συνολικό Ποσοστό (%)": f"{r['pct_tot']:.2f}%"
+        })
+        
+    df = pd.DataFrame(export_rows)
+    export_filename = "ΕΚΚΑΘΑΡΙΣΗ_ΕΠΙΛΕΓΜΕΝΩΝ_ΣΥΜΒΟΛΑΙΩΝ_ERGO.xlsx"
+    export_path = os.path.join(DB_DIR, export_filename)
+    df.to_excel(export_path, index=False, sheet_name="Εκκαθάριση ERGO")
+    
+    log_gdpr_audit(user["username"], "EXPORT_EXCEL", f"Downloaded full reconciliation Excel export with {len(records)} contracts")
+    return send_file(export_path, as_attachment=True, download_name=export_filename)
+
 @app.route("/<path:path>")
 def serve_static(path):
     return send_from_directory("theme", path)

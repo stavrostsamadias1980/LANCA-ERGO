@@ -1680,13 +1680,13 @@
                 .then(data => {
                     if (data.status === "success") {
                         alert("🎉 " + data.message + "\n\n• Επεξεργάστηκαν: " + data.records_processed + " συμβόλαια\n• Τα στοιχεία αποθηκεύτηκαν ΜΟΝΙΜΑ στη Βάση Δεδομένων PostgreSQL & SQLite!");
-                        window.location.reload();
+                        loadDataFromDB();
                     } else {
                         alert("⚠️ " + (data.error || "Σφάλμα κατά την αποστολή στη Βάση Δεδομένων"));
                     }
                 })
                 .catch(err => {
-                    alert("Σφάλμα κατά την επικοινωνία με τον Server");
+                    alert("Σφάλμα κατά την επικοινωνία με τον Server: " + err.message);
                 });
         }
 
@@ -1705,13 +1705,13 @@
                 .then(data => {
                     if (data.status === "success") {
                         alert("⚖️ " + data.message + "\n\n• Τα στοιχεία καταβολών ERGO τράπεζας ενημερώθηκαν στη Βάση!");
-                        window.location.reload();
+                        loadDataFromDB();
                     } else {
                         alert("⚠️ " + (data.error || "Σφάλμα κατά την επεξεργασία του PDF"));
                     }
                 })
                 .catch(err => {
-                    alert("Σφάλμα κατά την επικοινωνία με τον Server");
+                    alert("Σφάλμα κατά την επικοινωνία με τον Server: " + err.message);
                 });
         }
 
@@ -1723,9 +1723,7 @@
                 return;
             }
 
-            if (!confirm(`⚠️ ΠΡΟΣΟΧΗ!
-
-Είστε σίγουροι ότι θέλετε να διαγράψετε ΜΟΝΙΜΑ ${selectedArray.length} επιλεγμένα συμβόλαια από τη Βάση Δεδομένων PostgreSQL & SQLite;`)) {
+            if (!confirm(`⚠️ ΠΡΟΣΟΧΗ!\n\nΕίστε σίγουροι ότι θέλετε να διαγράψετε ΜΟΝΙΜΑ ${selectedArray.length} επιλεγμένα συμβόλαια από τη Βάση Δεδομένων PostgreSQL & SQLite;`)) {
                 return;
             }
 
@@ -1742,17 +1740,29 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
-                        rawRecords = rawRecords.filter(r => !selectedPolicyKeys.has(r.rec_id));
-                        selectedPolicyKeys.clear();
-                        initFilterDropdowns();
-                        applyAllFilters();
                         alert("🗑️ " + data.message);
+                        loadDataFromDB();
                     } else {
                         alert("⚠️ " + (data.error || "Σφάλμα κατά τη διαγραφή"));
                     }
                 })
                 .catch(err => {
                     alert("❌ Σφάλμα κατά τη διαγραφή: " + err.message);
+                });
+        }
+
+        function loadDataFromDB() {
+            fetch('/api/contracts')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.status === "success" && data.records && data.records.length > 0) {
+                        rawRecords = data.records;
+                        initFilterDropdowns();
+                        applyAllFilters();
+                    }
+                })
+                .catch(err => {
+                    console.log("DB fetch note:", err);
                 });
         }
 
@@ -2070,67 +2080,74 @@
 
             const fileName = "ΕΚΚΑΘΑΡΙΣΗ_ΕΠΙΛΕΓΜΕΝΩΝ_ΣΥΜΒΟΛΑΙΩΝ_ERGO.xlsx";
 
-            const exportRows = selectedRecs.map(r => ({
-                "Ημερομηνία": r.date,
-                "Μήνας Εκκαθάρισης": r.month,
-                "Αριθμός Συμβολαίου": r.policy,
-                "Παραστατικό": r.receipt,
-                "Ονοματεπώνυμο Πελάτη": r.client,
-                "Προϊόν ERGO": r.product,
-                "Τρόπος Πληρωμής": r.payment_freq,
-                "Διάρκεια": r.duration,
-                "Έτος": r.year,
-                "Καθαρά (€)": r.net,
-                "Προμήθεια Συνεργάτη (€)": r.comm_syn,
-                "Ποσοστό Συνεργάτη (%)": r.pct_syn.toFixed(2) + "%",
-                "Override Agency (€)": r.comm_agn,
-                "Ποσοστό Agency (%)": r.pct_agn.toFixed(2) + "%",
-                "Συνολική Αμοιβή (€)": r.comm_tot,
-                "Συνολικό Ποσοστό (%)": r.pct_tot.toFixed(2) + "%"
-            }));
+            try {
+                if (typeof XLSX !== 'undefined') {
+                    const exportRows = selectedRecs.map(r => ({
+                        "Ημερομηνία": r.date,
+                        "Μήνας Εκκαθάρισης": r.month,
+                        "Αριθμός Συμβολαίου": r.policy,
+                        "Παραστατικό": r.receipt,
+                        "Ονοματεπώνυμο Πελάτη": r.client,
+                        "Προϊόν ERGO": r.product,
+                        "Τρόπος Πληρωμής": r.payment_freq,
+                        "Διάρκεια": r.duration,
+                        "Έτος": (r.year || 1) + "ο",
+                        "Καθαρά (€)": r.net,
+                        "Προμήθεια Συνεργάτη (€)": r.comm_syn,
+                        "Ποσοστό Συνεργάτη (%)": (r.pct_syn || 0).toFixed(2) + "%",
+                        "Override Agency (€)": r.comm_agn,
+                        "Ποσοστό Agency (%)": (r.pct_agn || 0).toFixed(2) + "%",
+                        "Συνολική Αμοιβή (€)": r.comm_tot,
+                        "Συνολικό Ποσοστό (%)": (r.pct_tot || 0).toFixed(2) + "%"
+                    }));
 
-            const totalNet = selectedRecs.reduce((acc, r) => acc + r.net, 0);
-            const totalSyn = selectedRecs.reduce((acc, r) => acc + r.comm_syn, 0);
-            const totalAgn = selectedRecs.reduce((acc, r) => acc + r.comm_agn, 0);
-            const totalPayout = totalSyn + totalAgn;
+                    const totalNet = selectedRecs.reduce((acc, r) => acc + r.net, 0);
+                    const totalSyn = selectedRecs.reduce((acc, r) => acc + r.comm_syn, 0);
+                    const totalAgn = selectedRecs.reduce((acc, r) => acc + r.comm_agn, 0);
+                    const totalPayout = totalSyn + totalAgn;
 
-            const pctSyn = totalNet != 0 ? (totalSyn / totalNet * 100) : 0;
-            const pctAgn = totalNet != 0 ? (totalAgn / totalNet * 100) : 0;
-            const pctTot = totalNet != 0 ? (totalPayout / totalNet * 100) : 0;
+                    const pctSyn = totalNet != 0 ? (totalSyn / totalNet * 100) : 0;
+                    const pctAgn = totalNet != 0 ? (totalAgn / totalNet * 100) : 0;
+                    const pctTot = totalNet != 0 ? (totalPayout / totalNet * 100) : 0;
 
-            exportRows.push({
-                "Ημερομηνία": "ΣΥΝΟΛΑ",
-                "Μήνας Εκκαθάρισης": `(${selectedRecs.length} εγγραφές)`,
-                "Αριθμός Συμβολαίου": "",
-                "Παραστατικό": "",
-                "Ονοματεπώνυμο Πελάτη": "",
-                "Προϊόν ERGO": "",
-                "Τρόπος Πληρωμής": "",
-                "Διάρκεια": "",
-                "Έτος": "",
-                "Καθαρά (€)": totalNet,
-                "Προμήθεια Συνεργάτη (€)": totalSyn,
-                "Ποσοστό Συνεργάτη (%)": pctSyn.toFixed(2) + "%",
-                "Override Agency (€)": totalAgn,
-                "Ποσοστό Agency (%)": pctAgn.toFixed(2) + "%",
-                "Συνολική Αμοιβή (€)": totalPayout,
-                "Συνολικό Ποσοστό (%)": pctTot.toFixed(2) + "%"
-            });
+                    exportRows.push({
+                        "Ημερομηνία": "ΣΥΝΟΛΑ",
+                        "Μήνας Εκκαθάρισης": `(${selectedRecs.length} εγγραφές)`,
+                        "Αριθμός Συμβολαίου": "",
+                        "Παραστατικό": "",
+                        "Ονοματεπώνυμο Πελάτη": "",
+                        "Προϊόν ERGO": "",
+                        "Τρόπος Πληρωμής": "",
+                        "Διάρκεια": "",
+                        "Έτος": "",
+                        "Καθαρά (€)": totalNet,
+                        "Προμήθεια Συνεργάτη (€)": totalSyn,
+                        "Ποσοστό Συνεργάτη (%)": pctSyn.toFixed(2) + "%",
+                        "Override Agency (€)": totalAgn,
+                        "Ποσοστό Agency (%)": pctAgn.toFixed(2) + "%",
+                        "Συνολική Αμοιβή (€)": totalPayout,
+                        "Συνολικό Ποσοστό (%)": pctTot.toFixed(2) + "%"
+                    });
 
-            const ws = XLSX.utils.json_to_sheet(exportRows);
+                    const ws = XLSX.utils.json_to_sheet(exportRows);
 
-            const colWidths = [
-                { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 28 }, { wch: 28 },
-                { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 22 },
-                { wch: 22 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }
-            ];
-            ws['!cols'] = colWidths;
+                    const colWidths = [
+                        { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 28 }, { wch: 28 },
+                        { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 22 },
+                        { wch: 22 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }
+                    ];
+                    ws['!cols'] = colWidths;
 
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Εκκαθάριση ERGO");
-            XLSX.writeFile(wb, fileName);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Εκκαθάριση ERGO");
+                    XLSX.writeFile(wb, fileName);
+                    return;
+                }
+            } catch (err) {
+                console.warn("SheetJS export note, redirecting to server export:", err);
+            }
 
-            alert("✅ Το αρχείο Excel κατέβηκε με επιτυχία στον υπολογιστή σας!\n\n• Όνομα Αρχείου: " + fileName + "\n• Φάκελος: Λήψεις (Downloads)\n• Περιλαμβάνει: " + selectedRecs.length + " συμβόλαια + Γραμμή ΣΥΝΟΛΑ");
+            window.location.href = "/api/export-excel";
         }
 
         // OFFICIAL PDF EXPORT
@@ -2155,12 +2172,11 @@
                         const roleText = (cachedUser.roles && cachedUser.roles.includes("admin")) ? "ADMIN" : "MANAGER";
                         const rElem = document.getElementById("authRoleBadge");
                         if (rElem) rElem.innerText = roleText;
-                        return; // Successfully restored authenticated session
+                        return;
                     }
                 } catch (e) {}
             }
 
-            // If not logged in, ensure login overlay is visible and inputs are clear
             if (modal) modal.style.display = "flex";
             const uElem = document.getElementById("authUsername");
             if (uElem) uElem.innerText = "---";
@@ -2201,7 +2217,7 @@
                             const rElem = document.getElementById("authRoleBadge");
                             if (rElem) rElem.innerText = roleText;
                         }
-                        applyAllFilters();
+                        loadDataFromDB();
                     } else {
                         if (errDiv) {
                             errDiv.innerText = "⚠️ " + (data.error || "Λανθασμένα στοιχεία σύνδεσης");
@@ -2211,7 +2227,6 @@
                 })
                 .catch(err => {
                     const modal = document.getElementById("loginOverlayModal");
-                    // Client fallback if running as static HTML preview or server offline:
                     const is3375 = (username === "3375" && password === "Lanca1966a");
                     const isAdmin = (["admin", "lanca", "manager"].includes(username.toLowerCase()) && (password === "Lanca1966a" || password === "admin" || password === "lanca1411" || password === ""));
 
@@ -2229,7 +2244,7 @@
                         if (uElem) uElem.innerText = dispName;
                         const rElem = document.getElementById("authRoleBadge");
                         if (rElem) rElem.innerText = "ADMIN";
-                        applyAllFilters();
+                        loadDataFromDB();
                     } else {
                         if (errDiv) {
                             errDiv.innerText = "⚠️ Λανθασμένο όνομα χρήστη ή κωδικός πρόσβασης";
@@ -2253,7 +2268,6 @@
         }
 
         function logoutSSO() {
-            // 1. Immediately purge all storage
             try {
                 localStorage.removeItem("lanca_ergo_user");
                 sessionStorage.removeItem("lanca_ergo_user");
@@ -2261,7 +2275,6 @@
                 sessionStorage.clear();
             } catch (e) {}
 
-            // 2. Immediately reset UI & show Login Modal
             const uElem = document.getElementById("authUsername");
             if (uElem) uElem.innerText = "---";
             const rElem = document.getElementById("authRoleBadge");
@@ -2275,7 +2288,6 @@
             const modal = document.getElementById("loginOverlayModal");
             if (modal) modal.style.display = "flex";
 
-            // 3. Notify backend in the background
             fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
                 .catch(() => {});
         }
@@ -2302,6 +2314,7 @@
         renderReconciliationSection(rawReconciliation);
         applyAllFilters();
         initSecurityAuth();
+        loadDataFromDB();
     </script>
     </body>
 

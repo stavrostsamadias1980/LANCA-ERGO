@@ -747,13 +747,47 @@ def run_etl_seeder(force=False):
 
 @app.before_request
 def ensure_db_ready():
-    run_etl_seeder()
+    init_databases()
 
 @app.route("/")
 def serve_index():
     user = get_authenticated_user()
     log_gdpr_audit(user["username"], "VIEW_DASHBOARD", "User opened Master 10-Sheet Reconciliation Dashboard")
     return send_from_directory("theme", "index.html")
+
+@app.route("/api/clear-database", methods=["POST"])
+def api_clear_database():
+    user = get_authenticated_user()
+    
+    # 1. Clear SQLite
+    try:
+        conn_sq = sqlite3.connect(SQLITE_PATH)
+        cur_sq = conn_sq.cursor()
+        for t in ["financial_movements", "policy_coverages", "policies", "insured_persons", "clients", "insurance_products", "monthly_reconciliations", "account_57_transactions", "ergo_statements_1411", "ergo_company_payouts"]:
+            cur_sq.execute(f"DELETE FROM {t};")
+        conn_sq.commit()
+        conn_sq.close()
+    except Exception as e:
+        print("[Clear DB SQLite Error]", e)
+
+    # 2. Clear PostgreSQL
+    try:
+        pg_conn = get_pg_connection()
+        if pg_conn:
+            pg_cur = pg_conn.cursor()
+            for t in ["ergo_statements_1411", "ergo_company_payouts"]:
+                pg_cur.execute(f"DELETE FROM {t};")
+            pg_conn.commit()
+            pg_conn.close()
+    except Exception as e:
+        print("[Clear DB PG Error]", e)
+
+    log_gdpr_audit(user["username"], "CLEAR_DATABASE", "User emptied all tables in the database")
+    return jsonify({
+        "status": "success",
+        "success": True,
+        "message": "Η βάση δεδομένων αδειάστηκε πλήρως (0 εγγραφές)!"
+    })
 
 @app.route("/api/health")
 def api_health():
@@ -1263,7 +1297,6 @@ def serve_static(path):
 
 if __name__ == "__main__":
     init_databases()
-    run_etl_seeder(force=True)
     port = int(os.getenv("PORT", 5000))
     print(f"LANCA ERGO Master Engine running on http://localhost:{port}...")
     app.run(host="0.0.0.0", port=port, debug=False)

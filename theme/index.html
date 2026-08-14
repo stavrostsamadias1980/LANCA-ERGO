@@ -427,10 +427,16 @@
     <!-- TAB 9: UPLOAD -->
     <div id="tab-upload" class="tab-panel">
         <div class="card-box">
-            <div class="card-title">📤 Κέντρο Εισαγωγής Αρχείων</div>
+            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>📤 Κέντρο Εισαγωγής Αρχείων</span>
+                <button onclick="clearDatabase()" style="background:rgba(239, 68, 68, 0.2); border:1px solid #EF4444; color:#FCA5A5; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px; transition:all 0.2s ease;">
+                    🗑️ Άδειασμα Όλων των Δεδομένων Βάσης
+                </button>
+            </div>
             <div class="upload-dropzone" onclick="document.getElementById('file-upload-input').click()">
                 <div style="font-size:48px; margin-bottom:12px;">📁</div>
-                <h3 style="font-size:18px; font-weight:700; color:#FFF;">Σύρετε αρχεία ERGO (CSV & PDF)</h3>
+                <h3 style="font-size:18px; font-weight:700; color:#FFF;">Σύρετε ή Πατήστε για να Επιλέξετε Αρχεία ERGO (CSV & PDF)</h3>
+                <p style="color:var(--text-muted); font-size:13px; margin-top:6px;">Υποστηρίζονται Statements Προμηθειών CSV, UATOP Καλύψεις CSV, και Αποδεσμεύσεις PDF 57</p>
                 <input type="file" id="file-upload-input" multiple style="display:none;" onchange="handleFileUpload(event)">
             </div>
             <div id="upload-status" style="margin-top:16px;"></div>
@@ -579,14 +585,35 @@
         if (!files.length) return;
         const formData = new FormData();
         for (let f of files) formData.append('files', f);
-        document.getElementById('upload-status').innerHTML = '<span style="color:#38BDF8;">⏳ Επεξεργασία...</span>';
+        document.getElementById('upload-status').innerHTML = '<span style="color:#38BDF8;">⏳ Επεξεργασία και καταχώρηση αρχείων...</span>';
         try {
             const res = await fetch('/api/upload', { method: 'POST', body: formData });
             if (res.ok) {
-                document.getElementById('upload-status').innerHTML = '<span style="color:#4ADE80;">✔ Επιτυχία!</span>';
+                document.getElementById('upload-status').innerHTML = '<span style="color:#4ADE80;">✔ Τα αρχεία καταχωρήθηκαν επιτυχώς!</span>';
                 loadAllData();
+            } else {
+                const err = await res.json();
+                document.getElementById('upload-status').innerHTML = `<span style="color:#EF4444;">❌ Σφάλμα: ${err.error||'Αποτυχία'}</span>`;
             }
-        } catch(e) {}
+        } catch(e) {
+            document.getElementById('upload-status').innerHTML = `<span style="color:#EF4444;">❌ Σφάλμα δικτύου: ${e}</span>`;
+        }
+    }
+
+    async function clearDatabase() {
+        if (!confirm('ΠΡΟΣΟΧΗ: Είστε βέβαιοι ότι θέλετε να αδειάσετε ΟΛΑ τα δεδομένα από τη βάση δεδομένων;\nΌλοι οι πίνακες (Συμβόλαια, Καλύψεις, Πελάτες, Εκκαθαρίσεις) θα μηδενιστούν.')) {
+            return;
+        }
+        document.getElementById('upload-status').innerHTML = '<span style="color:#EF4444;">⏳ Άδειασμα βάσης δεδομένων...</span>';
+        try {
+            const res = await fetch('/api/clear-database', { method: 'POST' });
+            const d = await res.json();
+            alert(d.message || 'Η βάση δεδομένων αδειάστηκε επιτυχώς!');
+            loadAllData();
+            document.getElementById('upload-status').innerHTML = '<span style="color:#4ADE80;">✔ Η βάση είναι άδεια (0 εγγραφές). Μπορείτε να ανεβάσετε τα νέα σας αρχεία!</span>';
+        } catch(e) {
+            alert('Σφάλμα: ' + e);
+        }
     }
 </script>
 </body>

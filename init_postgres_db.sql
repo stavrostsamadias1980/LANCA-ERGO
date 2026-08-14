@@ -3,6 +3,50 @@
 -- LANCA Insurance Services
 -- =============================================================================
 
+-- CORE PRODUCTION TABLES
+CREATE TABLE IF NOT EXISTS ergo_statements_1411 (
+    id SERIAL PRIMARY KEY,
+    month_statement VARCHAR(50),
+    receipt_number VARCHAR(50),
+    policy_number VARCHAR(50),
+    start_date VARCHAR(20),
+    end_date VARCHAR(20),
+    client_lastname VARCHAR(100),
+    client_firstname VARCHAR(100),
+    product_code VARCHAR(20),
+    tier VARCHAR(50),
+    net_total NUMERIC(12,2),
+    commission_total NUMERIC(12,2),
+    tax_amount NUMERIC(12,2),
+    payment_freq NUMERIC(5,2),
+    duration_years NUMERIC(5,2),
+    policy_year NUMERIC(5,2)
+);
+
+CREATE TABLE IF NOT EXISTS ergo_company_payouts (
+    id SERIAL PRIMARY KEY,
+    payout_date VARCHAR(20),
+    deposit_month VARCHAR(50),
+    month_statement VARCHAR(50),
+    payment_code VARCHAR(150),
+    credit_amount NUMERIC(12,2),
+    debit_amount NUMERIC(12,2),
+    raw_text TEXT
+);
+
+CREATE TABLE IF NOT EXISTS ergo_audit_logs (
+    id SERIAL PRIMARY KEY,
+    timestamp VARCHAR(50),
+    username VARCHAR(100),
+    action VARCHAR(100),
+    details TEXT,
+    ip_address VARCHAR(50)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ergo_statements_policy ON ergo_statements_1411(policy_number);
+CREATE INDEX IF NOT EXISTS idx_ergo_statements_month ON ergo_statements_1411(month_statement);
+CREATE INDEX IF NOT EXISTS idx_ergo_payouts_month ON ergo_company_payouts(month_statement);
+
 -- 1. DROP EXISTING TABLES AND VIEWS IF NEEDED
 DROP VIEW IF EXISTS v_policy_full_details CASCADE;
 DROP VIEW IF EXISTS v_monthly_commissions_summary CASCADE;

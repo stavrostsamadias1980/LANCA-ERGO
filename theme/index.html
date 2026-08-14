@@ -837,6 +837,50 @@
         </div>
     </div>
 
+    <!-- 🛡️ GDPR AUDIT LOGS MODAL -->
+    <div id="gdprAuditModal" onclick="if(event.target===this) closeGdprAuditModal()" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(12px); z-index:99996; justify-content:center; align-items:center;">
+        <div style="background: linear-gradient(145deg, #1E293B, #0F172A); border: 2px solid #818CF8; padding: 28px 36px; border-radius: 20px; width: 900px; max-width: 94vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 35px rgba(129, 140, 248, 0.3); color: #F8FAFC; position:relative;">
+            
+            <button onclick="closeGdprAuditModal()" style="position:absolute; top:20px; right:20px; background:rgba(239, 68, 68, 0.2); border:1px solid #EF4444; color:#F87171; width:36px; height:36px; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer;">✕</button>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; padding-right:40px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="background:rgba(129, 140, 248, 0.15); border:1px solid rgba(129, 140, 248, 0.4); padding:10px; border-radius:12px; font-size:24px;">🛡️</div>
+                    <div>
+                        <h3 style="font-size:20px; font-weight:800; color:#818CF8; margin:0;">Ιστορικό Καταγραφής Ενεργειών GDPR (Audit Logs)</h3>
+                        <div style="font-size:13px; color:#94A3B8;">Αρχείο ιχνηλασιμότητας και ασφάλειας δεδομένων (Ευρωπαϊκός Κανονισμός GDPR Art. 30/32)</div>
+                    </div>
+                </div>
+                <button onclick="viewGdprAuditLogs()" style="padding:6px 14px; background:rgba(56, 189, 248, 0.15); border:1px solid #38BDF8; color:#38BDF8; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">🔄 Ανανέωση</button>
+            </div>
+
+            <!-- AUDIT TABLE -->
+            <div style="background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255, 255, 255, 0.1); border-radius:12px; overflow-x:auto; max-height:420px;">
+                <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
+                    <thead>
+                        <tr style="background:rgba(30, 41, 59, 0.9); border-bottom:1px solid rgba(255,255,255,0.1); color:#94A3B8;">
+                            <th style="padding:10px 12px;">ID</th>
+                            <th style="padding:10px 12px;">ΗΜΕΡΟΜΗΝΙΑ & ΩΡΑ</th>
+                            <th style="padding:10px 12px;">ΧΡΗΣΤΗΣ</th>
+                            <th style="padding:10px 12px;">ΕΝΕΡΓΕΙΑ (ACTION)</th>
+                            <th style="padding:10px 12px;">ΛΕΠΤΟΜΕΡΕΙΕΣ</th>
+                            <th style="padding:10px 12px;">IP ADDRESS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gdprAuditTableBody">
+                        <tr><td colspan="6" style="padding:20px; text-align:center; color:#94A3B8;">Φόρτωση ιστορικού...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="text-align:right; margin-top:20px;">
+                <button onclick="closeGdprAuditModal()" style="padding:10px 22px; background:linear-gradient(135deg, #818CF8, #C084FC); border:none; color:#FFF; border-radius:10px; font-weight:800; cursor:pointer;">
+                    ✖️ Κλείσιμο
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Printable PDF Banner Header with Official LANCA PNG Logo -->
     <div class="pdf-print-header">
         <div class="pdf-header-top">
@@ -1751,12 +1795,78 @@
                 });
         }
 
+        function updateReconciliationData(records, payouts) {
+            const greekMonths = {
+                "01": "Ιανουάριος", "02": "Φεβρουάριος", "03": "Μάρτιος",
+                "04": "Απρίλιος", "05": "Μάιος", "06": "Ιούνιος",
+                "07": "Ιούλιος", "08": "Αύγουστος", "09": "Σεπτέμβριος",
+                "10": "Οκτώβριος", "11": "Νοέμβριος", "12": "Δεκέμβριος"
+            };
+
+            const allMonths = new Set();
+            (records || []).forEach(r => { if (r.month) allMonths.add(r.month); });
+            (payouts || []).forEach(p => { if (p.month_statement) allMonths.add(p.month_statement); });
+
+            const sortedMonths = Array.from(allMonths).sort((a, b) => {
+                const partsA = a.split('/');
+                const partsB = b.split('/');
+                const mA = parseInt(partsA[0]) || 0;
+                const yA = parseInt(partsA[1]) || 0;
+                const mB = parseInt(partsB[0]) || 0;
+                const yB = parseInt(partsB[1]) || 0;
+                return yA !== yB ? (yA - yB) : (mA - mB);
+            });
+
+            if (sortedMonths.length === 0) {
+                renderReconciliationSection([]);
+                return;
+            }
+
+            const reconList = [];
+            sortedMonths.forEach(mStr => {
+                const parts = mStr.split('/');
+                const mPart = parts[0];
+                const yPart = parts[1] || '2026';
+                const mName = greekMonths[mPart] ? `${greekMonths[mPart]} ${yPart}` : mStr;
+
+                const expected_comm = (records || [])
+                    .filter(r => r.month === mStr)
+                    .reduce((sum, r) => sum + (parseFloat(r.comm_tot) || 0), 0);
+
+                const matchingPayouts = (payouts || []).filter(p => p.month_statement === mStr);
+                const depositDates = matchingPayouts.map(p => p.payout_date).filter(Boolean);
+                const actual_paid = matchingPayouts.reduce((sum, p) => sum + (parseFloat(p.credit_amount) || 0), 0);
+                const deposit_dates_str = depositDates.join(', ');
+
+                const hasDeposit = depositDates.length > 0;
+                const status_text = hasDeposit ? "🟢 OK (100% ΕΠΙΒΕΒΑΙΩΘΗΚΕ)" : "⚠️ Εκκρεμεί Αποδέσμευση (PDF 57)";
+
+                reconList.push({
+                    month: mStr,
+                    deposit_dates: hasDeposit ? deposit_dates_str : "-",
+                    concerns_month: `${mStr} (${mName})`,
+                    expected_comm: Math.round(expected_comm * 100) / 100,
+                    actual_paid: Math.round(actual_paid * 100) / 100,
+                    diff: Math.round((actual_paid - expected_comm) * 100) / 100,
+                    status_text: status_text
+                });
+            });
+
+            rawReconciliation = reconList;
+            renderReconciliationSection(rawReconciliation);
+        }
+
         function loadDataFromDB() {
             fetch('/api/contracts')
                 .then(res => res.json())
                 .then(data => {
-                    if (data && data.status === "success" && data.records && data.records.length > 0) {
-                        rawRecords = data.records;
+                    if (data && data.status === "success") {
+                        rawRecords = data.records || [];
+                        if (data.payouts && data.payouts.length > 0) {
+                            updateReconciliationData(rawRecords, data.payouts);
+                        } else if (rawRecords.length > 0) {
+                            updateReconciliationData(rawRecords, []);
+                        }
                         initFilterDropdowns();
                         applyAllFilters();
                     }
@@ -2293,20 +2403,50 @@
         }
 
         function viewGdprAuditLogs() {
+            const modal = document.getElementById("gdprAuditModal");
+            if (modal) modal.style.display = "flex";
+
+            const tbody = document.getElementById("gdprAuditTableBody");
+            if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:#94A3B8;">Φόρτωση ιστορικού GDPR...</td></tr>';
+
             fetch('/api/audit-logs')
                 .then(res => res.json())
                 .then(data => {
-                    if (data.status === "success" && data.audit_logs) {
-                        let logStr = "🛡️ ΙΣΤΟΡΙΚΟ ΠΡΟΣΒΑΣΗΣ & ΕΝΕΡΓΕΙΩΝ GDPR COMPLIANCE (Τελευταίες 10 εγγραφές):\n\n";
-                        data.audit_logs.slice(0, 10).forEach(l => {
-                            logStr += `• [${l.timestamp}] [${l.username}] ${l.action}: ${l.details} (IP: ${l.ip_address})\n`;
+                    if (data.status === "success" && data.audit_logs && data.audit_logs.length > 0) {
+                        tbody.innerHTML = "";
+                        data.audit_logs.forEach(l => {
+                            const tr = document.createElement("tr");
+                            tr.style.borderBottom = "1px solid rgba(255,255,255,0.06)";
+                            
+                            let actionColor = "#38BDF8";
+                            if (l.action.includes("DELETE")) actionColor = "#EF4444";
+                            else if (l.action.includes("LOGIN_SUCCESS")) actionColor = "#4ADE80";
+                            else if (l.action.includes("LOGIN_FAILED")) actionColor = "#F87171";
+                            else if (l.action.includes("UPLOAD")) actionColor = "#F59E0B";
+                            else if (l.action.includes("EXPORT")) actionColor = "#A855F7";
+
+                            tr.innerHTML = `
+                                <td style="padding:8px 12px; color:#94A3B8;">#${l.id}</td>
+                                <td style="padding:8px 12px; font-weight:600; color:#E2E8F0; white-space:nowrap;">${l.timestamp}</td>
+                                <td style="padding:8px 12px; font-weight:700; color:#FFF;">${l.username || 'System / Guest'}</td>
+                                <td style="padding:8px 12px;"><span style="background:rgba(255,255,255,0.08); border:1px solid ${actionColor}; color:${actionColor}; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700;">${l.action}</span></td>
+                                <td style="padding:8px 12px; color:#CBD5E1;">${l.details}</td>
+                                <td style="padding:8px 12px; font-family:monospace; color:#94A3B8; font-size:11px;">${l.ip_address}</td>
+                            `;
+                            tbody.appendChild(tr);
                         });
-                        alert(logStr);
                     } else {
-                        alert("⚠️ Δεν ήταν δυνατή η ανάκτηση του ιστορικού GDPR.");
+                        tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:#94A3B8;">Δεν βρέθηκαν εγγραφές στο GDPR Audit Log.</td></tr>';
                     }
                 })
-                .catch(err => alert("❌ Σφάλμα κατά την ανάκτηση του GDPR Audit Log: " + err.message));
+                .catch(err => {
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="padding:20px; text-align:center; color:#EF4444;">❌ Σφάλμα: ${err.message}</td></tr>`;
+                });
+        }
+
+        function closeGdprAuditModal() {
+            const modal = document.getElementById("gdprAuditModal");
+            if (modal) modal.style.display = "none";
         }
 
         // Init Load

@@ -7,13 +7,21 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-lanca-ergo-gdpr-secret-key-2026}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-lanca-ergo-gdpr-secret-key-2026-prod}
       - POSTGRES_HOST=postgres_db
       - POSTGRES_PORT=5432
       - POSTGRES_DB=${POSTGRES_DB:-ergo_zwhs_db}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-LancaPostgresPass2026!}
       - KEYCLOAK_URL=${KEYCLOAK_URL:-http://keycloak:8080}
+    labels:
+      - "coolify.managed=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.lanca-web.rule=Host(`lanca.stavrostsamadias.gr`)"
+      - "traefik.http.routers.lanca-web.entrypoints=http"
+      - "traefik.http.services.lanca-web.loadbalancer.server.port=5000"
+      - "caddy_0=http://lanca.stavrostsamadias.gr"
+      - "caddy_0.handle_path.0_reverse_proxy={{upstreams 5000}}"
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -32,7 +40,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ergo_zwhs_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-LancaPostgresPass2026!}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init_postgres_db.sql:/docker-entrypoint-initdb.d/init_postgres_db.sql:ro

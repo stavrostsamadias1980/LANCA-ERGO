@@ -2986,42 +2986,44 @@
                 alert("Παρακαλώ επιλέξτε τουλάχιστον έναν μήνα 57 προς διαγραφή.");
                 return;
             }
-            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τα δεδομένα Λογαριασμού 57 για τους επιλεγμένους μήνες (${checked.join(', ')})?`)) return;
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τα δεδομένα για τους επιλεγμένους μήνες (${checked.join(', ')})?`)) return;
             try {
                 const res = await fetch('/api/reconciliation/delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ months: checked })
                 });
-                const d = await res.json();
-                if (res.ok) {
+                let d = {};
+                try { d = await res.json(); } catch(err){}
+                if (res.ok && (d.success || d.status === 'success')) {
                     alert(d.message || "Τα δεδομένα διαγράφηκαν επιτυχώς!");
                     loadAllData();
                 } else {
                     alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
                 }
             } catch (e) {
-                alert("Σφάλμα δικτύου κατά τη διαγραφή!");
+                alert("Σφάλμα κατά τη διαγραφή: " + e.message);
             }
         }
 
         async function deleteSingleReconciliation(month) {
-            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τα δεδομένα Λογαριασμού 57 για τον μήνα '${month}'?`)) return;
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τα δεδομένα για τον μήνα '${month}'?`)) return;
             try {
                 const res = await fetch('/api/reconciliation/delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ months: [month] })
                 });
-                const d = await res.json();
-                if (res.ok) {
+                let d = {};
+                try { d = await res.json(); } catch(err){}
+                if (res.ok && (d.success || d.status === 'success')) {
                     alert(d.message || "Ο μήνας διαγράφηκε!");
                     loadAllData();
                 } else {
                     alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
                 }
             } catch (e) {
-                alert("Σφάλμα δικτύου κατά τη διαγραφή!");
+                alert("Σφάλμα κατά τη διαγραφή: " + e.message);
             }
         }
 

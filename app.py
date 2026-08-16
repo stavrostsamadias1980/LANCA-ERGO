@@ -1370,24 +1370,52 @@ def api_upload_account_57():
 
 @app.route("/api/reconciliation/delete", methods=["POST"])
 def api_delete_reconciliation():
-    user = get_authenticated_user()
-    data = request.get_json(force=True) or {}
-    months = data.get("months", [])
-    if not months:
-        return jsonify({"error": "Δεν επιλέχθηκαν μήνες προς διαγραφή"}), 400
+    try:
+        user = get_authenticated_user()
+        username = user.get("username", "admin") if isinstance(user, dict) else "admin"
+        data = request.get_json(force=True) or {}
+        months = data.get("months", [])
+        if not months:
+            return jsonify({"error": "Δεν επιλέχθηκαν μήνες προς διαγραφή"}), 400
 
-    conn = sqlite3.connect(SQLITE_PATH)
-    cur = conn.cursor()
-    for m in months:
-        m_clean = str(m).strip()
-        cur.execute("DELETE FROM monthly_reconciliations WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;", (m_clean, m_clean.replace('/', '_')))
-        cur.execute("DELETE FROM account_57_transactions WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;", (m_clean, m_clean.replace('/', '_')))
-        cur.execute("DELETE FROM ergo_company_payouts WHERE TRIM(month_statement) = ? OR TRIM(month_statement) = ?;", (m_clean, m_clean.replace('/', '_')))
-    conn.commit()
-    conn.close()
-    
-    log_gdpr_audit(user.get("username", "admin"), "DELETE_RECONCILIATION", f"Deleted Account 57 records for months: {months}")
-    return jsonify({"status": "success", "message": f"Διαγράφηκαν τα δεδομένα Λογαριασμού 57 για {len(months)} μήνες επιτυχώς!"})
+        conn = sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
+        for m in months:
+            m_clean = str(m).strip()
+            # Delete from all related tables for this month
+            for tbl, col in [
+                ("monthly_reconciliations", "statement_month"),
+                ("account_57_transactions", "statement_month"),
+                ("ergo_company_payouts", "month_statement"),
+                ("financial_movements", "statement_month"),
+                ("ergo_statements_1411", "month_statement"),
+                ("policy_coverages", "statement_month")
+            ]:
+                try:
+                    cur.execute(f"DELETE FROM {tbl} WHERE TRIM({col}) = ? OR TRIM({col}) = ?;", (m_clean, m_clean.replace('/', '_')))
+                except Exception as te:
+                    print(f"[Delete Table {tbl} Note]", te)
+        conn.commit()
+        conn.close()
+
+        try:
+            pg_conn = get_pg_connection()
+            if pg_conn:
+                pg_cur = pg_conn.cursor()
+                for m in months:
+                    m_clean = str(m).strip()
+                    pg_cur.execute("DELETE FROM ergo_statements_1411 WHERE TRIM(month_statement) = %s;", (m_clean,))
+                    pg_cur.execute("DELETE FROM ergo_company_payouts WHERE TRIM(month_statement) = %s;", (m_clean,))
+                pg_conn.commit()
+                pg_conn.close()
+        except Exception as pe:
+            print("[PG Delete Note]", pe)
+        
+        log_gdpr_audit(username, "DELETE_RECONCILIATION", f"Deleted Account 57 and Statement records for months: {months}")
+        return jsonify({"status": "success", "success": True, "message": f"Διαγράφηκαν επιτυχώς τα δεδομένα για {len(months)} μήνες!"})
+    except Exception as e:
+        print("[Delete Recon Error]", traceback.format_exc())
+        return jsonify({"error": f"Σφάλμα διαγραφής: {str(e)}"}), 500
 
 @app.route("/api/delete", methods=["POST"])
 def delete_records():

@@ -1772,8 +1772,8 @@
         <div id="tab-upload-57" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div class="box-title">🏦 Μεταφόρτωση & Αυτόματος Έλεγχος Αρχείων Λογαριασμού 57 (PDF)</div>
-                    <span class="badge badge-purple">✔ Αυτόματη Ανάγνωση & Διασταύρωση με Statements</span>
+                    <div class="box-title">🏦 Μεταφόρτωση, Προβολή & Διαχείριση Αρχείων Λογαριασμού 57 (PDF)</div>
+                    <span class="badge badge-purple">✔ Αυτόματη Ανάγνωση, Ιστορικό & Διαχείριση</span>
                 </div>
 
                 <div class="upload-dropzone" style="padding:36px 20px; border-color:rgba(16, 185, 129, 0.4); background:rgba(236, 253, 245, 0.4);" onclick="document.getElementById('account57-files-input').click()">
@@ -1793,12 +1793,57 @@
                     </div>
                 </div>
 
-                <div id="upload-57-results" style="display:none; margin-top:16px; background:rgba(255,255,255,0.9); padding:16px; border-radius:16px; border:1px solid var(--glass-border);">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--brand-navy); margin-bottom:10px;">📋 Αποτέλεσμα Αυτόματου Ελέγχου PDF 57</h4>
-                    <div id="upload-57-results-content"></div>
+                <!-- 📁 Uploaded PDF 57 Files History Section -->
+                <div style="margin-top:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                        <h4 style="font-size:16px; font-weight:800; color:var(--brand-navy); margin:0;">
+                            📁 Ιστορικό Μεταφορτωμένων Αρχείων PDF Λογαριασμού 57
+                        </h4>
+                        <button class="btn-pill btn-danger" style="font-size:12px;" onclick="deleteAllAccount57Files()">🗑️ Διαγραφή Όλων των Αρχείων 57</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="glass-table" id="table-upload-57-files">
+                            <thead>
+                                <tr>
+                                    <th>Α/Α</th>
+                                    <th>Όνομα Αρχείου PDF</th>
+                                    <th>Ημερομηνία Μεταφόρτωσης</th>
+                                    <th>Μέγεθος</th>
+                                    <th>Ενέργειες</th>
+                                </tr>
+                            </thead>
+                            <tbody id="upload-57-files-tbody">
+                                <tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">Δεν υπάρχουν αρχεία PDF 57.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:14px;">
+                <!-- 🏦 Monthly Account 57 Transactions Ledger Section -->
+                <div style="margin-top:24px;">
+                    <h4 style="font-size:16px; font-weight:800; color:var(--brand-navy); margin-bottom:10px;">
+                        🏦 Αναλυτικές Καταγεγραμμένες Κινήσεις & Αποδεσμεύσεις 57
+                    </h4>
+                    <div class="table-responsive">
+                        <table class="glass-table" id="table-upload-57-txs">
+                            <thead>
+                                <tr>
+                                    <th>Α/Α</th>
+                                    <th>Μήνας Εκκαθάρισης</th>
+                                    <th>Ημερομηνία Τράπεζας</th>
+                                    <th>Αποδεσμευθέν Ποσό (€)</th>
+                                    <th>Περιγραφή / Αιτιολογία</th>
+                                    <th>Ενέργειες</th>
+                                </tr>
+                            </thead>
+                            <tbody id="upload-57-txs-tbody">
+                                <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Δεν υπάρχουν καταγεγραμμένες κινήσεις.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:20px;">
                     <div style="background:rgba(255, 255, 255, 0.7); padding:16px; border-radius:18px; border:1px solid var(--glass-border);">
                         <h4 style="font-size:14px; font-weight:800; color:var(--brand-navy); margin-bottom:6px;">🔍 Αυτόματη Αναγνώριση & Parsing</h4>
                         <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
@@ -2283,6 +2328,7 @@
                 try { renderReconTable(globalData.reconciliation); } catch(e) { console.error("renderReconTable error:", e); }
                 try { renderProducersRegTable(globalData.producersReg); } catch(e) { console.error("renderProducersRegTable error:", e); }
                 try { renderPDFDocs(globalData.docs); } catch(e) { console.error("renderPDFDocs error:", e); }
+                try { loadAccount57List(); } catch(e) { console.error("loadAccount57List error:", e); }
 
             } catch (e) {
                 console.error("Data load error:", e);
@@ -3350,6 +3396,131 @@
                 }
             } catch (e) {
                 txt.innerHTML = `❌ <strong>Σφάλμα δικτύου:</strong> ${e.message}`;
+            }
+        }
+
+        // === 🏦 ACCOUNT 57 MANAGEMENT & HISTORY ===
+        async function loadAccount57List() {
+            try {
+                const res = await fetch('/api/upload-57/list');
+                const d = await res.json();
+                if (!res.ok || d.status !== 'success') return;
+
+                // 1. Render Files History Table
+                const filesTbody = document.getElementById('upload-57-files-tbody');
+                if (filesTbody) {
+                    filesTbody.innerHTML = '';
+                    if (!d.files || d.files.length === 0) {
+                        filesTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">Δεν υπάρχουν μεταφορτωμένα αρχεία PDF 57.</td></tr>`;
+                    } else {
+                        d.files.forEach((f, idx) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${idx + 1}</td>
+                                <td><strong><a href="${f.url}" target="_blank" style="color:var(--brand-blue); text-decoration:none;">📄 ${f.filename}</a></strong></td>
+                                <td>${f.upload_date}</td>
+                                <td><span class="badge badge-purple">${f.size}</span></td>
+                                <td>
+                                    <div style="display:flex; gap:6px;">
+                                        <a href="${f.url}" target="_blank" class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" title="Προβολή PDF">👁️ Προβολή</a>
+                                        <a href="${f.url}" download="${f.filename}" class="btn-pill btn-pdf" style="padding:3px 8px; font-size:11px;" title="Λήψη PDF">📥 Λήψη</a>
+                                        <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteAccount57File('${f.filename}')" title="Διαγραφή Αρχείου">🗑️ Διαγραφή</button>
+                                    </div>
+                                </td>
+                            `;
+                            filesTbody.appendChild(tr);
+                        });
+                    }
+                }
+
+                // 2. Render Transactions Ledger Table
+                const txsTbody = document.getElementById('upload-57-txs-tbody');
+                if (txsTbody) {
+                    txsTbody.innerHTML = '';
+                    if (!d.transactions || d.transactions.length === 0) {
+                        txsTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Δεν υπάρχουν καταγεγραμμένες κινήσεις αποδεσμεύσεων.</td></tr>`;
+                    } else {
+                        d.transactions.forEach((t, idx) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${idx + 1}</td>
+                                <td><span class="badge badge-purple">${t.statement_month || '-'}</span></td>
+                                <td>${t.transaction_date || '-'}</td>
+                                <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(t.credit_amount || 0)}</td>
+                                <td style="font-size:12px; color:var(--text-secondary);">${t.description || '-'}</td>
+                                <td>
+                                    <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteAccount57Month('${t.statement_month}')" title="Διαγραφή Μήνα 57">🗑️ Διαγραφή Μήνα</button>
+                                </td>
+                            `;
+                            txsTbody.appendChild(tr);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading account 57 list:", e);
+            }
+        }
+
+        async function deleteAccount57File(filename) {
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε το αρχείο PDF '${filename}' και όλες τις κινήσεις του;`)) return;
+            try {
+                const res = await fetch('/api/upload-57/delete-file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: filename })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Το αρχείο διαγράφηκε!");
+                    await loadAccount57List();
+                    await loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
+                }
+            } catch (e) {
+                alert("Σφάλμα κατά τη διαγραφή: " + e.message);
+            }
+        }
+
+        async function deleteAllAccount57Files() {
+            if (!confirm("Είστε βέβαιοι ότι θέλετε να διαγράψετε ΟΛΑ τα αρχεία PDF και τις καταχωρήσεις του Λογαριασμού 57;")) return;
+            try {
+                const res = await fetch('/api/upload-57/delete-file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ all: true })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Όλα τα αρχεία διαγράφηκαν!");
+                    await loadAccount57List();
+                    await loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
+                }
+            } catch (e) {
+                alert("Σφάλμα κατά τη διαγραφή: " + e.message);
+            }
+        }
+
+        async function deleteAccount57Month(month) {
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τις αποδεσμεύσεις 57 για τον μήνα '${month}';`)) return;
+            try {
+                const res = await fetch('/api/upload-57/delete-month', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ month: month })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Ο μήνας διαγράφηκε!");
+                    await loadAccount57List();
+                    await loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
+                }
+            } catch (e) {
+                alert("Σφάλμα κατά τη διαγραφή: " + e.message);
             }
         }
 

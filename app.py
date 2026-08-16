@@ -1384,6 +1384,128 @@ def api_upload_account_57():
         print("[Upload 57 Error]", e)
         return jsonify({"error": f"Σφάλμα κατά την επεξεργασία του PDF Λογαριασμού 57: {str(e)}"}), 500
 
+@app.route("/api/upload-57/list", methods=["GET"])
+def api_list_account_57_files():
+    """Lists all uploaded Account 57 PDF files and detailed monthly movements."""
+    upload_dir = os.path.join(DB_DIR, "uploads_57")
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    files_list = []
+    if os.path.exists(upload_dir):
+        for fname in os.listdir(upload_dir):
+            if fname.lower().endswith(".pdf"):
+                fpath = os.path.join(upload_dir, fname)
+                fsize = os.path.getsize(fpath)
+                mtime = os.path.getmtime(fpath)
+                date_str = datetime.datetime.fromtimestamp(mtime).strftime("%d/%m/%Y %H:%M")
+                
+                size_str = f"{fsize/1024:.1f} KB" if fsize < 1024*1024 else f"{fsize/(1024*1024):.2f} MB"
+                files_list.append({
+                    "filename": fname,
+                    "size": size_str,
+                    "upload_date": date_str,
+                    "url": f"/api/upload-57/view/{fname}"
+                })
+                
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            transaction_id, statement_month, matched_statement_month,
+            transaction_date, iso_date, credit_amount, debit_amount, description
+        FROM account_57_transactions
+        ORDER BY iso_date DESC;
+    """)
+    txs = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    
+    return jsonify({
+        "status": "success",
+        "files": files_list,
+        "transactions": txs,
+        "total_files": len(files_list),
+        "total_transactions": len(txs)
+    })
+
+@app.route("/api/upload-57/view/<path:filename>", methods=["GET"])
+def api_view_account_57_file(filename):
+    """Serves an uploaded Account 57 PDF file for preview or download."""
+    upload_dir = os.path.join(DB_DIR, "uploads_57")
+    return send_from_directory(upload_dir, filename, as_attachment=False)
+
+@app.route("/api/upload-57/delete-file", methods=["POST"])
+def api_delete_account_57_file():
+    """Deletes an uploaded 57 PDF file and its parsed records."""
+    user = get_authenticated_user()
+    username = user.get("username", "admin") if isinstance(user, dict) else "admin"
+    data = request.get_json(force=True) or {}
+    filename = data.get("filename", "").strip()
+    delete_all = data.get("all", False)
+    
+    upload_dir = os.path.join(DB_DIR, "uploads_57")
+    deleted_files = 0
+    
+    if delete_all:
+        if os.path.exists(upload_dir):
+            for f in os.listdir(upload_dir):
+                if f.lower().endswith(".pdf"):
+                    try:
+                        os.remove(os.path.join(upload_dir, f))
+                        deleted_files += 1
+                    except Exception:
+                        pass
+        conn = sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM account_57_transactions;")
+        cur.execute("DELETE FROM monthly_reconciliations;")
+        conn.commit()
+        conn.close()
+        log_gdpr_audit(username, "DELETE_ALL_PDF_57", "Deleted all Account 57 PDFs and ledger entries")
+        return jsonify({"status": "success", "message": "Όλα τα αρχεία και οι κινήσεις του Λογαριασμού 57 διαγράφηκαν επιτυχώς!"})
+        
+    if filename:
+        fpath = os.path.join(upload_dir, filename)
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+                deleted_files += 1
+            except Exception as fe:
+                print("[File Remove Error]", fe)
+                
+        # Clear Account 57 transactions
+        conn = sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM account_57_transactions;")
+        cur.execute("DELETE FROM monthly_reconciliations;")
+        conn.commit()
+        conn.close()
+        log_gdpr_audit(username, "DELETE_PDF_57", f"Deleted Account 57 PDF: {filename}")
+        return jsonify({"status": "success", "message": f"Το αρχείο '{filename}' και οι αντίστοιχες κινήσεις 57 διαγράφηκαν επιτυχώς!"})
+        
+    return jsonify({"error": "Απαιτείται όνομα αρχείου προς διαγραφή"}), 400
+
+@app.route("/api/upload-57/delete-month", methods=["POST"])
+def api_delete_account_57_month():
+    """Deletes 57 records for a specific statement month."""
+    user = get_authenticated_user()
+    username = user.get("username", "admin") if isinstance(user, dict) else "admin"
+    data = request.get_json(force=True) or {}
+    month = data.get("month", "").strip()
+    if not month:
+        return jsonify({"error": "Απαιτείται μήνας προς διαγραφή"}), 400
+        
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    cur.execute("DELETE FROM account_57_transactions WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;", (month, month.replace('/', '_')))
+    cur.execute("DELETE FROM monthly_reconciliations WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;", (month, month.replace('/', '_')))
+    cur.execute("DELETE FROM ergo_company_payouts WHERE TRIM(month_statement) = ? OR TRIM(month_statement) = ?;", (month, month.replace('/', '_')))
+    conn.commit()
+    conn.close()
+    
+    log_gdpr_audit(username, "DELETE_MONTH_57", f"Deleted Account 57 records for month {month}")
+    return jsonify({"status": "success", "message": f"Οι εγγραφές του Λογαριασμού 57 για τον μήνα {month} διαγράφηκαν επιτυχώς!"})
+
 @app.route("/api/reconciliation/delete", methods=["POST"])
 def api_delete_reconciliation():
     try:

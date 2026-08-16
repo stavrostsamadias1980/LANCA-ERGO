@@ -825,6 +825,12 @@ def api_health():
         }
     }), 200
 
+@app.route("/api/auth/status", methods=["GET"])
+def auth_status():
+    if session.get("user") and session["user"].get("authenticated"):
+        return jsonify({"authenticated": True, "user": session["user"]})
+    return jsonify({"authenticated": False, "user": None})
+
 @app.route("/api/auth/config", methods=["GET"])
 def auth_config():
     return jsonify({
@@ -845,8 +851,8 @@ def auth_login():
     u = str(data.get("username", "")).strip()
     p = str(data.get("password", "")).strip()
     
-    # Authorized logins: 3375 / Lanca1966a, admin, stayr
-    if (u == "3375" and p in ["Lanca1966a", ""]) or (u in ["admin", "stayr", "lanca"] and p in ["Lanca1966a", "admin", "1234", "lanca2026", ""]):
+    # Authorized logins: 3375 / Lanca1966a, or admin
+    if (u == "3375" and p in ["Lanca1966a", "lanca1966a"]) or (u in ["admin", "lanca"] and p in ["Lanca1966a", "admin", "lanca2026", ""]):
         user = {
             "username": f"LANCA Manager ({u.upper()})",
             "roles": ["admin", "manager"],

@@ -767,15 +767,23 @@ def run_etl_seeder(force=False):
         except Exception as e:
             print("[PDF Parsing Note]", e)
 
-    # 7. Producers Catalog Table
+    # 7. Enhanced Producers Catalog Table with ERGO Tree & Subcode Hierarchy
     cur.execute("""
     CREATE TABLE IF NOT EXISTS producers_catalog (
         producer_code TEXT PRIMARY KEY,
+        ergo_code TEXT,
         full_name TEXT NOT NULL,
+        partner_type TEXT,
+        partner_type_label TEXT,
         role TEXT,
+        hierarchy TEXT,
         tier TEXT,
+        manager TEXT,
         phone TEXT,
         email TEXT,
+        address TEXT,
+        nomos TEXT,
+        comm_cat TEXT,
         status TEXT DEFAULT 'Ενεργός',
         commission_rate REAL DEFAULT 25.0,
         notes TEXT
@@ -783,12 +791,11 @@ def run_etl_seeder(force=False):
     """)
     cur.execute("SELECT COUNT(*) FROM producers_catalog;")
     if cur.fetchone()[0] == 0:
-        initial_producers = [
-            ("1411", "Νίκος Αναγνωστόπουλος", "Agency Manager / Συντονιστής", "Κατηγορία Γ (20% - 35%)", "6944 347151", "info@lanca.gr", "Ενεργός", 20.0, "Συντονιστής Agency 1411 ERGO"),
-            ("SYN-101", "Συνεργάτης Δικτύου Α'", "Ασφαλιστικός Πράκτορας", "Κατηγορία Α (25% - 29%)", "26310 51222", "partners@lanca.gr", "Ενεργός", 25.0, "Συνεργάτης Κατηγορίας Α"),
-            ("SYN-102", "Συνεργάτης Δικτύου Β'", "Ασφαλιστικός Πράκτορας", "Κατηγορία Α (25% - 29%)", "26310 51222", "partners@lanca.gr", "Ενεργός", 25.0, "Συνεργάτης Κατηγορίας Α")
-        ]
-        cur.executemany("INSERT INTO producers_catalog (producer_code, full_name, role, tier, phone, email, status, commission_rate, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", initial_producers)
+        try:
+            from seed_producers import seed_full_producers
+            seed_full_producers(SQLITE_PATH)
+        except Exception as se:
+            print("[Seed Producers Note]", se)
 
     conn.commit()
     conn.close()
@@ -1801,12 +1808,20 @@ def api_get_producers_registry():
     cur.execute("""
         SELECT 
             p.producer_code,
+            COALESCE(p.ergo_code, '-') as ergo_code,
             p.full_name as producer_name,
+            COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
+            COALESCE(p.partner_type_label, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
             p.role,
+            COALESCE(p.hierarchy, 'ΠΑΡΑΓΩΓΟΣ') as hierarchy,
             p.tier,
-            p.phone,
-            p.email,
-            p.status,
+            COALESCE(p.manager, 'ΙΔΙΟΣ') as manager,
+            COALESCE(p.phone, '-') as phone,
+            COALESCE(p.email, '-') as email,
+            COALESCE(p.address, '-') as address,
+            COALESCE(p.nomos, '-') as nomos,
+            COALESCE(p.comm_cat, '-') as comm_cat,
+            COALESCE(p.status, 'Ενεργός') as status,
             p.commission_rate as avg_rate,
             p.notes,
             COUNT(m.movement_id) as total_policies,
@@ -1816,70 +1831,119 @@ def api_get_producers_registry():
         FROM producers_catalog p
         LEFT JOIN financial_movements m ON m.producer_code = p.producer_code OR m.producer_name = p.full_name
         GROUP BY p.producer_code
-        ORDER BY p.producer_code;
+        ORDER BY 
+            CASE 
+                WHEN p.partner_type = 'AGENCY_MANAGER' THEN 1
+                WHEN p.partner_type = 'SUBCODE_1411' THEN 2
+                ELSE 3 
+            END,
+            p.producer_code ASC;
     """)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
-    return jsonify({"status": "success", "producers": rows, "count": len(rows)})
+    
+    subcodes_cnt = sum(1 for r in rows if r.get('partner_type') == 'SUBCODE_1411')
+    direct_cnt = sum(1 for r in rows if r.get('partner_type') == 'DIRECT_AGENT')
+    mgr_cnt = sum(1 for r in rows if r.get('partner_type') == 'AGENCY_MANAGER')
+    
+    return jsonify({
+        "status": "success",
+        "producers": rows,
+        "count": len(rows),
+        "counts": {
+            "total": len(rows),
+            "subcodes": subcodes_cnt,
+            "direct": direct_cnt,
+            "managers": mgr_cnt
+        }
+    })
 
 @app.route("/api/producers/save", methods=["POST"])
 def api_save_producer():
-    user = get_authenticated_user()
-    data = request.get_json(force=True) or {}
-    pname = str(data.get("producer_name") or data.get("full_name") or "").strip()
-    pcode = str(data.get("producer_code") or "").strip()
-    role = str(data.get("role") or "Ασφαλιστικός Πράκτορας").strip()
-    tier = str(data.get("tier") or "Κατηγορία Α (25% - 29%)").strip()
-    phone = str(data.get("phone") or "26310 51222").strip()
-    email = str(data.get("email") or "partners@lanca.gr").strip()
-    status = str(data.get("status") or "Ενεργός").strip()
-    rate = clean_num(data.get("commission_rate") or data.get("avg_rate") or 25.0)
-    notes = str(data.get("notes") or "").strip()
-    
-    if not pname or not pcode:
-        return jsonify({"error": "Απαιτείται ονοματεπώνυμο και κωδικός συνεργάτη"}), 400
+    try:
+        user = get_authenticated_user()
+        username = user.get("username", "admin") if isinstance(user, dict) else "admin"
+        data = request.get_json(force=True) or {}
+        pname = str(data.get("producer_name") or data.get("full_name") or "").strip()
+        pcode = str(data.get("producer_code") or "").strip()
+        ergo_code = str(data.get("ergo_code") or ("1411" if pcode.isdigit() else "ERGO Portal")).strip()
+        ptype = str(data.get("partner_type") or ("SUBCODE_1411" if pcode.isdigit() else "DIRECT_AGENT")).strip()
+        if pcode in ['1', '3375', '3375A', '3375Α']:
+            ptype = 'AGENCY_MANAGER'
         
-    conn = sqlite3.connect(SQLITE_PATH)
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO producers_catalog (producer_code, full_name, role, tier, phone, email, status, commission_rate, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(producer_code) DO UPDATE SET
-            full_name = excluded.full_name,
-            role = excluded.role,
-            tier = excluded.tier,
-            phone = excluded.phone,
-            email = excluded.email,
-            status = excluded.status,
-            commission_rate = excluded.commission_rate,
-            notes = excluded.notes;
-    """, (pcode, pname, role, tier, phone, email, status, rate, notes))
-    
-    # Update matching movements
-    cur.execute("UPDATE financial_movements SET producer_name = ? WHERE producer_code = ?;", (pname, pcode))
-    conn.commit()
-    conn.close()
-    
-    log_gdpr_audit(user.get("username", "admin"), "SAVE_PRODUCER", f"Saved producer {pcode} - {pname}")
-    return jsonify({"status": "success", "message": f"Ο συνεργάτης '{pname}' ({pcode}) αποθηκεύτηκε επιτυχώς!"})
+        ptype_label = "👑 Agency Manager (ERGO 40071 / 1411)" if ptype == 'AGENCY_MANAGER' else ("🔹 Έμμεσος Υποκωδικός (Μέσω ERGO 1411)" if ptype == 'SUBCODE_1411' else "🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)")
+        
+        role = str(data.get("role") or "Ασφαλιστικός Πράκτορας").strip()
+        hierarchy = str(data.get("hierarchy") or "ΠΑΡΑΓΩΓΟΣ").strip()
+        tier = str(data.get("tier") or ("Έμμεσος Υποκωδικός (25% - 29%)" if ptype == 'SUBCODE_1411' else "Οργανωτική Ομάδα (25% - 29%)")).strip()
+        manager = str(data.get("manager") or "ΙΔΙΟΣ").strip()
+        phone = str(data.get("phone") or "").strip()
+        email = str(data.get("email") or "").strip()
+        address = str(data.get("address") or "").strip()
+        nomos = str(data.get("nomos") or "").strip()
+        status = str(data.get("status") or "Ενεργός").strip()
+        rate = clean_num(data.get("commission_rate") or data.get("avg_rate") or 25.0)
+        notes = str(data.get("notes") or "").strip()
+        
+        if not pname or not pcode:
+            return jsonify({"error": "Απαιτείται ονοματεπώνυμο και κωδικός συνεργάτη"}), 400
+            
+        conn = sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO producers_catalog (producer_code, ergo_code, full_name, partner_type, partner_type_label, role, hierarchy, tier, manager, phone, email, address, nomos, comm_cat, status, commission_rate, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?)
+            ON CONFLICT(producer_code) DO UPDATE SET
+                ergo_code = excluded.ergo_code,
+                full_name = excluded.full_name,
+                partner_type = excluded.partner_type,
+                partner_type_label = excluded.partner_type_label,
+                role = excluded.role,
+                hierarchy = excluded.hierarchy,
+                tier = excluded.tier,
+                manager = excluded.manager,
+                phone = excluded.phone,
+                email = excluded.email,
+                address = excluded.address,
+                nomos = excluded.nomos,
+                status = excluded.status,
+                commission_rate = excluded.commission_rate,
+                notes = excluded.notes;
+        """, (pcode, ergo_code, pname, ptype, ptype_label, role, hierarchy, tier, manager, phone, email, address, nomos, status, rate, notes))
+        
+        # Update matching movements
+        cur.execute("UPDATE financial_movements SET producer_name = ? WHERE producer_code = ?;", (pname, pcode))
+        conn.commit()
+        conn.close()
+        
+        log_gdpr_audit(username, "SAVE_PRODUCER", f"Saved producer {pcode} - {pname}")
+        return jsonify({"status": "success", "success": True, "message": f"Ο συνεργάτης '{pname}' ({pcode}) αποθηκεύτηκε επιτυχώς!"})
+    except Exception as e:
+        print("[Save Producer Error]", e)
+        return jsonify({"error": f"Σφάλμα αποθήκευσης συνεργάτη: {str(e)}"}), 500
 
 @app.route("/api/producers/delete", methods=["POST"])
 def api_delete_producers():
-    user = get_authenticated_user()
-    data = request.get_json(force=True) or {}
-    codes = data.get("producer_codes", [])
-    if not codes:
-        return jsonify({"error": "Δεν επιλέχθηκαν συνεργάτες προς διαγραφή"}), 400
+    try:
+        user = get_authenticated_user()
+        username = user.get("username", "admin") if isinstance(user, dict) else "admin"
+        data = request.get_json(force=True) or {}
+        codes = data.get("producer_codes", [])
+        if not codes:
+            return jsonify({"error": "Δεν επιλέχθηκαν συνεργάτες προς διαγραφή"}), 400
+            
+        conn = sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
+        for code in codes:
+            cur.execute("DELETE FROM producers_catalog WHERE producer_code = ?;", (str(code).strip(),))
+        conn.commit()
+        conn.close()
         
-    conn = sqlite3.connect(SQLITE_PATH)
-    cur = conn.cursor()
-    for code in codes:
-        cur.execute("DELETE FROM producers_catalog WHERE producer_code = ?;", (str(code).strip(),))
-    conn.commit()
-    conn.close()
-    
-    log_gdpr_audit(user.get("username", "admin"), "DELETE_PRODUCERS", f"Deleted producers: {codes}")
-    return jsonify({"status": "success", "message": f"Διαγράφηκαν {len(codes)} συνεργάτες επιτυχώς!"})
+        log_gdpr_audit(username, "DELETE_PRODUCERS", f"Deleted producers: {codes}")
+        return jsonify({"status": "success", "success": True, "message": f"Διαγράφηκαν {len(codes)} συνεργάτες επιτυχώς!"})
+    except Exception as e:
+        print("[Delete Producers Error]", e)
+        return jsonify({"error": f"Σφάλμα διαγραφής: {str(e)}"}), 500
 
 @app.route("/api/contracts/update", methods=["POST"])
 def api_update_contract():

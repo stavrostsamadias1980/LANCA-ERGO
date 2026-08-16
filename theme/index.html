@@ -1602,22 +1602,43 @@
         </div>
 
         <!-- ==========================================================================
-             TAB: 🤝 ΜΗΤΡΩΟ ΣΥΝΕΡΓΑΤΩΝ
+             TAB: 🤝 ΜΗΤΡΩΟ & ΟΡΓΑΝΟΓΡΑΜΜΑ ΣΥΝΕΡΓΑΤΩΝ
              ========================================================================== -->
         <div id="tab-producers-reg" class="tab-panel">
             <div class="glass-box">
-                <div class="box-header">
-                    <div class="box-title">🤝 Μητρώο Συνεργατών & Κωδικοί Σύνδεσης με Συμβόλαια</div>
+                <div class="box-header" style="flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <div class="box-title">🤝 Μητρώο Συνεργατών & Οργανόγραμμα Agency 1411 (ERGO 40071)</div>
+                        <p style="font-size:12.5px; color:var(--text-secondary); margin-top:4px;">
+                            Πλήρες αρχείο συνεργατών: <strong>Υποκωδικοί (Μέσω 1411)</strong>, <strong>Οργανωτική Ομάδα (40071)</strong> & <strong>Agency Management</strong>
+                        </p>
+                    </div>
                     <button class="btn-pill btn-primary" onclick="openNewProducerModal()">➕ Προσθήκη Νέου Συνεργάτη</button>
                 </div>
 
+                <!-- 🏷️ Category Filter Chips -->
+                <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+                    <button class="btn-pill btn-primary active-filter" id="filter-btn-all" onclick="filterProducersByType('ALL', this)">
+                        👥 Όλοι οι Συνεργάτες <span class="badge badge-purple" id="cnt-all-producers" style="margin-left:4px; font-size:11px;">0</span>
+                    </button>
+                    <button class="btn-pill btn-ghost" id="filter-btn-subcodes" onclick="filterProducersByType('SUBCODE_1411', this)">
+                        🔹 Έμμεσοι Υποκωδικοί (Μέσω 1411 - Αριθμοί) <span class="badge badge-blue" id="cnt-subcode-producers" style="margin-left:4px; font-size:11px;">0</span>
+                    </button>
+                    <button class="btn-pill btn-ghost" id="filter-btn-direct" onclick="filterProducersByType('DIRECT_AGENT', this)">
+                        🏢 Οργανωτική Ομάδα (Άμεσοι Πράκτορες 40071 - Γράμματα) <span class="badge badge-gold" id="cnt-direct-producers" style="margin-left:4px; font-size:11px;">0</span>
+                    </button>
+                    <button class="btn-pill btn-ghost" id="filter-btn-mgr" onclick="filterProducersByType('AGENCY_MANAGER', this)">
+                        👑 Agency Manager (40071 / 1411) <span class="badge badge-success" id="cnt-mgr-producers" style="margin-left:4px; font-size:11px;">0</span>
+                    </button>
+                </div>
+
                 <div class="table-toolbar">
-                    <div class="toolbar-left">
+                    <div class="toolbar-left" style="flex:1; max-width:480px;">
                         <label class="col-checkbox-label">
                             <input type="checkbox" id="prod-reg-select-all" class="custom-checkbox" onchange="toggleSelectAll('prod-reg')">
                             <span>Επιλογή Όλων</span>
                         </label>
-                        <input type="text" id="prod-reg-search" class="glass-input" placeholder="🔍 Αναζήτηση με Όνομα ή Κωδικό Συνεργάτη..." oninput="filterProducersRegTable()">
+                        <input type="text" id="prod-reg-search" class="glass-input" placeholder="🔍 Αναζήτηση με Όνομα, Κωδικό Γραφείου, ERGO, Νομό, Τηλέφωνο..." oninput="filterProducersRegTable()" style="width:100%;">
                     </div>
                     <div class="toolbar-right">
                         <button class="btn-pill btn-danger" onclick="deleteSelectedProducers()">🗑️ Διαγραφή Επιλεγμένων Συνεργατών</button>
@@ -1630,17 +1651,25 @@
                             <tr>
                                 <th style="width:40px;"></th>
                                 <th>Α/Α</th>
-                                <th>Κωδικός Συνεργάτη</th>
-                                <th>Ονοματεπώνυμο Συνεργάτη</th>
-                                <th>Πλήθος Συμβολαίων</th>
+                                <th>Κωδικός Γραφείου</th>
+                                <th>Κωδικός ERGO</th>
+                                <th>Ονοματεπώνυμο / Επωνυμία</th>
+                                <th>Κατηγορία / Τύπος</th>
+                                <th>Ιεραρχία / Ρόλος</th>
+                                <th>Τηλέφωνο</th>
+                                <th>Email</th>
+                                <th>Νομός</th>
+                                <th>Προμήθεια %</th>
+                                <th>Συμβόλαια</th>
                                 <th>Συνολικά Καθαρά (€)</th>
-                                <th>Συνολική Προμήθεια (€)</th>
-                                <th>Συντελεστής %</th>
-                                <th>Τελευταίος Μήνας</th>
+                                <th>Συν. Προμήθεια (€)</th>
+                                <th>Κατάσταση</th>
                                 <th>Ενέργειες</th>
                             </tr>
                         </thead>
-                        <tbody id="producers-reg-tbody"></tbody>
+                        <tbody id="producers-reg-tbody">
+                            <tr><td colspan="16" style="text-align:center; padding:30px; color:var(--text-muted);">Φόρτωση μητρώου συνεργατών...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -2025,46 +2054,50 @@
          🤝 PRODUCER ADD / EDIT MODAL
          ========================================================================== -->
     <div id="producerModal" class="modal-overlay" onclick="if(event.target===this) closeProducerModal()">
-        <div class="modal-glass-card" style="max-width:580px;">
+        <div class="modal-glass-card" style="max-width:680px;">
             <div class="modal-header">
                 <div>
                     <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="producer-modal-title">
-                        🤝 Στοιχεία Συνεργάτη
+                        🤝 Στοιχεία Συνεργάτη & Σύνδεση ERGO
                     </h3>
-                    <span style="font-size:12px; color:var(--text-secondary);">Διαχείριση στοιχείων και ποσοστού προμήθειας συνεργάτη</span>
+                    <span style="font-size:12px; color:var(--text-secondary);">Διαχείριση στοιχείων, κωδικών γραφείου / ERGO και ιεραρχίας ομάδας</span>
                 </div>
                 <button class="btn-pill btn-ghost" onclick="closeProducerModal()">✕</button>
             </div>
 
-            <form onsubmit="saveProducerModal(event)" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-top:8px;">
+            <form onsubmit="saveProducerModal(event)" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-top:8px;">
                 <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κωδικός Συνεργάτη:</label>
-                    <input type="text" id="prod-form-code" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. SYN-103 ή PR-1411-03" required>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κωδικός Γραφείου:</label>
+                    <input type="text" id="prod-form-code" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. 1, 4Α, 3375A" required>
                 </div>
 
                 <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ονοματεπώνυμο Συνεργάτη:</label>
-                    <input type="text" id="prod-form-name" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. Γεώργιος Παπαδόπουλος" required>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κωδικός ERGO:</label>
+                    <input type="text" id="prod-form-ergo-code" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. 1411, 40071, 9547">
                 </div>
 
                 <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ρόλος / Θέση:</label>
-                    <input type="text" id="prod-form-role" class="glass-input" style="width:100%;" placeholder="π.χ. Ασφαλιστικός Πράκτορας">
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κατηγορία / Τύπος:</label>
+                    <select id="prod-form-type" class="glass-select" style="width:100%;">
+                        <option value="SUBCODE_1411">🔹 Έμμεσος Υποκωδικός (Μέσω 1411)</option>
+                        <option value="DIRECT_AGENT">🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)</option>
+                        <option value="AGENCY_MANAGER">👑 Agency Manager (40071 / 1411)</option>
+                    </select>
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ονοματεπώνυμο / Επωνυμία Συνεργάτη:</label>
+                    <input type="text" id="prod-form-name" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. ΝΙΚΟΣ ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ" required>
                 </div>
 
                 <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κατηγορία Κλιμακίου:</label>
-                    <input type="text" id="prod-form-tier" class="glass-input" style="width:100%;" placeholder="π.χ. Κατηγορία Α (25% - 29%)">
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ιεραρχία / Θέση:</label>
+                    <input type="text" id="prod-form-role" class="glass-input" style="width:100%;" placeholder="π.χ. ΠΑΡΑΓΩΓΟΣ, Ασφαλιστικός Πράκτορας">
                 </div>
 
                 <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Τηλέφωνο:</label>
-                    <input type="text" id="prod-form-phone" class="glass-input" style="width:100%;" placeholder="π.χ. 26310 51222">
-                </div>
-
-                <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Email:</label>
-                    <input type="email" id="prod-form-email" class="glass-input" style="width:100%;" placeholder="π.χ. partner@lanca.gr">
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Υπεύθυνος / Manager:</label>
+                    <input type="text" id="prod-form-manager" class="glass-input" style="width:100%;" placeholder="π.χ. ΙΔΙΟΣ, LANCA">
                 </div>
 
                 <div>
@@ -2073,10 +2106,27 @@
                 </div>
 
                 <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Τηλέφωνο / Κινητό:</label>
+                    <input type="text" id="prod-form-phone" class="glass-input" style="width:100%;" placeholder="π.χ. 26310 51222">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Email:</label>
+                    <input type="text" id="prod-form-email" class="glass-input" style="width:100%;" placeholder="π.χ. partner@lanca.gr">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Νομός / Πόλη:</label>
+                    <input type="text" id="prod-form-nomos" class="glass-input" style="width:100%;" placeholder="π.χ. ΑΙΤΩΛΟΑΚΑΡΝΑΝΙΑΣ">
+                </div>
+
+                <div>
                     <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κατάσταση:</label>
                     <select id="prod-form-status" class="glass-select" style="width:100%;">
+                        <option value="FULL TIME ACTIVE">FULL TIME ACTIVE</option>
+                        <option value="PART TIME ACTIVE">PART TIME ACTIVE</option>
                         <option value="Ενεργός">Ενεργός</option>
-                        <option value="Σε αναστολή">Σε αναστολή</option>
+                        <option value="ΝΕΟΣ ΣΥΝΕΡΓΑΤΗΣ">ΝΕΟΣ ΣΥΝΕΡΓΑΤΗΣ</option>
                         <option value="Ανενεργός">Ανενεργός</option>
                     </select>
                 </div>
@@ -3073,31 +3123,88 @@
             }
         }
 
-        // === 🤝 PRODUCERS REGISTRY TABLE ===
+        // === 🤝 PRODUCERS REGISTRY & ORGANIZATION NETWORK TABLE ===
+        let currentProducerFilter = 'ALL';
+
+        function filterProducersByType(type, btn) {
+            currentProducerFilter = type;
+            document.querySelectorAll('#tab-producers-reg .btn-pill').forEach(b => {
+                if (b.id && b.id.startsWith('filter-btn-')) {
+                    b.classList.remove('btn-primary', 'active-filter');
+                    b.classList.add('btn-ghost');
+                }
+            });
+            if (btn) {
+                btn.classList.remove('btn-ghost');
+                btn.classList.add('btn-primary', 'active-filter');
+            }
+            filterProducersRegTable();
+        }
+
         function renderProducersRegTable(list) {
             const tbody = document.getElementById('producers-reg-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
             
+            // Update counter chips
+            const all = globalData.producersReg || [];
+            const sub = all.filter(p => p.partner_type === 'SUBCODE_1411').length;
+            const dir = all.filter(p => p.partner_type === 'DIRECT_AGENT').length;
+            const mgr = all.filter(p => p.partner_type === 'AGENCY_MANAGER').length;
+
+            const elAll = document.getElementById('cnt-all-producers');
+            const elSub = document.getElementById('cnt-subcode-producers');
+            const elDir = document.getElementById('cnt-direct-producers');
+            const elMgr = document.getElementById('cnt-mgr-producers');
+            if (elAll) elAll.innerText = all.length;
+            if (elSub) elSub.innerText = sub;
+            if (elDir) elDir.innerText = dir;
+            if (elMgr) elMgr.innerText = mgr;
+
             if (!list || list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-muted); font-weight:600;">Δεν υπάρχουν καταχωρημένοι συνεργάτες στο μητρώο. Προσθέστε νέο συνεργάτη με το κουμπί ➕ παραπάνω.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:30px; color:var(--text-muted); font-weight:600;">Δεν βρέθηκαν συνεργάτες με τα επιλεγμένα κριτήρια.</td></tr>';
                 return;
             }
 
             list.forEach((p, idx) => {
                 const tr = document.createElement('tr');
+                
+                // Badge color based on type
+                let typeBadge = '<span class="badge badge-gold">🏢 Οργανωτική Ομάδα</span>';
+                if (p.partner_type === 'AGENCY_MANAGER') {
+                    typeBadge = '<span class="badge badge-success">👑 Agency Manager (40071 / 1411)</span>';
+                } else if (p.partner_type === 'SUBCODE_1411') {
+                    typeBadge = '<span class="badge badge-blue">🔹 Υποκωδικός (Μέσω 1411)</span>';
+                }
+
+                // Status badge
+                let statusBadge = `<span class="badge badge-purple">${p.status || 'Ενεργός'}</span>`;
+                if ((p.status || '').toUpperCase().includes('FULL TIME')) {
+                    statusBadge = `<span class="badge badge-success">✔ FULL TIME</span>`;
+                } else if ((p.status || '').toUpperCase().includes('PART TIME')) {
+                    statusBadge = `<span class="badge badge-blue">PART TIME</span>`;
+                } else if ((p.status || '').toUpperCase().includes('ΝΕΟΣ')) {
+                    statusBadge = `<span class="badge badge-gold">✨ ΝΕΟΣ</span>`;
+                }
+
                 tr.innerHTML = `
                     <td style="text-align:center;">
                         <input type="checkbox" class="prod-reg-row-check custom-checkbox" value="${p.producer_code}">
                     </td>
                     <td>${idx+1}</td>
-                    <td><span class="badge badge-purple">${p.producer_code || 'PR-1411-01'}</span></td>
+                    <td><strong style="color:var(--brand-navy); font-size:13px;"><span class="badge badge-purple">${p.producer_code}</span></strong></td>
+                    <td><span class="badge badge-ghost" style="font-weight:700;">${p.ergo_code || '-'}</span></td>
                     <td><strong>${p.producer_name}</strong></td>
-                    <td><span class="badge badge-blue">${p.total_policies || 0} συμβόλαια</span></td>
+                    <td>${typeBadge}</td>
+                    <td style="font-size:12px; color:var(--text-secondary);">${p.role || p.hierarchy || 'Πράκτορας'}</td>
+                    <td style="font-size:12px;">${p.phone || '-'}</td>
+                    <td style="font-size:12px; color:var(--brand-blue);">${p.email || '-'}</td>
+                    <td style="font-size:12px;">${p.nomos || '-'}</td>
+                    <td><span class="badge badge-gold">${p.avg_rate || 25}%</span></td>
+                    <td><span class="badge badge-blue">${p.total_policies || 0}</span></td>
                     <td>${formatEur(p.total_net)}</td>
                     <td style="color:var(--accent-gold); font-weight:800;">${formatEur(p.total_commission)}</td>
-                    <td><span class="badge badge-gold">${p.avg_rate || 25}%</span></td>
-                    <td>${p.last_month || '-'}</td>
+                    <td>${statusBadge}</td>
                     <td>
                         <div style="display:flex; gap:4px;">
                             <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditProducerModal('${p.producer_code}')" title="Επεξεργασία">✏️</button>
@@ -3110,24 +3217,39 @@
         }
 
         function filterProducersRegTable() {
-            const q = document.getElementById('prod-reg-search').value.toLowerCase();
-            renderProducersRegTable(globalData.producersReg.filter(p => {
-                return !q || (p.producer_name && p.producer_name.toLowerCase().includes(q)) || 
-                             (p.producer_code && p.producer_code.toLowerCase().includes(q));
-            }));
+            const q = (document.getElementById('prod-reg-search')?.value || '').toLowerCase().trim();
+            const filtered = (globalData.producersReg || []).filter(p => {
+                // 1. Type Filter
+                if (currentProducerFilter !== 'ALL') {
+                    if (p.partner_type !== currentProducerFilter) return false;
+                }
+                // 2. Search Query Filter
+                if (!q) return true;
+                const matchName = (p.producer_name || '').toLowerCase().includes(q);
+                const matchCode = (p.producer_code || '').toLowerCase().includes(q);
+                const matchErgo = (p.ergo_code || '').toLowerCase().includes(q);
+                const matchPhone = (p.phone || '').toLowerCase().includes(q);
+                const matchNomos = (p.nomos || '').toLowerCase().includes(q);
+                const matchRole = (p.role || '').toLowerCase().includes(q);
+                return matchName || matchCode || matchErgo || matchPhone || matchNomos || matchRole;
+            });
+            renderProducersRegTable(filtered);
         }
 
         function openNewProducerModal() {
             document.getElementById('producer-modal-title').innerText = "➕ Προσθήκη Νέου Συνεργάτη";
             document.getElementById('prod-form-code').value = "";
             document.getElementById('prod-form-code').readOnly = false;
+            document.getElementById('prod-form-ergo-code').value = "1411";
+            document.getElementById('prod-form-type').value = "SUBCODE_1411";
             document.getElementById('prod-form-name').value = "";
-            document.getElementById('prod-form-role').value = "Ασφαλιστικός Πράκτορας";
-            document.getElementById('prod-form-tier').value = "Κατηγορία Α (25% - 29%)";
-            document.getElementById('prod-form-phone').value = "26310 51222";
-            document.getElementById('prod-form-email').value = "partners@lanca.gr";
+            document.getElementById('prod-form-role').value = "ΠΑΡΑΓΩΓΟΣ";
+            document.getElementById('prod-form-manager').value = "ΙΔΙΟΣ";
+            document.getElementById('prod-form-phone').value = "";
+            document.getElementById('prod-form-email').value = "";
+            document.getElementById('prod-form-nomos').value = "ΑΙΤΩΛΟΑΚΑΡΝΑΝΙΑΣ";
             document.getElementById('prod-form-rate').value = 25;
-            document.getElementById('prod-form-status').value = "Ενεργός";
+            document.getElementById('prod-form-status').value = "FULL TIME ACTIVE";
             document.getElementById('producerModal').classList.add('active');
         }
 
@@ -3137,11 +3259,14 @@
             document.getElementById('producer-modal-title').innerText = `✏️ Επεξεργασία Συνεργάτη (${code})`;
             document.getElementById('prod-form-code').value = p.producer_code;
             document.getElementById('prod-form-code').readOnly = true;
+            document.getElementById('prod-form-ergo-code').value = p.ergo_code || "";
+            document.getElementById('prod-form-type').value = p.partner_type || "DIRECT_AGENT";
             document.getElementById('prod-form-name').value = p.producer_name || "";
-            document.getElementById('prod-form-role').value = p.role || "Ασφαλιστικός Πράκτορας";
-            document.getElementById('prod-form-tier').value = p.tier || "Κατηγορία Α (25% - 29%)";
-            document.getElementById('prod-form-phone').value = p.phone || "26310 51222";
-            document.getElementById('prod-form-email').value = p.email || "partners@lanca.gr";
+            document.getElementById('prod-form-role').value = p.role || p.hierarchy || "Ασφαλιστικός Πράκτορας";
+            document.getElementById('prod-form-manager').value = p.manager || "ΙΔΙΟΣ";
+            document.getElementById('prod-form-phone').value = (p.phone !== '-' ? p.phone : "") || "";
+            document.getElementById('prod-form-email').value = (p.email !== '-' ? p.email : "") || "";
+            document.getElementById('prod-form-nomos').value = (p.nomos !== '-' ? p.nomos : "") || "";
             document.getElementById('prod-form-rate').value = p.avg_rate || 25;
             document.getElementById('prod-form-status').value = p.status || "Ενεργός";
             document.getElementById('producerModal').classList.add('active');
@@ -3155,11 +3280,14 @@
             e.preventDefault();
             const payload = {
                 producer_code: document.getElementById('prod-form-code').value.trim(),
+                ergo_code: document.getElementById('prod-form-ergo-code').value.trim(),
+                partner_type: document.getElementById('prod-form-type').value,
                 producer_name: document.getElementById('prod-form-name').value.trim(),
                 role: document.getElementById('prod-form-role').value.trim(),
-                tier: document.getElementById('prod-form-tier').value.trim(),
+                manager: document.getElementById('prod-form-manager').value.trim(),
                 phone: document.getElementById('prod-form-phone').value.trim(),
                 email: document.getElementById('prod-form-email').value.trim(),
+                nomos: document.getElementById('prod-form-nomos').value.trim(),
                 commission_rate: parseFloat(document.getElementById('prod-form-rate').value) || 25.0,
                 status: document.getElementById('prod-form-status').value
             };
@@ -3170,15 +3298,15 @@
                     body: JSON.stringify(payload)
                 });
                 const d = await res.json();
-                if (res.ok) {
+                if (res.ok && (d.success || d.status === 'success')) {
                     alert(d.message || "Ο συνεργάτης αποθηκεύτηκε επιτυχώς!");
                     closeProducerModal();
-                    loadAllData();
+                    await loadAllData();
                 } else {
                     alert("Σφάλμα: " + (d.error || "Αποτυχία αποθήκευσης"));
                 }
             } catch (err) {
-                alert("Σφάλμα δικτύου κατά την αποθήκευση!");
+                alert("Σφάλμα κατά την αποθήκευση: " + err.message);
             }
         }
 

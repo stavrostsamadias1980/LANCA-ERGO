@@ -1044,6 +1044,16 @@ def api_get_producers():
         "total_commission": sum(r["producer_commission_amount"] for r in rows)
     })
 
+@app.route("/api/producers/list", methods=["GET"])
+def api_get_producers_list():
+    """Returns the registered producers / partners catalog in LANCA."""
+    producers = [
+        {"producer_code": "1411", "full_name": "Νίκος Αναγνωστόπουλος", "role": "Agency Manager / Συντονιστής", "tier": "Κατηγορία Γ (20% - 35%)", "phone": "6944 347151", "email": "info@lanca.gr", "status": "Ενεργός"},
+        {"producer_code": "SYN-101", "full_name": "Συνεργάτης Δικτύου Α'", "role": "Ασφαλιστικός Πράκτορας", "tier": "Κατηγορία Α (25% - 29%)", "phone": "26310 51222", "email": "partners@lanca.gr", "status": "Ενεργός"},
+        {"producer_code": "SYN-102", "full_name": "Συνεργάτης Δικτύου Β'", "role": "Ασφαλιστικός Πράκτορας", "tier": "Κατηγορία Α (25% - 29%)", "phone": "26310 51222", "email": "partners@lanca.gr", "status": "Ενεργός"}
+    ]
+    return jsonify({"producers": producers, "count": len(producers)})
+
 @app.route("/api/coverages", methods=["GET"])
 def api_get_coverages():
     """Returns all individual coverages from UATOP615."""

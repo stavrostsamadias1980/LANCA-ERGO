@@ -2119,18 +2119,28 @@
             document.getElementById(cardId)?.classList.add('expanded');
         }
 
+        const safeFetch = async (url, fallback = {}) => {
+            try {
+                const r = await fetch(url);
+                if (r.ok) return await r.json();
+                return fallback;
+            } catch (e) {
+                return fallback;
+            }
+        };
+
         // === 📊 DATA LOADING ENGINE (SYNCHRONIZED PROMISE.ALL) ===
         async function loadAllData() {
             try {
                 const [resDash, resCont, resAgn, resProd, resCov, resRecon, resProdReg, resDocs] = await Promise.all([
-                    fetch('/api/dashboard/summary').then(r => r.json()),
-                    fetch('/api/contracts').then(r => r.json()),
-                    fetch('/api/agency').then(r => r.json()),
-                    fetch('/api/producers').then(r => r.json()),
-                    fetch('/api/coverages').then(r => r.json()),
-                    fetch('/api/reconciliation').then(r => r.json()),
-                    fetch('/api/producers/list').then(r => r.json()),
-                    fetch('/api/docs/list').then(r => r.json())
+                    safeFetch('/api/dashboard/summary', { monthly_summary: [], kpis: {} }),
+                    safeFetch('/api/contracts', { contracts: [] }),
+                    safeFetch('/api/agency', { overridings: [] }),
+                    safeFetch('/api/producers', { commissions: [] }),
+                    safeFetch('/api/coverages', { coverages: [] }),
+                    safeFetch('/api/reconciliation', { table_a_monthly: [] }),
+                    safeFetch('/api/producers/list', { producers: [] }),
+                    safeFetch('/api/docs/list', { docs: [] })
                 ]);
 
                 globalData.summary = resDash;
@@ -2161,16 +2171,16 @@
                     document.getElementById('exp-count').innerText = resDash.kpis.total_count || globalData.contracts.length;
                 }
 
-                // 2. Render all tables (now that contracts are 100% loaded)
-                renderDashboardTable(resDash.monthly_summary || []);
-                renderCRMTable(globalData.contracts);
-                renderAgencyTable(globalData.agency);
-                renderProducersTable(globalData.producers);
-                renderCategoryTables();
-                renderCoveragesTable(globalData.coverages);
-                renderReconTable(globalData.reconciliation);
-                renderProducersRegTable(globalData.producersReg);
-                renderPDFDocs(globalData.docs);
+                // 2. Render all tables safely
+                try { renderDashboardTable(resDash.monthly_summary || []); } catch(e) { console.error("renderDashboardTable error:", e); }
+                try { renderCRMTable(globalData.contracts); } catch(e) { console.error("renderCRMTable error:", e); }
+                try { renderAgencyTable(globalData.agency); } catch(e) { console.error("renderAgencyTable error:", e); }
+                try { renderProducersTable(globalData.producers); } catch(e) { console.error("renderProducersTable error:", e); }
+                try { renderCategoryTables(); } catch(e) { console.error("renderCategoryTables error:", e); }
+                try { renderCoveragesTable(globalData.coverages); } catch(e) { console.error("renderCoveragesTable error:", e); }
+                try { renderReconTable(globalData.reconciliation); } catch(e) { console.error("renderReconTable error:", e); }
+                try { renderProducersRegTable(globalData.producersReg); } catch(e) { console.error("renderProducersRegTable error:", e); }
+                try { renderPDFDocs(globalData.docs); } catch(e) { console.error("renderPDFDocs error:", e); }
 
             } catch (e) {
                 console.error("Data load error:", e);

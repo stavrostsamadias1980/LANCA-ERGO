@@ -2428,73 +2428,121 @@
             </form>
             </div><!-- end prod-tab-info -->
 
-            <!-- TAB: Προμήθειες -->
-            <div id="prod-tab-comm" style="display:none; padding-top:14px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
-                <!-- Quick settings bar -->
-                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
-                    <div style="flex:1; min-width:180px;">
-                        <label style="font-size:11px; font-weight:700; color:var(--text-secondary);">Ποσοστό Απόδοσης Υποκωδικού:</label>
-                        <select id="pcard-split-pct" class="glass-select" style="width:100%; margin-top:4px;" onchange="loadProducerCardComm()">
-                            <option value="50">50% (Υποκωδικός 50/50)</option>
-                            <option value="60">60%</option>
-                            <option value="70">70%</option>
-                            <option value="80">80%</option>
-                            <option value="100">100% (Ανεξάρτητος)</option>
-                        </select>
+            <!-- TAB: Προμήθειες — 2 sections: Κλίμακα + Εκκαθαριστήριο -->
+            <div id="prod-tab-comm" style="display:none; flex:1; display:flex; flex-direction:column; overflow:hidden; padding-top:10px; gap:14px;">
+
+                <!-- ═══════════════════════════════════════════════════
+                     SECTION 1: ΚΛΙΜΑΚΑ ΠΡΟΜΗΘΕΙΩΝ ΑΝΑ ΠΑΚΕΤΟ
+                     ═══════════════════════════════════════════════════ -->
+                <div style="background:rgba(219,234,254,0.25); border:1px solid rgba(59,130,246,0.2); border-radius:16px; padding:14px 16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <div style="font-size:13px; font-weight:800; color:var(--brand-navy);">📊 Κλίμακα Προμηθειών ανά Πακέτο & Έτος</div>
+                            <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Ορίστε το % προμήθειας ανά πακέτο για κάθε έτος. Από το 5ο έτος+ = 0% εκτός αν αλλάξετε. Ενεργοποιήστε «Σταθερή/Ισόβια» για ένα σταθερό ποσοστό μέχρι λήξη.</div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn-pill btn-ghost" style="font-size:11px; padding:4px 12px;" onclick="resetProducerMatrix()">↺ Επαναφορά Defaults</button>
+                            <button class="btn-pill btn-primary" style="font-size:12px; padding:5px 16px;" onclick="saveProducerMatrix()">💾 Αποθήκευση Κλίμακας</button>
+                        </div>
                     </div>
-                    <div style="flex:1; min-width:160px;">
-                        <label style="font-size:11px; font-weight:700; color:var(--text-secondary);">Έτος / Μήνας:</label>
-                        <input type="text" id="pcard-period" class="glass-input" placeholder="π.χ. 2025 ή 2025/06" style="width:100%; margin-top:4px;" onchange="loadProducerCardComm()">
+
+                    <div style="overflow-x:auto;">
+                        <table class="glass-table" id="pcard-matrix-table" style="font-size:12px; min-width:680px;">
+                            <thead>
+                                <tr style="background:rgba(30,58,95,0.08);">
+                                    <th style="min-width:180px;">📦 Πακέτο Ασφάλισης</th>
+                                    <th style="text-align:center; color:var(--accent-emerald); min-width:80px;">Έτος 1<br><span style="font-size:9px; font-weight:400;">(Νέα Παραγωγή)</span></th>
+                                    <th style="text-align:center; color:var(--brand-blue); min-width:80px;">Έτος 2</th>
+                                    <th style="text-align:center; color:var(--brand-blue); min-width:80px;">Έτος 3</th>
+                                    <th style="text-align:center; color:var(--accent-gold); min-width:80px;">Έτος 4</th>
+                                    <th style="text-align:center; color:var(--text-muted); min-width:80px;">Έτος 5+<br><span style="font-size:9px; font-weight:400;">(default 0%)</span></th>
+                                    <th style="text-align:center; min-width:100px;">⏳ Σταθερή<br>Ισόβια</th>
+                                    <th style="text-align:center; min-width:80px;">Σταθερό %<br><span style="font-size:9px; font-weight:400;">(αν ισόβια)</span></th>
+                                    <th style="min-width:120px;">Σημειώσεις</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pcard-matrix-tbody">
+                                <tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-muted);">⏳ Φόρτωση κλίμακας...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <button class="btn-pill btn-primary" style="margin-top:18px;" onclick="loadProducerCardComm()">🔄 Ανανέωση</button>
+                    <div id="pcard-matrix-save-msg" style="display:none; margin-top:8px; padding:8px 12px; background:rgba(16,185,129,0.1); border-radius:8px; font-size:12px; color:var(--accent-emerald); font-weight:700;"></div>
                 </div>
 
-                <!-- 4 KPI Cards -->
-                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px;">
-                    <div style="background:rgba(219,234,254,0.5); padding:12px; border-radius:14px; border:1px solid rgba(59,130,246,0.3); text-align:center;">
-                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΚΑΘΑΡΑ ΑΣΦΑΛΙΣΤΡΑ</div>
-                        <div id="pcard-kpi-net" style="font-size:18px; font-weight:800; color:var(--brand-blue); margin-top:4px;">€ —</div>
+                <!-- ═══════════════════════════════════════════════════
+                     SECTION 2: ΕΚΚΑΘΑΡΙΣΤΗΡΙΟ ΑΠΟΔΟΣΕΩΝ
+                     ═══════════════════════════════════════════════════ -->
+                <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; background:rgba(237,233,254,0.2); border:1px solid rgba(139,92,246,0.15); border-radius:16px; padding:14px 16px; gap:10px;">
+                    <div style="font-size:13px; font-weight:800; color:var(--brand-navy);">💰 Εκκαθαριστήριο Αποδόσεων Συνεργάτη</div>
+
+                    <!-- Controls -->
+                    <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:160px;">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-secondary);">Ποσοστό Απόδοσης (%):</label>
+                            <select id="pcard-split-pct" class="glass-select" style="width:100%; margin-top:4px;" onchange="loadProducerCardComm()">
+                                <option value="50">50% (Υποκωδικός 50/50)</option>
+                                <option value="60">60%</option>
+                                <option value="70">70%</option>
+                                <option value="80">80%</option>
+                                <option value="100">100% (Ανεξάρτητος)</option>
+                            </select>
+                        </div>
+                        <div style="flex:1; min-width:140px;">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-secondary);">Έτος / Μήνας:</label>
+                            <input type="text" id="pcard-period" class="glass-input" placeholder="π.χ. 2025 ή 2025/06" style="width:100%; margin-top:4px;" onchange="loadProducerCardComm()">
+                        </div>
+                        <button class="btn-pill btn-primary" style="padding:6px 16px; font-size:12px;" onclick="loadProducerCardComm()">🔄 Ανανέωση</button>
                     </div>
-                    <div style="background:rgba(254,243,199,0.5); padding:12px; border-radius:14px; border:1px solid rgba(245,158,11,0.3); text-align:center;">
-                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΠΡΟΜΗΘΕΙΑ ERGO (100%)</div>
-                        <div id="pcard-kpi-ergo" style="font-size:18px; font-weight:800; color:var(--accent-gold); margin-top:4px;">€ —</div>
+
+                    <!-- 4 KPI Cards -->
+                    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+                        <div style="background:rgba(219,234,254,0.5); padding:10px; border-radius:12px; border:1px solid rgba(59,130,246,0.3); text-align:center;">
+                            <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">ΚΑΘΑΡΑ ΑΣΦΑΛΙΣΤΡΑ</div>
+                            <div id="pcard-kpi-net" style="font-size:16px; font-weight:800; color:var(--brand-blue); margin-top:4px;">€ —</div>
+                        </div>
+                        <div style="background:rgba(254,243,199,0.5); padding:10px; border-radius:12px; border:1px solid rgba(245,158,11,0.3); text-align:center;">
+                            <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">ΠΡΟΜΗΘΕΙΑ ERGO (100%)</div>
+                            <div id="pcard-kpi-ergo" style="font-size:16px; font-weight:800; color:var(--accent-gold); margin-top:4px;">€ —</div>
+                        </div>
+                        <div style="background:rgba(209,250,229,0.5); padding:10px; border-radius:12px; border:1px solid rgba(16,185,129,0.3); text-align:center;">
+                            <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">ΠΛΗΡΩΤΕΟ ΣΥΝΕΡΓΑΤΗ</div>
+                            <div id="pcard-kpi-payout" style="font-size:16px; font-weight:800; color:var(--accent-emerald); margin-top:4px;">€ —</div>
+                        </div>
+                        <div style="background:rgba(237,233,254,0.5); padding:10px; border-radius:12px; border:1px solid rgba(139,92,246,0.3); text-align:center;">
+                            <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">ΚΡΑΤΗΣΗ ΓΡΑΦΕΙΟΥ</div>
+                            <div id="pcard-kpi-office" style="font-size:16px; font-weight:800; color:var(--accent-purple); margin-top:4px;">€ —</div>
+                        </div>
                     </div>
-                    <div style="background:rgba(209,250,229,0.5); padding:12px; border-radius:14px; border:1px solid rgba(16,185,129,0.3); text-align:center;">
-                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΠΛΗΡΩΤΕΟ ΥΠΟΚΩΔΙΚΟΥ</div>
-                        <div id="pcard-kpi-payout" style="font-size:18px; font-weight:800; color:var(--accent-emerald); margin-top:4px;">€ —</div>
+
+                    <!-- Breakdown Table -->
+                    <div class="table-responsive" style="flex:1; overflow-y:auto; max-height:calc(96vh - 520px);">
+                        <table class="glass-table" style="font-size:12px;">
+                            <thead>
+                                <tr>
+                                    <th>Αρ. Συμβολαίου</th>
+                                    <th>Πρόγραμμα</th>
+                                    <th style="text-align:center;">Έτος</th>
+                                    <th>Μήνας</th>
+                                    <th>Καθαρά (€)</th>
+                                    <th>Προμ. ERGO (€)</th>
+                                    <th style="color:var(--accent-emerald);">Απόδοση (€)</th>
+                                    <th style="color:var(--accent-purple);">Κράτηση Γρ. (€)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pcard-comm-tbody">
+                                <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:20px;">Πατήστε Ανανέωση για φόρτωση</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div style="background:rgba(237,233,254,0.5); padding:12px; border-radius:14px; border:1px solid rgba(139,92,246,0.3); text-align:center;">
-                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΚΡΑΤΗΣΗ ΓΡΑΦΕΙΟΥ</div>
-                        <div id="pcard-kpi-office" style="font-size:18px; font-weight:800; color:var(--accent-purple); margin-top:4px;">€ —</div>
+
+                    <!-- Footer -->
+                    <div style="display:flex; gap:8px; justify-content:flex-end; padding-top:8px; border-top:1px solid rgba(226,232,240,0.8);">
+                        <button class="btn-pill btn-ghost" style="font-size:11px;" onclick="openProducerHistoryModal(document.getElementById('prod-form-code').value)">📜 360° Ιστορικό</button>
+                        <button class="btn-pill btn-primary" style="font-size:11px;" onclick="printProducerCardPDF()">🖨️ Εκτύπωση</button>
+                        <button class="btn-pill btn-ghost" style="font-size:11px;" onclick="closeProducerModal()">✕ Κλείσιμο</button>
                     </div>
                 </div>
 
-                <!-- Breakdown Table — fills remaining height -->
-                <div class="table-responsive" style="flex:1; overflow-y:auto; max-height:calc(96vh - 340px);">
-                    <table class="glass-table" style="font-size:12px;">
-                        <thead>
-                            <tr>
-                                <th>Αρ. Συμβολαίου</th>
-                                <th>Πρόγραμμα</th>
-                                <th>Μήνας</th>
-                                <th>Καθαρά (€)</th>
-                                <th>Προμ. ERGO (€)</th>
-                                <th>Απόδοση (€)</th>
-                                <th>Κράτηση Γρ. (€)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pcard-comm-tbody">
-                            <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:20px;">Επιλέξτε ποσοστό και πατήστε Ανανέωση</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Footer Actions -->
-                <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);">
-                    <button class="btn-pill btn-ghost" onclick="openProducerHistoryModal(document.getElementById('prod-form-code').value)">📜 360° Ιστορικό</button>
-                    <button class="btn-pill btn-primary" onclick="printProducerCardPDF()">🖨️ Εκτύπωση Κατάστασης</button>
-                    <button class="btn-pill btn-ghost" onclick="closeProducerModal()">✕ Κλείσιμο</button>
-                </div>
             </div><!-- end prod-tab-comm -->
 
         </div>
@@ -4008,6 +4056,208 @@
             } catch (e) {
                 alert("Σφάλμα κατά τη διαγραφή: " + e.message);
             }
+        }
+
+        function switchProducerModalTab(tab) {
+            const infoDiv  = document.getElementById('prod-tab-info');
+            const commDiv  = document.getElementById('prod-tab-comm');
+            const btnInfo  = document.getElementById('prod-tab-btn-info');
+            const btnComm  = document.getElementById('prod-tab-btn-comm');
+            if (!infoDiv || !commDiv) return;
+
+            const blue = 'var(--brand-blue)';
+            const mute = 'var(--text-muted)';
+
+            if (tab === 'comm') {
+                infoDiv.style.display = 'none';
+                commDiv.style.display = 'flex';
+                commDiv.style.flexDirection = 'column';
+                commDiv.style.overflow = 'hidden';
+                commDiv.style.flex = '1';
+                if (btnInfo) { btnInfo.style.borderBottomColor = 'transparent'; btnInfo.style.color = mute; }
+                if (btnComm) { btnComm.style.borderBottomColor = blue; btnComm.style.color = blue; }
+                // Φόρτωσε κλίμακα και εκκαθαριστήριο
+                loadProducerMatrix();
+                loadProducerCardComm();
+            } else {
+                infoDiv.style.display = '';
+                infoDiv.style.overflowY = 'auto';
+                infoDiv.style.flex = '1';
+                commDiv.style.display = 'none';
+                if (btnInfo) { btnInfo.style.borderBottomColor = blue; btnInfo.style.color = blue; }
+                if (btnComm) { btnComm.style.borderBottomColor = 'transparent'; btnComm.style.color = mute; }
+            }
+        }
+
+        // ============================================================
+        // ΚΛΙΜΑΚΑ ΠΡΟΜΗΘΕΙΩΝ ΑΝΑ ΣΥΝΕΡΓΑΤΗ & ΠΑΚΕΤΟ
+        // ============================================================
+
+        // Defaults ανά προϊόν (ίδια με backend STANDARD_PRODUCTS)
+        const PRODUCT_DEFAULTS = [
+            { product_name: "ERGO Health Care Superior", year_1_rate: 29, year_2_rate: 20, year_3_rate: 15, year_4_rate: 10, year_5plus_rate: 0 },
+            { product_name: "ERGO Health Care Advanced",  year_1_rate: 29, year_2_rate: 20, year_3_rate: 15, year_4_rate: 10, year_5plus_rate: 0 },
+            { product_name: "ERGO Health Care Simple",    year_1_rate: 25, year_2_rate: 18, year_3_rate: 12, year_4_rate:  8, year_5plus_rate: 0 },
+            { product_name: "ERGO Life Protect",          year_1_rate: 25, year_2_rate: 20, year_3_rate: 15, year_4_rate: 10, year_5plus_rate: 0 },
+            { product_name: "ERGO My Saving Simple",      year_1_rate: 15, year_2_rate: 10, year_3_rate:  7, year_4_rate:  5, year_5plus_rate: 0 },
+        ];
+
+        let _producerMatrix = []; // cached loaded matrix
+
+        async function loadProducerMatrix() {
+            const code = document.getElementById('prod-form-code')?.value?.trim();
+            const tbody = document.getElementById('pcard-matrix-tbody');
+            if (!code || !tbody) return;
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:16px; color:var(--text-muted);">⏳ Φόρτωση κλίμακας...</td></tr>';
+            try {
+                const res  = await fetch(`/api/producers/${encodeURIComponent(code)}/commission-matrix`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    _producerMatrix = data.matrix;
+                    renderProducerMatrix(_producerMatrix);
+                } else {
+                    renderProducerMatrix(PRODUCT_DEFAULTS);
+                }
+            } catch(e) {
+                renderProducerMatrix(PRODUCT_DEFAULTS);
+            }
+        }
+
+        function renderProducerMatrix(matrix) {
+            const tbody = document.getElementById('pcard-matrix-tbody');
+            if (!tbody) return;
+
+            // Χρωματισμός κατηγορίας
+            const catColor = { 'ERGO Health Care': '#0891b2', 'ERGO Life': '#7c3aed', 'ERGO My Saving': '#059669' };
+            const getCat = name => Object.keys(catColor).find(k => name.startsWith(k));
+
+            tbody.innerHTML = matrix.map((row, idx) => {
+                const cat   = getCat(row.product_name) || '';
+                const color = catColor[cat] || '#1e3a5f';
+                const isFixed = row.is_fixed_lifetime ? 'checked' : '';
+                const fixedDisplay = row.is_fixed_lifetime ? 'inline-block' : 'none';
+                return `
+                <tr id="pmatrix-row-${idx}" style="transition: background 0.2s;">
+                    <td>
+                        <div style="font-weight:700; font-size:12px; color:${color};">${row.product_name}</div>
+                    </td>
+                    <td style="text-align:center;">
+                        <input type="number" class="glass-input" id="pm-y1-${idx}" value="${row.year_1_rate ?? 0}"
+                            min="0" max="100" step="0.5"
+                            style="width:62px; text-align:center; font-weight:700; color:var(--accent-emerald); padding:4px 6px; font-size:13px;"
+                            oninput="highlightMatrixRow(${idx})">%
+                    </td>
+                    <td style="text-align:center;">
+                        <input type="number" class="glass-input" id="pm-y2-${idx}" value="${row.year_2_rate ?? 0}"
+                            min="0" max="100" step="0.5"
+                            style="width:62px; text-align:center; font-weight:700; color:var(--brand-blue); padding:4px 6px; font-size:13px;"
+                            oninput="highlightMatrixRow(${idx})">%
+                    </td>
+                    <td style="text-align:center;">
+                        <input type="number" class="glass-input" id="pm-y3-${idx}" value="${row.year_3_rate ?? 0}"
+                            min="0" max="100" step="0.5"
+                            style="width:62px; text-align:center; font-weight:700; color:var(--brand-blue); padding:4px 6px; font-size:13px;"
+                            oninput="highlightMatrixRow(${idx})">%
+                    </td>
+                    <td style="text-align:center;">
+                        <input type="number" class="glass-input" id="pm-y4-${idx}" value="${row.year_4_rate ?? 0}"
+                            min="0" max="100" step="0.5"
+                            style="width:62px; text-align:center; font-weight:700; color:var(--accent-gold); padding:4px 6px; font-size:13px;"
+                            oninput="highlightMatrixRow(${idx})">%
+                    </td>
+                    <td style="text-align:center;">
+                        <input type="number" class="glass-input" id="pm-y5-${idx}" value="${row.year_5plus_rate ?? 0}"
+                            min="0" max="100" step="0.5"
+                            style="width:62px; text-align:center; font-weight:700; color:var(--text-muted); padding:4px 6px; font-size:13px;"
+                            oninput="highlightMatrixRow(${idx})">%
+                    </td>
+                    <td style="text-align:center;">
+                        <label style="display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; font-size:11px; font-weight:700;">
+                            <input type="checkbox" id="pm-fixed-${idx}" ${isFixed}
+                                onchange="toggleFixedLifetime(${idx})"
+                                style="width:16px; height:16px; cursor:pointer; accent-color:var(--accent-emerald);">
+                            Ισόβια
+                        </label>
+                    </td>
+                    <td style="text-align:center;">
+                        <span id="pm-fixed-wrap-${idx}" style="display:${fixedDisplay};">
+                            <input type="number" class="glass-input" id="pm-fixed-rate-${idx}" value="${row.fixed_lifetime_rate ?? 0}"
+                                min="0" max="100" step="0.5"
+                                style="width:62px; text-align:center; font-weight:700; color:var(--accent-emerald); padding:4px 6px; font-size:13px;">%
+                        </span>
+                        <span id="pm-fixed-na-${idx}" style="display:${row.is_fixed_lifetime ? 'none' : 'inline'}; color:var(--text-muted); font-size:11px;">—</span>
+                    </td>
+                    <td>
+                        <input type="text" class="glass-input" id="pm-notes-${idx}" value="${row.notes || ''}"
+                            placeholder="π.χ. Ειδική συμφωνία 2025"
+                            style="width:100%; font-size:11px; padding:4px 8px;">
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function highlightMatrixRow(idx) {
+            const row = document.getElementById(`pmatrix-row-${idx}`);
+            if (row) {
+                row.style.background = 'rgba(245,158,11,0.08)';
+                setTimeout(() => { if (row) row.style.background = ''; }, 1500);
+            }
+        }
+
+        function toggleFixedLifetime(idx) {
+            const isChecked = document.getElementById(`pm-fixed-${idx}`)?.checked;
+            const wrap = document.getElementById(`pm-fixed-wrap-${idx}`);
+            const na   = document.getElementById(`pm-fixed-na-${idx}`);
+            if (wrap) wrap.style.display = isChecked ? 'inline-block' : 'none';
+            if (na)   na.style.display   = isChecked ? 'none' : 'inline';
+        }
+
+        async function saveProducerMatrix() {
+            const code = document.getElementById('prod-form-code')?.value?.trim();
+            if (!code) return;
+            const msgEl = document.getElementById('pcard-matrix-save-msg');
+
+            const matrix = _producerMatrix.map((row, idx) => ({
+                product_name:        row.product_name,
+                year_1_rate:         parseFloat(document.getElementById(`pm-y1-${idx}`)?.value) || 0,
+                year_2_rate:         parseFloat(document.getElementById(`pm-y2-${idx}`)?.value) || 0,
+                year_3_rate:         parseFloat(document.getElementById(`pm-y3-${idx}`)?.value) || 0,
+                year_4_rate:         parseFloat(document.getElementById(`pm-y4-${idx}`)?.value) || 0,
+                year_5plus_rate:     parseFloat(document.getElementById(`pm-y5-${idx}`)?.value) || 0,
+                is_fixed_lifetime:   document.getElementById(`pm-fixed-${idx}`)?.checked ? 1 : 0,
+                fixed_lifetime_rate: parseFloat(document.getElementById(`pm-fixed-rate-${idx}`)?.value) || 0,
+                notes:               document.getElementById(`pm-notes-${idx}`)?.value || ''
+            }));
+
+            try {
+                const res = await fetch(`/api/producers/${encodeURIComponent(code)}/commission-matrix`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matrix })
+                });
+                const d = await res.json();
+                if (msgEl) {
+                    msgEl.style.display = 'block';
+                    if (d.status === 'success') {
+                        msgEl.style.background = 'rgba(16,185,129,0.12)';
+                        msgEl.style.color = 'var(--accent-emerald)';
+                        msgEl.innerText = `✅ ${d.message || 'Η κλίμακα αποθηκεύτηκε επιτυχώς!'}`;
+                    } else {
+                        msgEl.style.background = 'rgba(239,68,68,0.1)';
+                        msgEl.style.color = '#ef4444';
+                        msgEl.innerText = `❌ Σφάλμα: ${d.error || 'Αποτυχία αποθήκευσης'}`;
+                    }
+                    setTimeout(() => { if (msgEl) msgEl.style.display = 'none'; }, 4000);
+                }
+            } catch(err) {
+                if (msgEl) { msgEl.style.display = 'block'; msgEl.innerText = `❌ ${err.message}`; }
+            }
+        }
+
+        function resetProducerMatrix() {
+            if (!confirm('Επαναφορά στις τυπικές τιμές ERGO; Όλες οι τροποποιήσεις θα χαθούν.')) return;
+            _producerMatrix = PRODUCT_DEFAULTS.map(p => ({ ...p, is_fixed_lifetime: 0, fixed_lifetime_rate: 0, notes: '' }));
+            renderProducerMatrix(_producerMatrix);
         }
 
         // === 🤝 PRODUCERS REGISTRY & ORGANIZATION NETWORK TABLE ===

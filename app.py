@@ -416,6 +416,22 @@ def init_databases():
         effective_to TEXT,
         notes TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS partner_commission_matrix (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        producer_code TEXT NOT NULL,
+        product_name TEXT NOT NULL,
+        year_1_rate REAL DEFAULT 29.0,
+        year_2_rate REAL DEFAULT 20.0,
+        year_3_rate REAL DEFAULT 15.0,
+        year_4_rate REAL DEFAULT 10.0,
+        year_5plus_rate REAL DEFAULT 0.0,
+        is_fixed_lifetime INTEGER DEFAULT 0,
+        fixed_lifetime_rate REAL DEFAULT 0.0,
+        notes TEXT,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(producer_code, product_name)
+    );
     """)
 
     # Schema Migrations
@@ -1416,9 +1432,11 @@ def api_get_subcode_payout_statement():
     query = """
         SELECT 
             m.*,
-            c.afm, c.phone_mobile, c.email, c.city
+            c.afm, c.phone_mobile, c.email, c.city,
+            pol.issue_date
         FROM financial_movements m
         LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN policies pol ON pol.policy_number = m.policy_number
         WHERE (m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ? OR ? = 'ALL_PRODUCERS')
     """
     params = [producer_code, partner.get("ergo_code", ""), producer_code, partner.get("full_name", ""), producer_code]
@@ -1436,18 +1454,29 @@ def api_get_subcode_payout_statement():
         cur.execute("""
             SELECT 
                 m.*,
-                c.afm, c.phone_mobile, c.email, c.city
+                c.afm, c.phone_mobile, c.email, c.city,
+                pol.issue_date
             FROM financial_movements m
             LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+            LEFT JOIN policies pol ON pol.policy_number = m.policy_number
             ORDER BY m.iso_date DESC LIMIT 20;
         """)
         raw_contracts = [dict(r) for r in cur.fetchall()]
         
+    # Load Partner Commission Matrix
+    cur.execute("SELECT * FROM partner_commission_matrix WHERE producer_code = ?", (producer_code,))
+    matrix_rows = cur.fetchall()
+    matrix = {r["product_name"]: dict(r) for r in matrix_rows}
+    # Load default matrix for fallback
+    default_matrix = {d["product_name"]: d for d in STANDARD_PRODUCTS}
+
     statement_items = []
     tot_net = 0.0
     tot_ergo_comm = 0.0
     tot_subcode_payout = 0.0
     tot_office_retention = 0.0
+    
+    import re
     
     for c in raw_contracts:
         net = float(c.get("net_premium_total", 0.0))
@@ -1455,8 +1484,59 @@ def api_get_subcode_payout_statement():
         ergo_agn_over = float(c.get("agency_overriding_amount", 0.0))
         ergo_total_comm = ergo_syn_comm + ergo_agn_over
         
-        sub_rate = split_pct / 100.0
-        sub_payout = round(ergo_syn_comm * sub_rate, 2) if ergo_syn_comm > 0 else round(net * 0.25 * sub_rate, 2)
+        # Determine Product
+        package = c.get("package_name") or ""
+        # Find matching product in matrix
+        prod_rules = matrix.get(package)
+        if not prod_rules:
+            # Try to match by prefix (e.g. ERGO Health Care Superior)
+            for mk in matrix.keys():
+                if mk in package:
+                    prod_rules = matrix[mk]
+                    break
+        if not prod_rules:
+            for dk in default_matrix.keys():
+                if dk in package:
+                    prod_rules = default_matrix[dk]
+                    break
+        
+        # Calculate Policy Year
+        pol_num = str(c.get("policy_number", ""))
+        statement_yr_str = str(c.get("statement_month", "2026"))[:4]
+        try:
+            movement_year = int(statement_yr_str) if statement_yr_str.isdigit() else 2026
+        except:
+            movement_year = 2026
+            
+        start_year = movement_year
+        if re.match(r'^(19|20)\d{2}', pol_num):
+            start_year = int(pol_num[:4])
+        elif c.get("issue_date"):
+            start_year = int(str(c.get("issue_date"))[:4])
+            
+        policy_year = movement_year - start_year + 1
+        if policy_year < 1:
+            policy_year = 1
+            
+        # Determine Custom Payout Rate from Matrix
+        applicable_rate = 0.0
+        if prod_rules:
+            if prod_rules.get("is_fixed_lifetime"):
+                applicable_rate = float(prod_rules.get("fixed_lifetime_rate", 0.0))
+            else:
+                if policy_year == 1: applicable_rate = float(prod_rules.get("year_1_rate", 0.0))
+                elif policy_year == 2: applicable_rate = float(prod_rules.get("year_2_rate", 0.0))
+                elif policy_year == 3: applicable_rate = float(prod_rules.get("year_3_rate", 0.0))
+                elif policy_year == 4: applicable_rate = float(prod_rules.get("year_4_rate", 0.0))
+                else: applicable_rate = float(prod_rules.get("year_5plus_rate", 0.0))
+        else:
+            # No product rule matched, fallback to the dropdown split %
+            applicable_rate = split_pct
+            
+        sub_payout = round(net * (applicable_rate / 100.0), 2)
+        # Never payout more than we receive (unless office decides to subsidize, but ERGO doesn't pay more)
+        # In this implementation, the sub_payout is directly based on the net premium and the chosen rate.
+        
         office_retention = round(ergo_total_comm - sub_payout, 2)
         
         tot_net += net
@@ -1471,12 +1551,12 @@ def api_get_subcode_payout_statement():
             "movement_date": c.get("movement_date"),
             "client_name": c.get("client_name"),
             "afm": c.get("afm", "-"),
-            "package_name": c.get("package_name"),
-            "policy_year": c.get("policy_year", 1),
+            "package_name": package,
+            "policy_year": policy_year,
             "net_premium": net,
             "ergo_commission_total": ergo_total_comm,
             "ergo_comm_pct": round(ergo_total_comm / net * 100, 2) if net > 0 else 0.0,
-            "subcode_split_pct": split_pct,
+            "subcode_split_pct": applicable_rate,
             "subcode_payout_amount": sub_payout,
             "office_retention_amount": office_retention,
             "producer_name": partner.get("full_name"),
@@ -1524,6 +1604,84 @@ def api_commission_rules_matrix():
     conn.close()
     return jsonify({"status": "success", "schemes": schemes})
 
+
+# ============================================================
+# PER-PARTNER COMMISSION MATRIX (ΚΛΙΜΑΚΑ ΑΝΑ ΣΥΝΕΡΓΑΤΗ)
+# ============================================================
+
+STANDARD_PRODUCTS = [
+    {"product_name": "ERGO Health Care Superior", "branch_category": "HEALTH",   "year_1_rate": 29.0, "year_2_rate": 20.0, "year_3_rate": 15.0, "year_4_rate": 10.0, "year_5plus_rate": 0.0},
+    {"product_name": "ERGO Health Care Advanced",  "branch_category": "HEALTH",   "year_1_rate": 29.0, "year_2_rate": 20.0, "year_3_rate": 15.0, "year_4_rate": 10.0, "year_5plus_rate": 0.0},
+    {"product_name": "ERGO Health Care Simple",    "branch_category": "HEALTH",   "year_1_rate": 25.0, "year_2_rate": 18.0, "year_3_rate": 12.0, "year_4_rate":  8.0, "year_5plus_rate": 0.0},
+    {"product_name": "ERGO Life Protect",          "branch_category": "LIFE",     "year_1_rate": 25.0, "year_2_rate": 20.0, "year_3_rate": 15.0, "year_4_rate": 10.0, "year_5plus_rate": 0.0},
+    {"product_name": "ERGO My Saving Simple",      "branch_category": "SAVINGS",  "year_1_rate": 15.0, "year_2_rate": 10.0, "year_3_rate":  7.0, "year_4_rate":  5.0, "year_5plus_rate": 0.0},
+]
+
+@app.route("/api/producers/<producer_code>/commission-matrix", methods=["GET", "POST"])
+def api_partner_commission_matrix(producer_code):
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    if request.method == "POST":
+        data = request.get_json(force=True) or {}
+        rows = data.get("matrix", [])
+        for row in rows:
+            cur.execute("""
+                INSERT INTO partner_commission_matrix
+                    (producer_code, product_name, year_1_rate, year_2_rate, year_3_rate, year_4_rate,
+                     year_5plus_rate, is_fixed_lifetime, fixed_lifetime_rate, notes, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(producer_code, product_name) DO UPDATE SET
+                    year_1_rate        = excluded.year_1_rate,
+                    year_2_rate        = excluded.year_2_rate,
+                    year_3_rate        = excluded.year_3_rate,
+                    year_4_rate        = excluded.year_4_rate,
+                    year_5plus_rate    = excluded.year_5plus_rate,
+                    is_fixed_lifetime  = excluded.is_fixed_lifetime,
+                    fixed_lifetime_rate= excluded.fixed_lifetime_rate,
+                    notes              = excluded.notes,
+                    updated_at         = CURRENT_TIMESTAMP;
+            """, (
+                producer_code,
+                row.get("product_name"),
+                float(row.get("year_1_rate",    29.0)),
+                float(row.get("year_2_rate",    20.0)),
+                float(row.get("year_3_rate",    15.0)),
+                float(row.get("year_4_rate",    10.0)),
+                float(row.get("year_5plus_rate",  0.0)),
+                1 if row.get("is_fixed_lifetime") else 0,
+                float(row.get("fixed_lifetime_rate", 0.0)),
+                row.get("notes", "")
+            ))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success", "message": f"Κλίμακα αποθηκεύτηκε για {producer_code}"})
+
+    # GET — load saved matrix, fill gaps with defaults
+    cur.execute("""
+        SELECT * FROM partner_commission_matrix WHERE producer_code = ? ORDER BY product_name;
+    """, (producer_code,))
+    saved = {r["product_name"]: dict(r) for r in cur.fetchall()}
+    conn.close()
+
+    # Merge saved with defaults
+    result = []
+    for prod in STANDARD_PRODUCTS:
+        name = prod["product_name"]
+        if name in saved:
+            row = saved[name]
+        else:
+            row = {**prod, "producer_code": producer_code, "is_fixed_lifetime": 0, "fixed_lifetime_rate": 0.0, "notes": ""}
+        result.append(row)
+
+    return jsonify({"status": "success", "producer_code": producer_code, "matrix": result})
+
+
+@app.route("/api/commission-schemes/defaults", methods=["GET"])
+def api_commission_defaults():
+    """Returns standard ERGO commission defaults for all products."""
+    return jsonify({"status": "success", "products": STANDARD_PRODUCTS})
 
 
 @app.route("/api/coverages", methods=["GET"])

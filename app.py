@@ -2620,8 +2620,6 @@ def api_update_contract():
     cur.execute("""
         UPDATE financial_movements 
         SET client_name = COALESCE(NULLIF(?, ''), client_name),
-            afm = COALESCE(NULLIF(?, ''), afm),
-            phone_mobile = COALESCE(NULLIF(?, ''), phone_mobile),
             net_premium_total = CASE WHEN ? > 0 THEN ? ELSE net_premium_total END,
             producer_commission_amount = CASE WHEN ? > 0 THEN ? ELSE producer_commission_amount END,
             agency_overriding_amount = CASE WHEN ? > 0 THEN ? ELSE agency_overriding_amount END,
@@ -2631,7 +2629,16 @@ def api_update_contract():
             producer_org_team = COALESCE(NULLIF(?, ''), producer_org_team),
             package_name = COALESCE(NULLIF(?, ''), package_name)
         WHERE TRIM(policy_number) = ?
-    """, (cname, afm, phone, net, net, pcomm, pcomm, acomm, acomm, pcode, ergo_code, pname, org_team, pkg, pol))
+    """, (cname, net, net, pcomm, pcomm, acomm, acomm, pcode, ergo_code, pname, org_team, pkg, pol))
+    
+    cur.execute("""
+        UPDATE clients
+        SET full_name = COALESCE(NULLIF(?, ''), full_name),
+            afm = COALESCE(NULLIF(?, ''), afm),
+            phone_mobile = COALESCE(NULLIF(?, ''), phone_mobile)
+        WHERE full_name = (SELECT client_name FROM financial_movements WHERE policy_number = ? LIMIT 1)
+           OR client_id LIKE '%' || ? || '%'
+    """, (cname, afm, phone, pol, pol))
     
     cur.execute("""
         UPDATE policies 

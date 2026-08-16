@@ -1955,27 +1955,22 @@
         async function checkAuthOnLoad() {
             const isAuth = sessionStorage.getItem('lanca_authenticated');
             if (isAuth === 'true') {
-                document.getElementById('loginOverlayModal').style.display = 'none';
-                loadAllData();
-            } else {
                 try {
                     const res = await fetch('/api/auth/status');
                     const data = await res.json();
-                    if (data.authenticated) {
-                        sessionStorage.setItem('lanca_authenticated', 'true');
+                    if (data && data.authenticated) {
                         document.getElementById('loginOverlayModal').style.display = 'none';
                         loadAllData();
-                    } else {
-                        document.getElementById('loginOverlayModal').style.display = 'flex';
+                        return;
                     }
-                } catch(e) {
-                    document.getElementById('loginOverlayModal').style.display = 'flex';
-                }
+                } catch(e) {}
             }
+            sessionStorage.removeItem('lanca_authenticated');
+            document.getElementById('loginOverlayModal').style.display = 'flex';
         }
 
         async function handleLoginSubmit(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const u = document.getElementById('loginUsername').value.trim();
             const p = document.getElementById('loginPassword').value.trim();
             const errBox = document.getElementById('loginErrorMsg');
@@ -1992,16 +1987,19 @@
                 if (res.ok && (d.success || d.status === 'success')) {
                     sessionStorage.setItem('lanca_authenticated', 'true');
                     document.getElementById('loginOverlayModal').style.display = 'none';
+                    document.getElementById('tab-dashboard')?.classList.add('active');
+                    document.getElementById('nav-btn-dash')?.classList.add('active');
                     loadAllData();
                 } else {
                     errBox.style.display = 'block';
                     errBox.innerText = d.error || 'Λανθασμένα στοιχεία σύνδεσης! (Χρήστης: 3375 / Κωδικός: Lanca1966a)';
                 }
             } catch(err) {
-                // Fallback direct check for 3375 / Lanca1966a
                 if ((u === '3375' && p === 'Lanca1966a') || (u === 'admin' && p === 'admin')) {
                     sessionStorage.setItem('lanca_authenticated', 'true');
                     document.getElementById('loginOverlayModal').style.display = 'none';
+                    document.getElementById('tab-dashboard')?.classList.add('active');
+                    document.getElementById('nav-btn-dash')?.classList.add('active');
                     loadAllData();
                 } else {
                     errBox.style.display = 'block';
@@ -2015,10 +2013,13 @@
                 try {
                     await fetch('/api/auth/logout', { method: 'POST' });
                 } catch(e) {}
+                sessionStorage.clear();
+                localStorage.clear();
                 sessionStorage.removeItem('lanca_authenticated');
                 document.getElementById('loginPassword').value = '';
                 document.getElementById('loginErrorMsg').style.display = 'none';
                 document.getElementById('loginOverlayModal').style.display = 'flex';
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             }
         }
 
@@ -2057,16 +2058,6 @@
 
             // Scroll to top of content smoothly
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        async function userLogout() {
-            if (confirm("Επιβεβαίωση αποσύνδεσης από την πλατφόρμα LANCA Ι.Κ.Ε.;")) {
-                try {
-                    await fetch('/api/auth/logout', { method: 'POST' });
-                } catch(e) {}
-                alert("Έχετε αποσυνδεθεί επιτυχώς.");
-                window.location.reload();
-            }
         }
 
         // === 🎴 EXPANDING CARDS ===

@@ -828,8 +828,7 @@ def run_etl_seeder(force=False):
             apd_no = kleidi[14:22] if len(kleidi) >= 22 else ""
             agn = round(prom * 0.20, 2)
             comm_pct = round(prom / ask * 100, 2) if ask > 0 else 0.0
-            cov_id = f"COV-2026-{cov_idx:03d}"
-            cov_idx += 1
+            cov_id = f"COV-{pol_no}-{kal_code}"
             cur.execute("""
             INSERT OR REPLACE INTO policy_coverages
             (coverage_id, policy_number, coverage_code, coverage_description, insured_capital, deductible_amount, hospital_class, net_premium, annual_net_premium, producer_commission_rate, producer_commission_amount, agency_overriding_amount, statement_month, receipt_number)
@@ -1889,7 +1888,12 @@ def api_fix_db():
         cur.execute("UPDATE financial_movements SET agency_partner_code = '3375Α'")
         cur.execute("UPDATE policies SET agency_partner_code = '3375Α'")
         conn.commit()
-        return jsonify({"status": "success", "message": "Live database cleaned and updated successfully!"})
+        conn.close()
+        
+        # Trigger ETL seeder force re-sync to deduplicate policy_coverages
+        run_etl_seeder(force=True)
+        
+        return jsonify({"status": "success", "message": "Live database cleaned, deduplicated coverages, and updated successfully!"})
     except Exception as e:
         import traceback
         try: conn.rollback()

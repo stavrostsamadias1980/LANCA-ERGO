@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LANCA Ασφαλιστικές Υπηρεσίες | Σύστημα Εκκαθαρίσεων & Προμηθειών ERGO</title>
+    <title>LANCA Ι.Κ.Ε. | Σύστημα Εκκαθαρίσεων & Προμηθειών ERGO</title>
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,157 +21,148 @@
            Inspired by Apple iOS 17 Pro Max, VisionOS & CodePen NPRPBjd
            ========================================================================== */
         :root {
-            /* 🎨 Palette Tokens */
             --bg-mesh-1: #E0F2FE;
             --bg-mesh-2: #EDE9FE;
             --bg-mesh-3: #FCE7F3;
             --bg-mesh-4: #FEF3C7;
             --bg-mesh-5: #F0FDF4;
             
-            --glass-bg: rgba(255, 255, 255, 0.62);
-            --glass-bg-hover: rgba(255, 255, 255, 0.78);
-            --glass-card: rgba(255, 255, 255, 0.70);
-            --glass-dropdown: rgba(255, 255, 255, 0.88);
-            --glass-border: rgba(255, 255, 255, 0.80);
-            --glass-border-subtle: rgba(226, 232, 240, 0.70);
+            --glass-bg-base: rgba(255, 255, 255, 0.65);
+            --glass-bg-card: rgba(255, 255, 255, 0.72);
+            --glass-bg-dropdown: rgba(255, 255, 255, 0.92);
+            --glass-bg-hover: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.85);
+            --glass-border-subtle: rgba(226, 232, 240, 0.6);
+            --glass-shadow: 0 16px 40px -8px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(255, 255, 255, 0.9) inset;
+            --glass-shadow-lg: 0 24px 60px -12px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(255, 255, 255, 0.95) inset;
+            --glass-shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 0 1px 1px rgba(255, 255, 255, 0.8) inset;
+            
+            --brand-blue: #1D4ED8;
+            --brand-navy: #1E293B;
+            --accent-teal: #0D9488;
+            --accent-purple: #7C3AED;
+            --accent-emerald: #059669;
+            --accent-rose: #E11D48;
+            --accent-gold: #D97706;
             
             --text-primary: #0F172A;
             --text-secondary: #475569;
-            --text-muted: #64748B;
-            --text-light: #94A3B8;
-
-            --brand-navy: #1E293B;
-            --brand-blue: #2F3490;
-            --brand-blue-light: #38BDF8;
-            --accent-teal: #0D9488;
-            --accent-emerald: #10B981;
-            --accent-gold: #D97706;
-            --accent-purple: #8B5CF6;
-            --accent-rose: #F43F5E;
-
-            --shadow-glass: 0 12px 36px 0 rgba(31, 38, 135, 0.08);
-            --shadow-glass-hover: 0 20px 48px 0 rgba(31, 38, 135, 0.13);
-            --shadow-pill: 0 4px 14px rgba(0, 0, 0, 0.05);
-
+            --text-muted: #94A3B8;
+            
             --radius-pill: 9999px;
-            --radius-card: 22px;
-            --radius-modal: 26px;
+            --radius-card: 20px;
+            --radius-box: 24px;
+            
+            --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-fast: all 0.2s ease;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
         body {
-            background-color: #F8FAFC;
-            background-image: 
-                radial-gradient(circle at 10% 15%, rgba(56, 189, 248, 0.22) 0%, transparent 45%),
-                radial-gradient(circle at 90% 10%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(244, 114, 182, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 85% 85%, rgba(52, 211, 153, 0.18) 0%, transparent 45%),
-                radial-gradient(circle at 15% 90%, rgba(251, 191, 36, 0.15) 0%, transparent 45%);
-            background-attachment: fixed;
-            background-size: cover;
-            color: var(--text-primary);
             min-height: 100vh;
-            padding: 24px 20px 60px 20px;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-mesh-1) 0%, var(--bg-mesh-2) 25%, var(--bg-mesh-3) 50%, var(--bg-mesh-4) 75%, var(--bg-mesh-5) 100%);
+            background-attachment: fixed;
+            background-size: 250% 250%;
+            animation: auroraShift 25s ease infinite alternate;
+            padding: 16px;
+            overflow-x: hidden;
         }
 
-        /* Subtle watermarked background logo */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 750px;
-            height: 750px;
-            background-image: url('LANCA-logo.png');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            opacity: 0.035;
-            pointer-events: none;
-            z-index: 0;
+        @keyframes auroraShift {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 50% 100%; }
         }
 
-        .app-container {
-            position: relative;
-            z-index: 1;
-            max-width: 1680px;
+        .portal-wrapper {
+            max-width: 1560px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         /* ==========================================================================
-           💎 FLOATING CRYSTAL NAVIGATION BAR & DROPDOWN MENUS
+           💎 FLOATING GLASS NAVBAR & DROPDOWNS
            ========================================================================== */
         .glass-navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--glass-bg);
+            background: var(--glass-bg-base);
             backdrop-filter: blur(28px);
             -webkit-backdrop-filter: blur(28px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 12px 24px;
-            box-shadow: var(--shadow-glass);
-            margin-bottom: 24px;
+            border-radius: var(--radius-pill);
+            box-shadow: var(--glass-shadow);
+            padding: 8px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             position: sticky;
-            top: 16px;
+            top: 12px;
             z-index: 1000;
         }
 
-        .brand-section {
+        .nav-brand {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             text-decoration: none;
             cursor: pointer;
         }
 
-        .logo-container {
+        .nav-logo-box {
             background: #FFFFFF;
-            padding: 6px 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(226, 232, 240, 0.9);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .logo-container img {
-            height: 40px;
-            max-width: 170px;
+        .nav-logo-box img {
+            height: 30px;
+            width: auto;
             object-fit: contain;
+            display: block;
         }
 
-        .brand-text h1 {
-            font-size: 19px;
+        .nav-brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
             font-weight: 800;
-            background: linear-gradient(135deg, #1E293B 0%, #2F3490 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.2;
+            color: var(--brand-navy);
+            letter-spacing: -0.2px;
         }
 
-        .brand-text p {
-            font-size: 12.5px;
+        .nav-brand-subtitle {
+            font-size: 11px;
             font-weight: 600;
-            color: var(--text-muted);
+            color: var(--accent-teal);
+            letter-spacing: 0.2px;
         }
 
-        /* 🧭 Nav Menu & Dropdowns */
-        .nav-menu-list {
+        .nav-menu-island {
             display: flex;
             align-items: center;
-            gap: 8px;
-            list-style: none;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.45);
+            padding: 4px 6px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
         .nav-item {
@@ -182,941 +173,1135 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 10px 16px;
-            border-radius: var(--radius-pill);
-            font-size: 13.5px;
+            padding: 8px 14px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-secondary);
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid transparent;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-pill);
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: var(--transition-fast);
             text-decoration: none;
-            outline: none;
+            white-space: nowrap;
         }
 
-        .nav-btn:hover, .nav-item:hover .nav-btn {
-            color: var(--brand-navy);
-            background: rgba(255, 255, 255, 0.85);
-            border-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-            transform: translateY(-1px);
+        .nav-btn:hover {
+            color: var(--brand-blue);
+            background: var(--glass-bg-hover);
         }
 
         .nav-btn.active {
             color: #FFFFFF;
-            background: linear-gradient(135deg, #2F3490, #4F46E5);
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
-            border-color: transparent;
+            background: linear-gradient(135deg, var(--brand-blue) 0%, #3B82F6 100%);
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
         }
 
-        /* Dropdown Popup Menu */
-        .dropdown-panel {
+        .nav-dropdown-menu {
             position: absolute;
             top: calc(100% + 10px);
             left: 0;
             min-width: 260px;
-            background: var(--glass-dropdown);
-            backdrop-filter: blur(32px);
-            -webkit-backdrop-filter: blur(32px);
+            background: var(--glass-bg-dropdown);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
             border: 1px solid var(--glass-border);
             border-radius: 18px;
+            box-shadow: var(--glass-shadow-lg);
             padding: 8px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(8px);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 1001;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 1050;
+            animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .nav-item:hover .dropdown-panel {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
+        .nav-item:hover .nav-dropdown-menu {
+            display: flex;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .dropdown-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 14px;
+            padding: 9px 12px;
             border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 600;
+            color: var(--text-primary);
             text-decoration: none;
-            transition: all 0.2s ease;
             cursor: pointer;
+            transition: var(--transition-fast);
         }
 
         .dropdown-item:hover {
-            background: rgba(47, 52, 144, 0.08);
+            background: rgba(29, 78, 216, 0.08);
             color: var(--brand-blue);
-            transform: translateX(4px);
+            transform: translateX(3px);
         }
 
         .dropdown-item .icon {
-            font-size: 16px;
+            font-size: 15px;
         }
 
-        /* Action Buttons */
-        .header-actions {
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(226, 232, 240, 0.7);
+            margin: 4px 6px;
+        }
+
+        .nav-actions {
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--brand-navy);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-emerald);
+            box-shadow: 0 0 8px var(--accent-emerald);
         }
 
         .btn-pill {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
             border-radius: var(--radius-pill);
-            font-size: 13.5px;
-            font-weight: 700;
-            cursor: pointer;
             border: 1px solid transparent;
-            transition: all 0.25s ease;
+            cursor: pointer;
+            transition: var(--transition-fast);
             text-decoration: none;
         }
 
-        .btn-excel {
-            background: linear-gradient(135deg, #10B981, #059669);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--brand-blue) 0%, #3B82F6 100%);
             color: #FFFFFF;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-        }
-        .btn-excel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+            box-shadow: 0 4px 14px rgba(29, 78, 216, 0.28);
         }
 
-        .btn-pdf {
-            background: linear-gradient(135deg, #F43F5E, #E11D48);
-            color: #FFFFFF;
-            box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
-        }
-        .btn-pdf:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(244, 63, 94, 0.45);
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(29, 78, 216, 0.35);
         }
 
         .btn-ghost {
             background: rgba(255, 255, 255, 0.7);
+            color: var(--text-primary);
             border: 1px solid var(--glass-border);
-            color: var(--text-secondary);
         }
+
         .btn-ghost:hover {
             background: #FFFFFF;
-            color: var(--brand-navy);
-            box-shadow: var(--shadow-pill);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-        .status-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: var(--radius-pill);
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            color: #065F46;
-            font-size: 12.5px;
-            font-weight: 700;
-        }
-
-        .chip-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #10B981;
-            box-shadow: 0 0 10px #10B981;
-        }
-
-        /* ==========================================================================
-           🎴 EXPANDING FLEX KPI CARDS (Inspired by CodePen OBPJKK)
-           ========================================================================== */
-        .expanding-cards-container {
-            display: flex;
-            gap: 18px;
-            margin-bottom: 28px;
-            width: 100%;
-            min-height: 190px;
-        }
-
-        .flex-card {
-            flex: 1;
-            background: var(--glass-card);
-            backdrop-filter: blur(28px);
-            -webkit-backdrop-filter: blur(28px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-card);
-            padding: 22px;
-            box-shadow: var(--shadow-glass);
-            cursor: pointer;
-            transition: flex 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, background 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .flex-card:hover {
-            background: var(--glass-bg-hover);
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-glass-hover);
-        }
-
-        /* Active Expanded State */
-        .flex-card.expanded {
-            flex: 2.8;
-            background: rgba(255, 255, 255, 0.88);
-            border-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 20px 48px rgba(31, 38, 135, 0.16);
-            cursor: default;
-        }
-
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        .card-icon-badge {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .flex-card.blue .card-icon-badge { background: linear-gradient(135deg, #38BDF8, #2563EB); color: #FFF; }
-        .flex-card.teal .card-icon-badge { background: linear-gradient(135deg, #2DD4BF, #0D9488); color: #FFF; }
-        .flex-card.gold .card-icon-badge { background: linear-gradient(135deg, #FBBF24, #D97706); color: #FFF; }
-        .flex-card.purple .card-icon-badge { background: linear-gradient(135deg, #C084FC, #7C3AED); color: #FFF; }
-
-        .card-expand-indicator {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: var(--radius-pill);
-            background: rgba(0, 0, 0, 0.05);
-            color: var(--text-muted);
-            transition: all 0.2s ease;
-        }
-        .flex-card.expanded .card-expand-indicator {
-            background: var(--brand-blue);
+        .btn-excel {
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
             color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
         }
 
-        .card-info {
-            display: flex;
-            flex-direction: column;
+        .btn-excel:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35);
         }
 
-        .card-title {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .btn-pdf {
+            background: linear-gradient(135deg, #E11D48 0%, #F43F5E 100%);
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
         }
 
-        .card-value {
-            font-size: 28px;
-            font-weight: 900;
-            color: var(--text-primary);
-            line-height: 1.1;
-            margin-bottom: 4px;
+        .btn-pdf:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(225, 29, 72, 0.35);
         }
 
-        .card-subtext {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-
-        /* Detail metrics shown only when card is expanded */
-        .card-expanded-details {
-            display: none;
-            opacity: 0;
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(226, 232, 240, 0.8);
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        .flex-card.expanded .card-expanded-details {
-            display: block;
-            opacity: 1;
-        }
-
-        .expanded-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 10px;
-        }
-
-        .expanded-metric-box {
-            background: rgba(248, 250, 252, 0.8);
-            padding: 8px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(226, 232, 240, 0.6);
-        }
-
-        .expanded-metric-box .label {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .expanded-metric-box .val {
-            font-size: 14px;
-            color: var(--brand-navy);
-            font-weight: 800;
+        .btn-danger {
+            background: #EF4444;
+            color: #FFF;
         }
 
         /* ==========================================================================
-           📊 GLASS CONTENT PANELS & DATA TABLES
+           🎴 GLASSY DATEPICKER & PERIOD SELECTOR
            ========================================================================== */
-        .tab-panel {
-            display: none;
-            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .tab-panel.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .glass-box {
-            background: var(--glass-card);
-            backdrop-filter: blur(28px);
-            -webkit-backdrop-filter: blur(28px);
+        .period-selector-box {
+            background: var(--glass-bg-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: var(--radius-card);
-            padding: 28px;
-            box-shadow: var(--shadow-glass);
-            margin-bottom: 28px;
-        }
-
-        .box-header {
+            border-radius: var(--radius-box);
+            box-shadow: var(--glass-shadow-card);
+            padding: 14px 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            justify-content: space-between;
             flex-wrap: wrap;
-            gap: 14px;
+            gap: 12px;
         }
 
-        .box-title {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-primary);
+        .period-presets {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .period-pill {
+            padding: 6px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .period-pill:hover {
+            background: #FFFFFF;
+            color: var(--brand-blue);
+        }
+
+        .period-pill.active {
+            background: var(--brand-navy);
+            color: #FFFFFF;
+            border-color: var(--brand-navy);
+        }
+
+        .period-filter-controls {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .filter-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .search-pill {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid var(--glass-border-subtle);
+        .glass-select {
+            padding: 7px 12px;
             border-radius: var(--radius-pill);
-            padding: 8px 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-            transition: all 0.2s ease;
-        }
-        .search-pill:focus-within {
-            border-color: var(--brand-blue-light);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-            background: #FFFFFF;
-        }
-
-        .search-pill input {
-            border: none;
-            background: transparent;
-            outline: none;
-            font-size: 13.5px;
-            color: var(--text-primary);
-            width: 220px;
-        }
-
-        .select-pill {
-            background: rgba(255, 255, 255, 0.8);
             border: 1px solid var(--glass-border-subtle);
-            border-radius: var(--radius-pill);
-            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.85);
             font-size: 13px;
             font-weight: 600;
             color: var(--text-primary);
             outline: none;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-        }
-        .select-pill:focus {
-            border-color: var(--brand-blue-light);
         }
 
-        /* 📋 Table Styles */
+        .glass-input {
+            padding: 7px 14px;
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--glass-border-subtle);
+            background: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            color: var(--text-primary);
+            outline: none;
+            width: 240px;
+            transition: var(--transition-fast);
+        }
+
+        .glass-input:focus {
+            background: #FFFFFF;
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+            width: 280px;
+        }
+
+        /* ==========================================================================
+           🎴 EXPANDING FLEX KPI CARDS (Inspired by CodePen OBPJKK)
+           ========================================================================== */
+        .flex-cards-container {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            height: 180px;
+            transition: var(--transition-smooth);
+        }
+
+        .flex-card {
+            flex: 1;
+            background: var(--glass-bg-card);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-box);
+            box-shadow: var(--glass-shadow-card);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+
+        .flex-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .flex-card.expanded {
+            flex: 2.8;
+            background: rgba(255, 255, 255, 0.88);
+            border-color: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--glass-shadow-lg);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .icon-blue { background: #DBEAFE; color: var(--brand-blue); }
+        .icon-teal { background: #CCFBF1; color: var(--accent-teal); }
+        .icon-gold { background: #FEF3C7; color: var(--accent-gold); }
+        .icon-purple { background: #EDE9FE; color: var(--accent-purple); }
+
+        .card-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: var(--radius-pill);
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            color: var(--text-secondary);
+        }
+
+        .card-mid {
+            margin-top: 8px;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: -0.1px;
+        }
+
+        .card-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--brand-navy);
+            letter-spacing: -0.5px;
+            margin-top: 2px;
+        }
+
+        .card-expanded-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .flex-card.expanded .card-expanded-content {
+            display: flex;
+            opacity: 1;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expanded-metric {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expanded-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .expanded-val {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--brand-navy);
+        }
+
+        /* ==========================================================================
+           📊 CONTENT TABS & DATA TABLES
+           ========================================================================== */
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-box {
+            background: var(--glass-bg-card);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-box);
+            box-shadow: var(--glass-shadow-card);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .box-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--brand-navy);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.45);
+            padding: 10px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Column Selector Dropdown */
+        .col-selector-dropdown {
+            position: relative;
+        }
+
+        .col-selector-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            background: var(--glass-bg-dropdown);
+            backdrop-filter: blur(35px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow-lg);
+            padding: 10px 14px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 220px;
+            z-index: 1050;
+        }
+
+        .col-selector-menu.show {
+            display: flex;
+        }
+
+        .col-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* Responsive Glass Table */
         .table-responsive {
+            width: 100%;
             overflow-x: auto;
             border-radius: 16px;
             border: 1px solid rgba(226, 232, 240, 0.8);
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.6);
         }
 
-        table.glass-table {
+        .glass-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13.5px;
             text-align: left;
+            font-size: 13px;
         }
 
-        table.glass-table thead th {
-            background: rgba(241, 245, 249, 0.95);
-            padding: 14px 16px;
+        .glass-table th {
+            background: rgba(248, 250, 252, 0.85);
+            padding: 12px 14px;
             font-weight: 700;
             color: var(--text-secondary);
-            border-bottom: 2px solid rgba(226, 232, 240, 0.9);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.9);
             white-space: nowrap;
-            position: sticky;
-            top: 0;
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition-fast);
         }
 
-        table.glass-table tbody td {
-            padding: 13px 16px;
-            border-bottom: 1px solid rgba(241, 245, 249, 0.85);
+        .glass-table th:hover {
+            color: var(--brand-blue);
+            background: rgba(241, 245, 249, 0.95);
+        }
+
+        .glass-table th.sort-asc::after { content: " ▲"; font-size: 10px; color: var(--brand-blue); }
+        .glass-table th.sort-desc::after { content: " ▼"; font-size: 10px; color: var(--brand-blue); }
+
+        .glass-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(241, 245, 249, 0.8);
             color: var(--text-primary);
             white-space: nowrap;
-            transition: background 0.15s ease;
         }
 
-        table.glass-table tbody tr:hover td {
-            background: rgba(238, 242, 255, 0.65);
+        .glass-table tbody tr {
+            transition: var(--transition-fast);
         }
 
-        table.glass-table tfoot td {
-            background: rgba(248, 250, 252, 0.95);
+        .glass-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .glass-table tbody tr.selected {
+            background: rgba(219, 234, 254, 0.5) !important;
+        }
+
+        .glass-table tfoot td {
+            background: rgba(241, 245, 249, 0.9);
             font-weight: 800;
+            padding: 14px;
+            border-top: 2px solid rgba(203, 213, 225, 0.8);
             color: var(--brand-navy);
-            border-top: 2px solid rgba(226, 232, 240, 0.9);
-            padding: 14px 16px;
         }
 
-        /* Status Badges */
+        /* 3-Tier Drill-down Nested Accordion */
+        .month-row {
+            cursor: pointer;
+        }
+
+        .month-row:hover {
+            background: rgba(238, 242, 255, 0.7) !important;
+        }
+
+        .nested-contracts-row {
+            display: none;
+            background: rgba(248, 250, 252, 0.7);
+        }
+
+        .nested-contracts-row.open {
+            display: table-row;
+        }
+
+        .nested-box {
+            padding: 12px 18px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 14px;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        .policy-link {
+            color: var(--brand-blue);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .policy-link:hover {
+            color: #1D4ED8;
+            text-shadow: 0 0 8px rgba(29, 78, 216, 0.2);
+        }
+
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: var(--radius-pill);
             font-size: 11.5px;
             font-weight: 700;
         }
-        .badge-success { background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.35); }
-        .badge-purple { background: rgba(139, 92, 246, 0.15); color: #6D28D9; border: 1px solid rgba(139, 92, 246, 0.35); }
-        .badge-gold { background: rgba(245, 158, 11, 0.15); color: #B45309; border: 1px solid rgba(245, 158, 11, 0.35); }
-        .badge-blue { background: rgba(56, 189, 248, 0.15); color: #0369A1; border: 1px solid rgba(56, 189, 248, 0.35); }
-        .badge-offset { background: rgba(100, 116, 139, 0.15); color: #334155; border: 1px solid rgba(100, 116, 139, 0.35); }
 
-        /* Calculator Grid */
-        .calc-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-        @media (max-width: 900px) {
-            .calc-container { grid-template-columns: 1fr; }
-            .expanding-cards-container { flex-direction: column; }
+        .badge-blue { background: #DBEAFE; color: #1E40AF; }
+        .badge-purple { background: #EDE9FE; color: #5B21B6; }
+        .badge-gold { background: #FEF3C7; color: #92400E; }
+        .badge-teal { background: #CCFBF1; color: #115E59; }
+        .badge-success { background: #D1FAE5; color: #065F46; }
+        .badge-offset { background: #F3F4F6; color: #6B7280; font-style: italic; }
+
+        /* ==========================================================================
+           🔍 CLASSY POLICY & CLIENT 360° MODAL
+           ========================================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 16px;
         }
 
-        .form-group {
-            margin-bottom: 16px;
+        .modal-overlay.open {
+            display: flex;
         }
-        .form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-        .form-input {
+
+        .modal-glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(35px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-box);
+            box-shadow: var(--glass-shadow-lg);
             width: 100%;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid var(--glass-border-subtle);
-            border-radius: 12px;
-            padding: 11px 16px;
-            font-size: 14px;
-            color: var(--text-primary);
-            outline: none;
-            transition: all 0.2s ease;
+            max-width: 860px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .form-input:focus {
-            border-color: var(--brand-blue-light);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            padding-bottom: 12px;
+        }
+
+        .client-profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            background: rgba(248, 250, 252, 0.8);
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .profile-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .profile-val {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--brand-navy);
+        }
+
+        /* ==========================================================================
+           📖 PDF LIBRARY CARDS
+           ========================================================================== */
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .pdf-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+            transition: var(--transition-fast);
+        }
+
+        .pdf-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
             background: #FFFFFF;
         }
 
-        .calc-result-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 249, 255, 0.9));
-            border: 1px solid rgba(186, 230, 253, 0.8);
+        .pdf-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pdf-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #FFE4E6;
+            color: #E11D48;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        /* Drag & Drop Upload Zone */
+        .upload-dropzone {
+            border: 2px dashed rgba(59, 130, 246, 0.4);
+            background: rgba(239, 246, 255, 0.5);
             border-radius: 18px;
             padding: 24px;
-            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.1);
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            font-size: 14.5px;
-            color: var(--text-secondary);
-        }
-        .result-item:last-child {
-            border-bottom: none;
-            padding-top: 16px;
-            font-size: 18px;
-            font-weight: 900;
-            color: #047857;
-        }
-
-        /* 📤 Upload Zone */
-        .upload-card {
-            border: 2px dashed rgba(56, 189, 248, 0.6);
-            background: rgba(240, 249, 255, 0.5);
-            border-radius: 20px;
-            padding: 44px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: var(--transition-fast);
         }
-        .upload-card:hover {
+
+        .upload-dropzone:hover {
+            background: rgba(239, 246, 255, 0.9);
             border-color: var(--brand-blue);
-            background: rgba(240, 249, 255, 0.8);
-            transform: scale(1.01);
         }
 
-        /* 🏢 LANCA Office Profile & Info Section */
-        .office-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        .office-card {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid var(--glass-border-subtle);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        }
-
-        /* 🔒 Login Modal */
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-        }
-
-        .login-box {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(32px);
-            border: 1px solid rgba(255, 255, 255, 0.95);
-            border-radius: var(--radius-modal);
-            padding: 36px 40px;
-            width: 440px;
-            max-width: 90vw;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+        /* ==========================================================================
+           🏢 OFFICIAL LANCA FOOTER
+           ========================================================================== */
+        .official-footer {
             text-align: center;
+            padding: 26px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+            margin-top: 20px;
+            background: var(--glass-bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-box);
+            box-shadow: var(--glass-shadow-card);
         }
 
-        /* 📄 Print / PDF Template Styling */
-        @media print {
-            body { background: #FFF !important; padding: 0 !important; }
-            .glass-navbar, .filter-toolbar, .header-actions, .btn-pill, .expanding-cards-container { display: none !important; }
-            .glass-box { box-shadow: none !important; border: 1px solid #CCC !important; }
+        /* Checkbox styling */
+        .custom-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--brand-blue);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- ==========================================================================
-         🔒 GDPR SECURE LOGIN MODAL OVERLAY
-         ========================================================================== -->
-    <div id="loginOverlayModal" class="login-overlay">
-        <div class="login-box">
-            <div style="background:#FFF; display:inline-block; padding:8px 16px; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.06); margin-bottom:16px;">
-                <img src="LANCA-logo.png" alt="LANCA Logo" style="height:48px; object-fit:contain;">
-            </div>
-            <h2 style="font-size:20px; font-weight:800; color:var(--brand-navy); margin-bottom:6px;">Πύλη Ασφαλείας LANCA ERGO</h2>
-            <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">Σύστημα Εκκαθαρίσεων 1411 (GDPR & Keycloak SSO)</p>
-            
-            <div id="loginErrorMsg" style="display:none; background:rgba(239, 68, 68, 0.12); border:1px solid #EF4444; color:#DC2626; padding:10px; border-radius:10px; font-size:13px; font-weight:600; margin-bottom:16px;">
-            </div>
+    <div class="portal-wrapper">
 
-            <div style="text-align:left; margin-bottom:16px;">
-                <label style="font-size:12.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">👤 Όνομα Χρήστη (Username):</label>
-                <input type="text" id="loginUsername" placeholder="π.χ. admin" class="form-input" value="admin">
-            </div>
-            <div style="text-align:left; margin-bottom:22px;">
-                <label style="font-size:12.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">🔑 Κωδικός Πρόσβασης (Password):</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" class="form-input" value="admin" onkeydown="if(event.key==='Enter') submitLogin()">
-            </div>
-
-            <button onclick="submitLogin()" class="btn-pill" style="width:100%; justify-content:center; padding:13px; background:linear-gradient(135deg, #2F3490, #4F46E5); color:#FFF; margin-bottom:10px; font-size:14.5px;">
-                🔐 Σύνδεση στην Πλατφόρμα
-            </button>
-            <button onclick="submitLogin()" class="btn-pill btn-ghost" style="width:100%; justify-content:center; padding:11px; font-size:13px;">
-                🔑 Σύνδεση με Keycloak SSO
-            </button>
-        </div>
-    </div>
-
-    <!-- ==========================================================================
-         🌟 MAIN APP CONTAINER
-         ========================================================================== -->
-    <div class="app-container">
-
-        <!-- 🧭 FLOATING CRYSTAL TOP NAVIGATION BAR -->
-        <header class="glass-navbar">
-            <!-- Brand & Logo -->
-            <a href="javascript:void(0)" onclick="switchTab('tab-dashboard')" class="brand-section">
-                <div class="logo-container">
+        <!-- ==========================================================================
+             💎 FLOATING ISLAND NAVBAR
+             ========================================================================== -->
+        <nav class="glass-navbar">
+            <a class="nav-brand" onclick="switchTab('tab-dashboard')">
+                <div class="nav-logo-box">
                     <img src="LANCA-logo.png" alt="LANCA Logo">
                 </div>
-                <div class="brand-text">
-                    <h1>LANCA Ασφαλιστικές Υπηρεσίες</h1>
-                    <p>ERGO Life & Health Commission Engine 1411</p>
+                <div class="nav-brand-text">
+                    <span class="nav-brand-title">LANCA Ι.Κ.Ε.</span>
+                    <span class="nav-brand-subtitle">Agency 1411 (ERGO)</span>
                 </div>
             </a>
 
-            <!-- Dropdown Navigation Menus -->
-            <ul class="nav-menu-list">
-                <!-- 1. Dashboard -->
-                <li class="nav-item">
-                    <button class="nav-btn active" id="nav-btn-dash" onclick="switchTab('tab-dashboard')">
-                        📊 Dashboard ▾
-                    </button>
-                    <div class="dropdown-panel">
-                        <a class="dropdown-item" onclick="switchTab('tab-dashboard')"><span class="icon">📈</span> Γενικό Dashboard</a>
-                        <a class="dropdown-item" onclick="switchTab('tab-dashboard')"><span class="icon">📅</span> Μηνιαία Παραγωγή 2026</a>
-                    </div>
-                </li>
+            <div class="nav-menu-island">
+                <!-- 1. Παραγωγή (Direct button - No dropdown) -->
+                <button id="nav-btn-dash" class="nav-btn active" onclick="switchTab('tab-dashboard')">
+                    📊 Παραγωγή
+                </button>
 
-                <!-- 2. Εκκαθαρίσεις & Συμφωνία -->
-                <li class="nav-item">
-                    <button class="nav-btn" id="nav-btn-recon" onclick="switchTab('tab-agency')">
+                <!-- 2. Εκκαθαρίσεις ▾ -->
+                <div class="nav-item">
+                    <button class="nav-btn" id="nav-btn-recon">
                         📑 Εκκαθαρίσεις ▾
                     </button>
-                    <div class="dropdown-panel">
-                        <a class="dropdown-item" onclick="switchTab('tab-agency')"><span class="icon">🏢</span> Υπερπρομήθειες Agency 1411</a>
-                        <a class="dropdown-item" onclick="switchTab('tab-reconciliation')"><span class="icon">🏦</span> Συμφωνία Λογ. 57 (Audit)</a>
-                        <a class="dropdown-item" onclick="switchTab('tab-coverages')"><span class="icon">🛡️</span> 27 Καλύψεις UATOP615</a>
+                    <div class="nav-dropdown-menu">
+                        <a class="dropdown-item" onclick="switchTab('tab-agency')">
+                            <span class="icon">🏢</span> Υπερπρομήθειες Agency 1411
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-producers')">
+                            <span class="icon">🤝</span> Προμήθειες Συνεργατών & Πρακτόρων
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" onclick="switchTab('tab-cat-a')">
+                            <span class="icon">🎯</span> Κατηγορία Α (Πράκτορες 25%-29%)
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-cat-b')">
+                            <span class="icon">👔</span> Κατηγορία Β (Unit Managers)
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-cat-c')">
+                            <span class="icon">🏛️</span> Κατηγορία Γ (Agency Manager 20%)
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" onclick="switchTab('tab-health')">
+                            <span class="icon">🏥</span> Κλάδος Υγείας (ERGO Health Care)
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-life')">
+                            <span class="icon">🛡️</span> Κλάδος Ζωής (Standard Life)
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-coverages')">
+                            <span class="icon">🔬</span> 27 Καλύψεις UATOP
+                        </a>
                     </div>
-                </li>
+                </div>
 
-                <!-- 3. CRM & Συνεργάτες -->
-                <li class="nav-item">
-                    <button class="nav-btn" id="nav-btn-crm" onclick="switchTab('tab-contracts')">
-                        👥 CRM & Συνεργάτες ▾
+                <!-- 3. Συμφωνία Λογαριασμού 57 (Direct button - No dropdown) -->
+                <button id="nav-btn-57" class="nav-btn" onclick="switchTab('tab-reconciliation')">
+                    🏦 Συμφωνία Λογαριασμού 57
+                </button>
+
+                <!-- 4. Πελάτες & Συνεργάτες ▾ -->
+                <div class="nav-item">
+                    <button class="nav-btn" id="nav-btn-crm">
+                        👥 Πελάτες & Συνεργάτες ▾
                     </button>
-                    <div class="dropdown-panel">
-                        <a class="dropdown-item" onclick="switchTab('tab-contracts')"><span class="icon">📋</span> Ενοποιημένο Μητρώο Πελατών</a>
-                        <a class="dropdown-item" onclick="switchTab('tab-producers')"><span class="icon">🤝</span> Προμήθειες Πρακτόρων (Κατ. Α)</a>
+                    <div class="nav-dropdown-menu">
+                        <a class="dropdown-item" onclick="switchTab('tab-contracts')">
+                            <span class="icon">👤</span> Μητρώο Πελατών
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-producers-reg')">
+                            <span class="icon">🤝</span> Μητρώο Συνεργατών
+                        </a>
                     </div>
-                </li>
+                </div>
 
-                <!-- 4. Εργαλεία & Οδηγοί -->
-                <li class="nav-item">
-                    <button class="nav-btn" id="nav-btn-tools" onclick="switchTab('tab-calculator')">
+                <!-- 5. Εργαλεία ▾ -->
+                <div class="nav-item">
+                    <button class="nav-btn" id="nav-btn-tools">
                         🧮 Εργαλεία ▾
                     </button>
-                    <div class="dropdown-panel">
-                        <a class="dropdown-item" onclick="switchTab('tab-calculator')"><span class="icon">🧮</span> Υπολογιστής Προμηθειών</a>
-                        <a class="dropdown-item" onclick="switchTab('tab-products')"><span class="icon">📖</span> Οδηγός Προγραμμάτων Υγείας</a>
+                    <div class="nav-dropdown-menu">
+                        <a class="dropdown-item" onclick="switchTab('tab-calculator')">
+                            <span class="icon">🧮</span> Live Υπολογιστής Προμηθειών
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-docs')">
+                            <span class="icon">📖</span> Οδηγός Προγραμμάτων & PDF Library
+                        </a>
                     </div>
-                </li>
-
-                <!-- 5. LANCA Office (lanca.gr) -->
-                <li class="nav-item">
-                    <button class="nav-btn" id="nav-btn-office" onclick="switchTab('tab-office')">
-                        🏢 LANCA Office ▾
-                    </button>
-                    <div class="dropdown-panel">
-                        <a class="dropdown-item" onclick="switchTab('tab-office')"><span class="icon">🏛️</span> Στοιχεία Γραφείου (Μεσολόγγι)</a>
-                        <a class="dropdown-item" href="https://lanca.gr" target="_blank"><span class="icon">🌐</span> Επίσημο Site (lanca.gr)</a>
-                    </div>
-                </li>
-            </ul>
-
-            <!-- Quick Action Hub -->
-            <div class="header-actions">
-                <div class="status-chip">
-                    <div class="chip-dot"></div>
-                    DB: Online
                 </div>
-                <button onclick="exportToExcel('current')" class="btn-pill btn-excel" title="Εξαγωγή σε Excel">
-                    📥 Εξαγωγή Excel
-                </button>
-                <button onclick="exportToPDF('current')" class="btn-pill btn-pdf" title="Εξαγωγή σε PDF">
-                    📄 Εξαγωγή PDF
-                </button>
-                <button onclick="switchTab('tab-upload')" class="btn-pill btn-ghost">
-                    📤 Upload
-                </button>
             </div>
-        </header>
+
+            <div class="nav-actions">
+                <div class="user-pill">
+                    <span class="status-dot"></span>
+                    <span>Νίκος Αναγνωστόπουλος</span>
+                </div>
+            </div>
+        </nav>
 
         <!-- ==========================================================================
-             🎴 EXPANDING FLEX KPI CARDS (Inspired by CodePen OBPJKK)
+             TAB 1: 📊 ΠΑΡΑΓΩΓΗ & DASHBOARD
              ========================================================================== -->
-        <section class="expanding-cards-container" id="kpi-cards-wrapper">
-            
-            <!-- Card 1: Μικτά Ασφάλιστρα -->
-            <div class="flex-card blue expanded" id="card-gross" onclick="expandCard('card-gross', 'tab-dashboard')">
-                <div class="card-top">
-                    <div class="card-icon-badge">📈</div>
-                    <span class="card-expand-indicator">Ανάλυση</span>
-                </div>
-                <div class="card-info">
-                    <span class="card-title">Συνολικά Μικτά Ασφάλιστρα</span>
-                    <span class="card-value" id="kpi-gross">€ 0,00</span>
-                    <span class="card-subtext">Συνολική παραγωγή συμβολαίων 2026</span>
-                </div>
-                <div class="card-expanded-details">
-                    <div class="expanded-grid">
-                        <div class="expanded-metric-box"><div class="label">Πλήθος Συμβολαίων</div><div class="val" id="exp-count">0</div></div>
-                        <div class="expanded-metric-box"><div class="label">Μέσος Όρος / Μήνα</div><div class="val" id="exp-avg-gross">€ 0,00</div></div>
-                        <div class="expanded-metric-box"><div class="label">Κλάδος</div><div class="val">Υγεία & Ζωή</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 2: Καθαρά Ασφάλιστρα -->
-            <div class="flex-card teal" id="card-net" onclick="expandCard('card-net', 'tab-contracts')">
-                <div class="card-top">
-                    <div class="card-icon-badge">🛡️</div>
-                    <span class="card-expand-indicator">Βάση Προμηθειών</span>
-                </div>
-                <div class="card-info">
-                    <span class="card-title">Καθαρά Ασφάλιστρα</span>
-                    <span class="card-value" id="kpi-net">€ 0,00</span>
-                    <span class="card-subtext">Καθαρή βάση υπολογισμού αμοιβών</span>
-                </div>
-                <div class="card-expanded-details">
-                    <div class="expanded-grid">
-                        <div class="expanded-metric-box"><div class="label">Συντελεστής Καθαρού</div><div class="val">86.2%</div></div>
-                        <div class="expanded-metric-box"><div class="label">Φόροι / Δικαιώματα</div><div class="val" id="exp-taxes">€ 0,00</div></div>
-                        <div class="expanded-metric-box"><div class="label">Κατάσταση</div><div class="val">✔ Εκκαθαρισμένα</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 3: Προμήθειες Συνεργατών -->
-            <div class="flex-card gold" id="card-syn" onclick="expandCard('card-syn', 'tab-producers')">
-                <div class="card-top">
-                    <div class="card-icon-badge">🤝</div>
-                    <span class="card-expand-indicator">Πράκτορες</span>
-                </div>
-                <div class="card-info">
-                    <span class="card-title">Προμήθειες Συνεργατών</span>
-                    <span class="card-value" id="kpi-comm-syn">€ 0,00</span>
-                    <span class="card-subtext">Αμοιβές Κατηγορίας Α (Διαμεσολαβητές)</span>
-                </div>
-                <div class="card-expanded-details">
-                    <div class="expanded-grid">
-                        <div class="expanded-metric-box"><div class="label">Μέση Προμήθεια %</div><div class="val">25.0% - 29.0%</div></div>
-                        <div class="expanded-metric-box"><div class="label">Εγγραφές Συνεργατών</div><div class="val" id="exp-syn-count">12</div></div>
-                        <div class="expanded-metric-box"><div class="label">Τύπος</div><div class="val">Sheet 9 Audit</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 4: Υπερπρομήθεια Agency 1411 -->
-            <div class="flex-card purple" id="card-agn" onclick="expandCard('card-agn', 'tab-agency')">
-                <div class="card-top">
-                    <div class="card-icon-badge">🏢</div>
-                    <span class="card-expand-indicator">Agency 20%</span>
-                </div>
-                <div class="card-info">
-                    <span class="card-title">Agency 1411 Overriding</span>
-                    <span class="card-value" id="kpi-comm-agn">€ 0,00</span>
-                    <span class="card-subtext">Κλίμακα Γ (20% επί προμηθειών)</span>
-                </div>
-                <div class="card-expanded-details">
-                    <div class="expanded-grid">
-                        <div class="expanded-metric-box"><div class="label">Ποσοστό Agency</div><div class="val">20.00% Fix</div></div>
-                        <div class="expanded-metric-box"><div class="label">Κινήσεις 1411</div><div class="val" id="exp-agn-count">16</div></div>
-                        <div class="expanded-metric-box"><div class="label">Συνολικό Έσοδο 1411</div><div class="val" id="exp-total-rev">€ 0,00</div></div>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- ==========================================================================
-             📑 MAIN CONTENT TABS & VIEWS
-             ========================================================================== -->
-
-        <!-- TAB 1: DASHBOARD (SHEET 6) -->
         <div id="tab-dashboard" class="tab-panel active">
+            
+            <!-- Glassy Datepicker & Period Selector -->
+            <div class="period-selector-box">
+                <div class="period-presets">
+                    <span style="font-size:12.5px; font-weight:700; color:var(--brand-navy); margin-right:4px;">📅 Περίοδος:</span>
+                    <button class="period-pill active" onclick="filterByPeriod('all', this)">Όλα τα Έτη</button>
+                    <button class="period-pill" onclick="filterByPeriod('2026', this)">Έτος 2026</button>
+                    <button class="period-pill" onclick="filterByPeriod('Q1', this)">Q1 (02-04/2026)</button>
+                    <button class="period-pill" onclick="filterByPeriod('Q2', this)">Q2 (05-07/2026)</button>
+                </div>
+
+                <div class="period-filter-controls">
+                    <select id="dash-month-select" class="glass-select" onchange="filterByMonthSelect(this.value)">
+                        <option value="all">Όλοι οι Μήνες</option>
+                        <option value="02/2026">02/2026</option>
+                        <option value="03/2026">03/2026</option>
+                        <option value="04/2026">04/2026</option>
+                        <option value="05/2026">05/2026</option>
+                        <option value="06/2026">06/2026</option>
+                        <option value="07/2026">07/2026</option>
+                    </select>
+
+                    <button class="btn-pill btn-excel" onclick="exportFilteredDashboard('xlsx')">
+                        📥 Excel
+                    </button>
+                    <button class="btn-pill btn-pdf" onclick="exportFilteredDashboard('pdf')">
+                        📄 PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4 Expanding Flex KPI Cards -->
+            <div class="flex-cards-container">
+                <!-- Card 1: Μικτά -->
+                <div class="flex-card expanded" id="card-gross" onclick="expandCard('card-gross', null)">
+                    <div class="card-top">
+                        <div class="card-icon-circle icon-blue">📈</div>
+                        <span class="card-badge">Μικτά Ασφάλιστρα</span>
+                    </div>
+                    <div class="card-mid">
+                        <div class="card-title">Συνολική Παραγωγή</div>
+                        <div class="card-value" id="kpi-gross">€ 0,00</div>
+                    </div>
+                    <div class="card-expanded-content">
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Μ.Ο. / Μήνα</span>
+                            <span class="expanded-val" id="exp-avg-gross">€ 0,00</span>
+                        </div>
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Φόροι / Δικαιώματα</span>
+                            <span class="expanded-val" id="exp-taxes">€ 0,00</span>
+                        </div>
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Κινήσεις</span>
+                            <span class="expanded-val" id="exp-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Καθαρά -->
+                <div class="flex-card" id="card-net" onclick="expandCard('card-net', null)">
+                    <div class="card-top">
+                        <div class="card-icon-circle icon-teal">🛡️</div>
+                        <span class="card-badge">Βάση Προμηθειών</span>
+                    </div>
+                    <div class="card-mid">
+                        <div class="card-title">Καθαρά Ασφάλιστρα</div>
+                        <div class="card-value" id="kpi-net">€ 0,00</div>
+                    </div>
+                    <div class="card-expanded-content">
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Κλάδος Υγείας</span>
+                            <span class="expanded-val">87%</span>
+                        </div>
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Κλάδος Ζωής</span>
+                            <span class="expanded-val">13%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Προμήθειες Συνεργατών -->
+                <div class="flex-card" id="card-syn" onclick="expandCard('card-syn', null)">
+                    <div class="card-top">
+                        <div class="card-icon-circle icon-gold">🤝</div>
+                        <span class="card-badge">Κατηγορία Α</span>
+                    </div>
+                    <div class="card-mid">
+                        <div class="card-title">Προμήθειες Συνεργατών</div>
+                        <div class="card-value" id="kpi-comm-syn">€ 0,00</div>
+                    </div>
+                    <div class="card-expanded-content">
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Συντελεστής</span>
+                            <span class="expanded-val">25% - 29%</span>
+                        </div>
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Ενεργές Εγγραφές</span>
+                            <span class="expanded-val" id="exp-syn-count">12</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Agency 1411 -->
+                <div class="flex-card" id="card-agn" onclick="expandCard('card-agn', null)">
+                    <div class="card-top">
+                        <div class="card-icon-circle icon-purple">🏢</div>
+                        <span class="card-badge">Agency 1411</span>
+                    </div>
+                    <div class="card-mid">
+                        <div class="card-title">Υπερπρομήθεια 20%</div>
+                        <div class="card-value" id="kpi-comm-agn">€ 0,00</div>
+                    </div>
+                    <div class="card-expanded-content">
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Συνολικό Έσοδο Γραφείου</span>
+                            <span class="expanded-val" id="exp-total-rev">€ 0,00</span>
+                        </div>
+                        <div class="expanded-metric">
+                            <span class="expanded-label">Εγγραφές 1411</span>
+                            <span class="expanded-val" id="exp-agn-count">16</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3-Tier Master-Detail Monthly Production Table -->
             <div class="glass-box">
                 <div class="box-header">
                     <div class="box-title">
-                        <span>📈 Μηνιαία Εκκαθάριση Παραγωγής & Αμοιβών 2026 (Sheet 6)</span>
+                        📈 Μηνιαία Εκκαθάριση Παραγωγής & Αμοιβών (3-Tier Drill-Down)
                     </div>
-                    <div class="filter-toolbar">
-                        <button onclick="exportToExcel('dashboard')" class="btn-pill btn-ghost">📊 Export Excel</button>
-                        <button onclick="exportToPDF('dashboard')" class="btn-pill btn-ghost">📄 Export PDF</button>
+                    <span style="font-size:12px; color:var(--text-muted); font-weight:600;">
+                        💡 Κάντε κλικ σε οποιονδήποτε μήνα για ανάπτυξη των συμβολαίων του
+                    </span>
+                </div>
+
+                <div class="table-toolbar">
+                    <div class="toolbar-left">
+                        <label class="col-checkbox-label">
+                            <input type="checkbox" id="dash-select-all" class="custom-checkbox" onchange="toggleSelectAll('dash')">
+                            <span>Επιλογή Όλων</span>
+                        </label>
+                        <div class="col-selector-dropdown">
+                            <button class="btn-pill btn-ghost" onclick="toggleColSelector('dash-cols')">👁️ Στήλες ▾</button>
+                            <div id="dash-cols" class="col-selector-menu">
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 2)"> Μικτά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 3)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 4)"> Προμήθεια Συνεργατών (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 5)"> Agency 1411 (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 6)"> Συνολική Αμοιβή (€)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="toolbar-right">
+                        <input type="text" id="dash-search" class="glass-input" placeholder="🔍 Αναζήτηση σε μήνες..." oninput="filterDashTable()">
                     </div>
                 </div>
+
                 <div class="table-responsive">
-                    <table class="glass-table" id="table-dashboard">
+                    <table class="glass-table" id="table-dash">
                         <thead>
                             <tr>
-                                <th>Μήνας Εκκαθάρισης</th>
-                                <th>Πλήθος Κινήσεων</th>
-                                <th>Μικτά Ασφάλιστρα (€)</th>
-                                <th>Καθαρά Ασφάλιστρα (€)</th>
-                                <th>Προμήθεια Συνεργατών (€)</th>
-                                <th>Υπερπρομήθεια Agency 1411 (€)</th>
-                                <th>Συνολική Αμοιβή 1411 (€)</th>
-                                <th>Κατάσταση</th>
+                                <th style="width:40px;"></th>
+                                <th onclick="sortGenericTable('table-dash', 1)">Α/Α</th>
+                                <th onclick="sortGenericTable('table-dash', 2)">Μήνας Εκκαθάρισης</th>
+                                <th onclick="sortGenericTable('table-dash', 3)">Πλήθος Κινήσεων</th>
+                                <th onclick="sortGenericTable('table-dash', 4)">Μικτά (€)</th>
+                                <th onclick="sortGenericTable('table-dash', 5)">Καθαρά (€)</th>
+                                <th onclick="sortGenericTable('table-dash', 6)">Προμήθεια Συνεργατών (€)</th>
+                                <th onclick="sortGenericTable('table-dash', 7)">Agency 1411 (20%) (€)</th>
+                                <th onclick="sortGenericTable('table-dash', 8)">Συνολική Αμοιβή (€)</th>
+                                <th style="text-align:center;">Ανάπτυξη</th>
                             </tr>
                         </thead>
-                        <tbody id="dashboard-monthly-tbody"></tbody>
+                        <tbody id="dash-tbody">
+                            <!-- Injected by JavaScript -->
+                        </tbody>
                         <tfoot>
                             <tr>
-                                <td>ΓΕΝΙΚΑ ΣΥΝΟΛΑ:</td>
+                                <td></td>
+                                <td>ΣΥΝΟΛΑ</td>
+                                <td>Όλοι οι Μήνες</td>
                                 <td id="tot-m-count">0</td>
                                 <td id="tot-m-gross">€ 0,00</td>
                                 <td id="tot-m-net">€ 0,00</td>
                                 <td id="tot-m-syn" style="color:var(--accent-gold);">€ 0,00</td>
                                 <td id="tot-m-agn" style="color:var(--accent-purple);">€ 0,00</td>
                                 <td id="tot-m-rev" style="color:var(--accent-emerald);">€ 0,00</td>
-                                <td><span class="badge badge-success">✔ 100% Συμφωνημένο</span></td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
+
         </div>
 
-        <!-- TAB 2: CRM & CONTRACTS (SHEET 5) -->
-        <div id="tab-contracts" class="tab-panel">
-            <div class="glass-box">
-                <div class="box-header">
-                    <div class="box-title">
-                        <span>📋 Ενοποιημένο Μητρώο Κινήσεων & CRM Πελατών (Sheet 5)</span>
-                    </div>
-                    <div class="filter-toolbar">
-                        <div class="search-pill">
-                            <span style="margin-right:8px;">🔍</span>
-                            <input type="text" id="crm-search" placeholder="Αναζήτηση Πελάτη, ΑΦΜ..." onkeyup="filterCRMTable()">
-                        </div>
-                        <select id="crm-month-filter" class="select-pill" onchange="filterCRMTable()">
-                            <option value="">Όλοι οι Μήνες</option>
-                            <option value="02/2026">02/2026</option>
-                            <option value="03/2026">03/2026</option>
-                            <option value="04/2026">04/2026</option>
-                            <option value="05/2026">05/2026</option>
-                            <option value="06/2026">06/2026</option>
-                            <option value="07/2026">07/2026</option>
-                        </select>
-                        <button onclick="exportToExcel('crm')" class="btn-pill btn-ghost">📥 Excel</button>
-                        <button onclick="exportToPDF('crm')" class="btn-pill btn-ghost">📄 PDF</button>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="glass-table" id="crm-table">
-                        <thead>
-                            <tr>
-                                <th>Α/Α</th>
-                                <th>Μήνας</th>
-                                <th>Συμβόλαιο</th>
-                                <th>Ονοματεπώνυμο Πελάτη</th>
-                                <th>ΑΦΜ</th>
-                                <th>Τηλέφωνο</th>
-                                <th>Μικτά (€)</th>
-                                <th>Καθαρά (€)</th>
-                                <th>Προμήθεια Συν. (€)</th>
-                                <th>Agency 1411 (€)</th>
-                                <th>Έσοδο 1411 (€)</th>
-                                <th>Τύπος Κίνησης</th>
-                            </tr>
-                        </thead>
-                        <tbody id="crm-tbody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: AGENCY 1411 (SHEET 8) -->
+        <!-- ==========================================================================
+             TAB 2: 🏢 ΥΠΕΡΠΡΟΜΗΘΕΙΕΣ AGENCY 1411 (LANCA Ι.Κ.Ε.)
+             ========================================================================== -->
         <div id="tab-agency" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div>
-                        <div class="box-title">🏢 Υπερπρομήθειες Agency 1411 (LANCA E.E.)</div>
-                        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Αμοιβή Συντονιστή Β' / Agency Manager (20% επί της προμήθειας βάσης — Sheet 8)</p>
-                    </div>
-                    <div class="filter-toolbar">
-                        <span class="badge badge-purple" style="font-size:13px; padding:6px 14px;">Κλίμακα Γ (Agency 20%)</span>
-                        <button onclick="exportToExcel('agency')" class="btn-pill btn-ghost">📥 Excel</button>
-                        <button onclick="exportToPDF('agency')" class="btn-pill btn-ghost">📄 PDF</button>
+                    <div class="box-title">🏢 Υπερπρομήθειες Agency 1411 (LANCA Ι.Κ.Ε. - 20%)</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('agency')">📥 Εξαγωγή Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('agency')">📄 Εξαγωγή PDF</button>
                     </div>
                 </div>
+
+                <div class="table-toolbar">
+                    <div class="toolbar-left">
+                        <label class="col-checkbox-label">
+                            <input type="checkbox" id="agency-select-all" class="custom-checkbox" onchange="toggleSelectAll('agency')">
+                            <span>Επιλογή Όλων</span>
+                        </label>
+                        <input type="text" id="agency-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, ΑΦΜ..." oninput="filterAgencyTable()">
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn-pill btn-ghost" onclick="deleteSelectedRows('agency')">🗑️ Διαγραφή Επιλεγμένων</button>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="glass-table" id="table-agency">
                         <thead>
                             <tr>
-                                <th>Α/Α</th>
-                                <th>Μήνας</th>
-                                <th>Αρ. Συμβολαίου</th>
-                                <th>Πελάτης</th>
-                                <th>Καθαρά Ασφάλιστρα (€)</th>
-                                <th>Προμήθεια Βάσης (€)</th>
-                                <th>Υπερπρομήθεια 20% (€)</th>
-                                <th>Κατάσταση</th>
+                                <th style="width:40px;"></th>
+                                <th onclick="sortGenericTable('table-agency', 1)">Α/Α</th>
+                                <th onclick="sortGenericTable('table-agency', 2)">Μήνας</th>
+                                <th onclick="sortGenericTable('table-agency', 3)">Αρ. Συμβολαίου</th>
+                                <th onclick="sortGenericTable('table-agency', 4)">Πελάτης</th>
+                                <th onclick="sortGenericTable('table-agency', 5)">Καθαρά (€)</th>
+                                <th onclick="sortGenericTable('table-agency', 6)">Προμήθεια Βάσης (€)</th>
+                                <th onclick="sortGenericTable('table-agency', 7)">Agency 1411 20% (€)</th>
+                                <th>Κλίμακα</th>
                             </tr>
                         </thead>
-                        <tbody id="agency-tbody"></tbody>
+                        <tbody id="agency-tbody">
+                            <!-- Injected by JavaScript -->
+                        </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="6">ΣΥΝΟΛΟ ΥΠΕΡΠΡΟΜΗΘΕΙΩΝ AGENCY 1411:</td>
-                                <td id="agency-total-val" style="color:var(--accent-purple); font-size:16px;">€ 0,00</td>
-                                <td><span class="badge badge-success">✔ 16 Κινήσεις</span></td>
+                                <td></td>
+                                <td>ΣΥΝΟΛΟ</td>
+                                <td colspan="5">Συνολικό Overriding Agency 1411 (16 Εγγραφές):</td>
+                                <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px;">€ 260,00</td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1124,40 +1309,54 @@
             </div>
         </div>
 
-        <!-- TAB 4: PRODUCERS (SHEET 9) -->
+        <!-- ==========================================================================
+             TAB 3: 🤝 ΠΡΟΜΗΘΕΙΕΣ ΣΥΝΕΡΓΑΤΩΝ & ΠΡΑΚΤΟΡΩΝ
+             ========================================================================== -->
         <div id="tab-producers" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div>
-                        <div class="box-title">🤝 Προμήθειες Συνεργατών & Πρακτόρων (Sheet 9)</div>
-                        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Αναλυτικές αμοιβές διαμεσολαβητών παραγωγής Κατηγορίας Α</p>
-                    </div>
-                    <div class="filter-toolbar">
-                        <span class="badge badge-gold" style="font-size:13px; padding:6px 14px;">Κατηγορία Α (Παραγωγοί)</span>
-                        <button onclick="exportToExcel('producers')" class="btn-pill btn-ghost">📥 Excel</button>
-                        <button onclick="exportToPDF('producers')" class="btn-pill btn-ghost">📄 PDF</button>
+                    <div class="box-title">🤝 Προμήθειες Συνεργατών & Πρακτόρων (Κατηγορία Α)</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('producers')">📥 Εξαγωγή Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('producers')">📄 Εξαγωγή PDF</button>
                     </div>
                 </div>
+
+                <div class="table-toolbar">
+                    <div class="toolbar-left">
+                        <label class="col-checkbox-label">
+                            <input type="checkbox" id="prod-select-all" class="custom-checkbox" onchange="toggleSelectAll('prod')">
+                            <span>Επιλογή Όλων</span>
+                        </label>
+                        <input type="text" id="prod-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, ΑΦΜ..." oninput="filterProducersTable()">
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="glass-table" id="table-producers">
                         <thead>
                             <tr>
-                                <th>Α/Α</th>
-                                <th>Μήνας</th>
-                                <th>Αρ. Συμβολαίου</th>
-                                <th>Ονοματεπώνυμο Πελάτη</th>
-                                <th>Καθαρά (€)</th>
-                                <th>Προμήθεια %</th>
-                                <th>Ποσό Προμήθειας (€)</th>
+                                <th style="width:40px;"></th>
+                                <th onclick="sortGenericTable('table-producers', 1)">Α/Α</th>
+                                <th onclick="sortGenericTable('table-producers', 2)">Μήνας</th>
+                                <th onclick="sortGenericTable('table-producers', 3)">Αρ. Συμβολαίου</th>
+                                <th onclick="sortGenericTable('table-producers', 4)">Πελάτης</th>
+                                <th onclick="sortGenericTable('table-producers', 5)">Καθαρά (€)</th>
+                                <th onclick="sortGenericTable('table-producers', 6)">Ποσοστό %</th>
+                                <th onclick="sortGenericTable('table-producers', 7)">Προμήθεια Συνεργάτη (€)</th>
                                 <th>Κατηγορία</th>
                             </tr>
                         </thead>
-                        <tbody id="producers-tbody"></tbody>
+                        <tbody id="producers-tbody">
+                            <!-- Injected by JavaScript -->
+                        </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="6">ΣΥΝΟΛΟ ΠΡΟΜΗΘΕΙΩΝ ΣΥΝΕΡΓΑΤΩΝ:</td>
-                                <td id="producers-total-val" style="color:var(--accent-gold); font-size:16px;">€ 0,00</td>
-                                <td><span class="badge badge-gold">✔ 12 Κινήσεις</span></td>
+                                <td></td>
+                                <td>ΣΥΝΟΛΟ</td>
+                                <td colspan="5">Συνολικές Προμήθειες Συνεργατών (12 Εγγραφές):</td>
+                                <td id="producers-total-val" style="color:var(--accent-gold); font-size:15px;">€ 926,53</td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1165,26 +1364,103 @@
             </div>
         </div>
 
-        <!-- TAB 5: COVERAGES (SHEET 7) -->
+        <!-- ==========================================================================
+             TABS: ΚΑΤΗΓΟΡΙΕΣ Α, Β, Γ & ΚΛΑΔΟΙ ΥΓΕΙΑΣ / ΖΩΗΣ (Categorized Views)
+             ========================================================================== -->
+        <div id="tab-cat-a" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-title">🎯 Κατηγορία Α (Πράκτορες / Παραγωγοί 25% - 29%)</div>
+                <p style="color:var(--text-secondary); font-size:13.5px;">Εκκαθαρίσεις προμηθειών απευθείας δικτύου παραγωγών (12 εγγραφές ενεργές - €926,53).</p>
+                <div class="table-responsive">
+                    <table class="glass-table" id="table-cat-a">
+                        <thead>
+                            <tr><th>Α/Α</th><th>Μήνας</th><th>Συμβόλαιο</th><th>Πελάτης</th><th>Καθαρά (€)</th><th>Προμήθεια 25% (€)</th><th>Κατάσταση</th></tr>
+                        </thead>
+                        <tbody id="cat-a-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-cat-b" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-title">👔 Κατηγορία Β (Συντονιστές Α' / Unit Managers 32%)</div>
+                <div style="padding:40px; text-align:center; color:var(--text-muted);">
+                    <span style="font-size:40px;">👔</span>
+                    <h4 style="font-size:16px; font-weight:700; color:var(--brand-navy); margin-top:8px;">Έτοιμος Πίνακας Εκκαθάρισης Κατηγορίας Β</h4>
+                    <p style="font-size:13px; margin-top:4px;">Δεν υπάρχουν προς το παρόν εγγραφές για Unit Managers στην τρέχουσα περίοδο.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-cat-c" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-title">🏛️ Κατηγορία Γ (Συντονιστής Β' / Agency Manager 1411 - 20% / 35%)</div>
+                <p style="color:var(--text-secondary); font-size:13.5px;">Υπερπρομήθειες Agency 1411 LANCA Ι.Κ.Ε. (16 ενεργές κινήσεις - €260,00).</p>
+                <div class="table-responsive">
+                    <table class="glass-table" id="table-cat-c">
+                        <thead>
+                            <tr><th>Α/Α</th><th>Μήνας</th><th>Συμβόλαιο</th><th>Πελάτης</th><th>Καθαρά (€)</th><th>Agency 20% (€)</th></tr>
+                        </thead>
+                        <tbody id="cat-c-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-health" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-title">🏥 Κλάδος Υγείας (ERGO Health Care Superior / Advanced)</div>
+                <p style="color:var(--text-secondary); font-size:13.5px;">Εξειδικευμένη παραγωγή προγραμμάτων νοσοκομειακής περίθαλψης και εξωνοσοκομειακής κάλυψης.</p>
+                <div class="table-responsive">
+                    <table class="glass-table" id="table-health">
+                        <thead>
+                            <tr><th>Α/Α</th><th>Συμβόλαιο</th><th>Πελάτης</th><th>Πρόγραμμα</th><th>Καθαρά (€)</th><th>Προμήθεια (€)</th><th>Agency 20% (€)</th></tr>
+                        </thead>
+                        <tbody id="health-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-life" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-title">🛡️ Κλάδος Ζωής (Standard Life Protect & Αποταμίευση)</div>
+                <p style="color:var(--text-secondary); font-size:13.5px;">Συμβόλαια προστασίας ζωής και αποταμιευτικών προγραμμάτων ERGO.</p>
+                <div class="table-responsive">
+                    <table class="glass-table" id="table-life">
+                        <thead>
+                            <tr><th>Α/Α</th><th>Συμβόλαιο</th><th>Πελάτης</th><th>Κάλυψη</th><th>Καθαρά (€)</th><th>Προμήθεια (€)</th></tr>
+                        </thead>
+                        <tbody id="life-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+             TAB: 🛡️ ΑΝΑΛΥΤΙΚΟ ΜΗΤΡΩΟ 27 ΚΑΛΥΨΕΩΝ UATOP
+             ========================================================================== -->
         <div id="tab-coverages" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div class="box-title">🛡️ Αναλυτικό Μητρώο 27 Καλύψεων UATOP615 (Sheet 7)</div>
-                    <div class="filter-toolbar">
-                        <button onclick="exportToExcel('coverages')" class="btn-pill btn-ghost">📥 Excel</button>
-                    </div>
+                    <div class="box-title">🛡️ Αναλυτικό Μητρώο 27 Καλύψεων UATOP</div>
+                    <button class="btn-pill btn-excel" onclick="exportToExcel('coverages')">📥 Εξαγωγή Excel</button>
+                </div>
+                <div class="table-toolbar">
+                    <input type="text" id="cov-search" class="glass-input" placeholder="🔍 Αναζήτηση Κωδικού (π.χ. F615), Κάλυψης, Συμβολαίου..." oninput="filterCoveragesTable()">
                 </div>
                 <div class="table-responsive">
                     <table class="glass-table" id="table-coverages">
                         <thead>
                             <tr>
                                 <th>Α/Α</th>
-                                <th>Συμβόλαιο</th>
-                                <th>Κωδικός F615</th>
+                                <th>Αρ. Συμβολαίου</th>
+                                <th>Κωδικός</th>
                                 <th>Περιγραφή Κάλυψης</th>
-                                <th>Ασφαλισμένο Κεφάλαιο</th>
+                                <th>Ασφαλισμένο Κεφάλαιο (€)</th>
                                 <th>Καθαρό (€)</th>
-                                <th>Προμήθεια Συν. (€)</th>
+                                <th>Προμήθεια (€)</th>
                                 <th>Agency 20% (€)</th>
                             </tr>
                         </thead>
@@ -1194,28 +1470,29 @@
             </div>
         </div>
 
-        <!-- TAB 6: RECONCILIATION (SHEET 10) -->
+        <!-- ==========================================================================
+             TAB: 🏦 ΣΥΜΦΩΝΙΑ ΛΟΓΑΡΙΑΣΜΟΥ 57 (AUDIT RECONCILIATION)
+             ========================================================================== -->
         <div id="tab-reconciliation" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div>
-                        <div class="box-title">🏦 Συμφωνία Λογαριασμού 57 & Αποδεσμεύσεων (Sheet 10)</div>
-                        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Διασταύρωση μηνιαίων statements με τις τραπεζικές αποδεσμεύσεις PDF</p>
-                    </div>
-                    <div class="filter-toolbar">
-                        <span class="badge badge-success" style="font-size:13px; padding:6px 14px;">✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ (0,00 € Διαφορά)</span>
-                        <button onclick="exportToPDF('reconciliation')" class="btn-pill btn-ghost">📄 Export Audit PDF</button>
+                    <div class="box-title">🏦 Συμφωνία Λογαριασμού 57 (Audit Reconciliation)</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('reconciliation')">📥 Εξαγωγή Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('reconciliation')">📄 Εξαγωγή PDF</button>
                     </div>
                 </div>
+
                 <div class="table-responsive">
                     <table class="glass-table" id="table-reconciliation">
                         <thead>
                             <tr>
-                                <th>Μήνας Παραγωγής</th>
-                                <th>Σύνολο Statements (€)</th>
-                                <th>Μήνας Πίστωσης (M+1)</th>
-                                <th>Ποσό Αποδέσμευσης PDF (__57)</th>
-                                <th>Διαφορά (€)</th>
+                                <th>Α/Α</th>
+                                <th>Μήνας Εκκαθάρισης</th>
+                                <th>Ποσό Κατάστασης (€)</th>
+                                <th>Μήνας Αποδέσμευσης (Λογ. 57)</th>
+                                <th>Αποδεσμευμένο Ποσό Τραπέζης (€)</th>
+                                <th>Απόκλιση (€)</th>
                                 <th>Κατάσταση Ταύτισης</th>
                             </tr>
                         </thead>
@@ -1225,150 +1502,182 @@
             </div>
         </div>
 
-        <!-- TAB 7: CALCULATOR (SHEET 4) -->
+        <!-- ==========================================================================
+             TAB: 👤 ΜΗΤΡΩΟ ΠΕΛΑΤΩΝ (CRM)
+             ========================================================================== -->
+        <div id="tab-contracts" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-header">
+                    <div class="box-title">👤 Ενοποιημένο Μητρώο Πελατών & Συμβολαίων</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('crm')">📥 Εξαγωγή Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('crm')">📄 Εξαγωγή PDF</button>
+                    </div>
+                </div>
+
+                <div class="table-toolbar">
+                    <div class="toolbar-left">
+                        <label class="col-checkbox-label">
+                            <input type="checkbox" id="crm-select-all" class="custom-checkbox" onchange="toggleSelectAll('crm')">
+                            <span>Επιλογή Όλων</span>
+                        </label>
+                        <input type="text" id="crm-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, ΑΦΜ, Συμβολαίου, Τηλεφώνου..." oninput="filterCRMTable()">
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn-pill btn-ghost" onclick="editSelectedClient()">✏️ Επεξεργασία</button>
+                        <button class="btn-pill btn-danger" onclick="deleteSelectedRows('crm')">🗑️ Διαγραφή</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="glass-table" id="crm-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;"></th>
+                                <th onclick="sortGenericTable('crm-table', 1)">Α/Α</th>
+                                <th onclick="sortGenericTable('crm-table', 2)">Μήνας</th>
+                                <th onclick="sortGenericTable('crm-table', 3)">Αρ. Συμβολαίου</th>
+                                <th onclick="sortGenericTable('crm-table', 4)">Ονοματεπώνυμο Πελάτη</th>
+                                <th onclick="sortGenericTable('crm-table', 5)">ΑΦΜ</th>
+                                <th onclick="sortGenericTable('crm-table', 6)">Τηλέφωνο</th>
+                                <th onclick="sortGenericTable('crm-table', 7)">Μικτά (€)</th>
+                                <th onclick="sortGenericTable('crm-table', 8)">Καθαρά (€)</th>
+                                <th onclick="sortGenericTable('crm-table', 9)">Προμήθεια (€)</th>
+                                <th onclick="sortGenericTable('crm-table', 10)">Agency 1411 (€)</th>
+                                <th onclick="sortGenericTable('crm-table', 11)">Συνολική Αμοιβή (€)</th>
+                                <th>Τύπος Κίνησης</th>
+                            </tr>
+                        </thead>
+                        <tbody id="crm-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+             TAB: 🤝 ΜΗΤΡΩΟ ΣΥΝΕΡΓΑΤΩΝ
+             ========================================================================== -->
+        <div id="tab-producers-reg" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-header">
+                    <div class="box-title">🤝 Μητρώο Συνεργατών & Κωδικοί Σύνδεσης με Συμβόλαια</div>
+                    <button class="btn-pill btn-primary" onclick="openNewProducerModal()">➕ Προσθήκη Νέου Συνεργάτη</button>
+                </div>
+
+                <div class="table-toolbar">
+                    <input type="text" id="prod-reg-search" class="glass-input" placeholder="🔍 Αναζήτηση με Όνομα ή Κωδικό Συνεργάτη..." oninput="filterProducersRegTable()">
+                </div>
+
+                <div class="table-responsive">
+                    <table class="glass-table" id="table-producers-reg">
+                        <thead>
+                            <tr>
+                                <th>Α/Α</th>
+                                <th>Κωδικός Συνεργάτη</th>
+                                <th>Ονοματεπώνυμο Συνεργάτη</th>
+                                <th>Πλήθος Συμβολαίων</th>
+                                <th>Συνολικά Καθαρά (€)</th>
+                                <th>Συνολική Προμήθεια (€)</th>
+                                <th>Συντελεστής %</th>
+                                <th>Τελευταίος Μήνας</th>
+                                <th>Ενέργειες</th>
+                            </tr>
+                        </thead>
+                        <tbody id="producers-reg-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+             TAB: 🧮 LIVE ΥΠΟΛΟΓΙΣΤΗΣ ΠΡΟΜΗΘΕΙΩΝ
+             ========================================================================== -->
         <div id="tab-calculator" class="tab-panel">
             <div class="glass-box">
-                <div class="box-header">
-                    <div class="box-title">🧮 Live Υπολογιστής Προμηθειών & Agency 1411 (Sheet 4)</div>
-                </div>
-                <div class="calc-container">
+                <div class="box-title">🧮 Live Υπολογιστής Προμηθειών & Overriding Agency 1411</div>
+                
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px;">
                     <div>
-                        <div class="form-group">
-                            <label class="form-label">Πρόγραμμα Ασφάλισης ERGO:</label>
-                            <select id="calc-product" class="form-input" onchange="runCalculator()">
-                                <option value="ERGO Health Care Superior">ERGO Health Care Superior (Νοσοκομειακό)</option>
-                                <option value="ERGO Health Care Advanced">ERGO Health Care Advanced</option>
-                                <option value="ERGO Health Care Simple">ERGO Health Care Simple</option>
-                                <option value="Standard Life">Standard Life (Ζωής)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Κατηγορία Συνεργάτη:</label>
-                            <select id="calc-tier" class="form-input" onchange="runCalculator()">
-                                <option value="A">Κατηγορία Α (29% Προμήθεια Πράκτορα)</option>
-                                <option value="Γ">Κατηγορία Γ (35% Απευθείας / Συντονιστής)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Καθαρό Ασφάλιστρο (€):</label>
-                            <input type="number" id="calc-net" class="form-input" value="1000" oninput="runCalculator()">
-                        </div>
+                        <label style="font-size:12px; font-weight:700; color:var(--text-secondary);">Πρόγραμμα ERGO:</label>
+                        <select id="calc-product" class="glass-select" style="width:100%; margin-top:4px;" onchange="runCalculator()">
+                            <option value="ERGO Health Care Superior">ERGO Health Care Superior (29% / 25%)</option>
+                            <option value="ERGO Health Care Advanced">ERGO Health Care Advanced (29% / 25%)</option>
+                            <option value="ERGO Health Care Simple">ERGO Health Care Simple</option>
+                            <option value="ERGO Life Protect">ERGO Life Protect (25%)</option>
+                        </select>
                     </div>
+
                     <div>
-                        <div class="calc-result-card">
-                            <h3 style="font-size:16px; font-weight:800; color:var(--brand-navy); margin-bottom:14px;">📊 Αποτέλεσμα Εκκαθάρισης:</h3>
-                            <div class="result-item">
-                                <span>Προμήθεια Συνεργάτη (Βάση):</span>
-                                <span id="res-comm-amount" style="font-weight:800; color:var(--accent-gold);">€ 290,00</span>
-                            </div>
-                            <div class="result-item">
-                                <span>Υπερπρομήθεια Agency 1411 (20%):</span>
-                                <span id="res-agency-amount" style="font-weight:800; color:var(--accent-purple);">€ 58,00</span>
-                            </div>
-                            <div class="result-item">
-                                <span>Συνολικό Έσοδο Γραφείου (LANCA):</span>
-                                <span id="res-total-office">€ 348,00</span>
-                            </div>
-                        </div>
+                        <label style="font-size:12px; font-weight:700; color:var(--text-secondary);">Κλίμακα Συνεργάτη:</label>
+                        <select id="calc-tier" class="glass-select" style="width:100%; margin-top:4px;" onchange="runCalculator()">
+                            <option value="A">Κατηγορία Α (Πράκτορας - 25% / 29%)</option>
+                            <option value="B">Κατηγορία Β (Unit Manager - 27% / 32%)</option>
+                            <option value="C">Κατηγορία Γ (Agency Manager - 30% / 35%)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size:12px; font-weight:700; color:var(--text-secondary);">Καθαρά Ασφάλιστρα (€):</label>
+                        <input type="number" id="calc-net" class="glass-input" style="width:100%; margin-top:4px;" value="1046" oninput="runCalculator()">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-top:10px;">
+                    <div style="background:rgba(254, 243, 199, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(245, 158, 11, 0.3);">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-gold);">ΠΡΟΜΗΘΕΙΑ ΣΥΝΕΡΓΑΤΗ</span>
+                        <div id="res-comm-amount" style="font-size:22px; font-weight:800; color:#92400E; margin-top:4px;">€ 303,34</div>
+                    </div>
+
+                    <div style="background:rgba(237, 233, 254, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(139, 92, 246, 0.3);">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-purple);">AGENCY 1411 (20% OVERRIDING)</span>
+                        <div id="res-agency-amount" style="font-size:22px; font-weight:800; color:#5B21B6; margin-top:4px;">€ 60,67</div>
+                    </div>
+
+                    <div style="background:rgba(209, 250, 229, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(16, 185, 129, 0.3);">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-emerald);">ΣΥΝΟΛΙΚΟ ΕΣΟΔΟ ΓΡΑΦΕΙΟΥ</span>
+                        <div id="res-total-office" style="font-size:22px; font-weight:800; color:#065F46; margin-top:4px;">€ 364,01</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 8: PRODUCTS & REGULATIONS (SHEETS 2-3) -->
-        <div id="tab-products" class="tab-panel">
+        <!-- ==========================================================================
+             TAB: 📖 ΟΔΗΓΟΣ ΠΡΟΓΡΑΜΜΑΤΩΝ & PDF LIBRARY ERGO
+             ========================================================================== -->
+        <div id="tab-docs" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div class="box-title">📖 Οδηγός Προγραμμάτων & Κανονισμός Πωλήσεων ERGO (Sheets 2 & 3)</div>
+                    <div class="box-title">📖 Οδηγός Προγραμμάτων & Βιβλιοθήκη Επισήμων Εγγράφων ERGO</div>
                 </div>
-                <div class="office-grid">
-                    <div class="office-card">
-                        <h4 style="font-size:15px; font-weight:800; color:var(--brand-blue); margin-bottom:8px;">🏥 ERGO Health Care Superior</h4>
-                        <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">Πλήρες νοσοκομειακό πρόγραμμα με θέση Α/Β, κάλυψη έως 1.000.000 €, επεμβάσεις One Day Clinic, και 27 ειδικές καλύψεις UATOP.</p>
-                    </div>
-                    <div class="office-card">
-                        <h4 style="font-size:15px; font-weight:800; color:var(--accent-teal); margin-bottom:8px;">💙 ERGO Health Care Advanced & Simple</h4>
-                        <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">Οικονομικά προγράμματα υγείας με απαλλαγές 1.500€ & 3.000€, ιδανικά για συνδυασμό με κοινωνική ασφάλιση.</p>
-                    </div>
-                    <div class="office-card">
-                        <h4 style="font-size:15px; font-weight:800; color:var(--accent-gold); margin-bottom:8px;">📜 Κλίμακες Αμοιβών & Overridings</h4>
-                        <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">Κανονισμός Agency 1411: 20% υπερπρομήθεια επί των αμοιβών βάσης του κλάδου Ζωής & Υγείας σε όλες τις νέες εργασίες και ανανεώσεις.</p>
-                    </div>
+
+                <div class="pdf-grid" id="pdf-docs-container">
+                    <!-- Dynamic PDF Cards injected by JS -->
+                </div>
+
+                <!-- Drag & Drop Upload Zone for new PDFs -->
+                <div class="upload-dropzone" onclick="document.getElementById('pdf-file-input').click()">
+                    <input type="file" id="pdf-file-input" accept=".pdf" style="display:none;" onchange="uploadNewPDF(this)">
+                    <span style="font-size:32px;">📤</span>
+                    <h4 style="font-size:15px; font-weight:700; color:var(--brand-navy); margin-top:6px;">Ανέβασμα / Ενημέρωση Εγγράφου PDF</h4>
+                    <p style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">Κάντε κλικ ή σύρετε ένα νέο αρχείο PDF για άμεση προσθήκη στη βιβλιοθήκη</p>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 9: UPLOAD HUB -->
-        <div id="tab-upload" class="tab-panel">
-            <div class="glass-box">
-                <div class="box-header">
-                    <div class="box-title">📤 Κέντρο Εισαγωγής Αρχείων & Statements ERGO</div>
-                    <button onclick="clearDatabase()" class="btn-pill" style="background:rgba(239, 68, 68, 0.15); border:1px solid #EF4444; color:#DC2626;">
-                        🗑️ Άδειασμα Βάσης Δεδομένων
-                    </button>
-                </div>
-                <div class="upload-card" onclick="document.getElementById('file-upload-input').click()">
-                    <div style="font-size:54px; margin-bottom:12px;">📁</div>
-                    <h3 style="font-size:19px; font-weight:800; color:var(--brand-navy);">Σύρετε ή Πατήστε για να Επιλέξετε Αρχεία ERGO (CSV & PDF)</h3>
-                    <p style="color:var(--text-muted); font-size:13.5px; margin-top:8px;">Υποστηρίζονται Statements Προμηθειών CSV, UATOP Καλύψεις CSV, και Αποδεσμεύσεις PDF 57</p>
-                    <input type="file" id="file-upload-input" multiple style="display:none;" onchange="handleFileUpload(event)">
-                </div>
-                <div id="upload-status" style="margin-top:18px;"></div>
-            </div>
-        </div>
-
-        <!-- TAB 10: LANCA OFFICE & PROFILE (lanca.gr) -->
-        <div id="tab-office" class="tab-panel">
-            <div class="glass-box">
-                <div class="box-header">
-                    <div class="box-title">🏢 Στοιχεία Γραφείου LANCA & Επικοινωνία (lanca.gr)</div>
-                    <a href="https://lanca.gr" target="_blank" class="btn-pill btn-ghost">🌐 Επίσκεψη στο lanca.gr</a>
-                </div>
-                <div class="office-grid">
-                    <div class="office-card">
-                        <h4 style="font-size:16px; font-weight:800; color:var(--brand-blue); margin-bottom:12px;">🏛️ LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</h4>
-                        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:8px;"><strong>Συντονιστής / Agency Manager:</strong> Νίκος Αναγνωστόπουλος</p>
-                        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:8px;"><strong>Κωδικός Agency ERGO:</strong> 1411</p>
-                        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:8px;"><strong>Διεύθυνση:</strong> Τέρμα Τρικούπη, 30200 Μεσολόγγι</p>
-                        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:8px;"><strong>ΑΦΜ:</strong> 800217829 &nbsp;|&nbsp; <strong>ΔΟΥ:</strong> Μεσολογγίου</p>
-                        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:8px;"><strong>Τηλέφωνο:</strong> 26310 51222 &nbsp;|&nbsp; <strong>Κινητό:</strong> 6944 347151</p>
-                        <p style="font-size:13.5px; color:var(--text-secondary);"><strong>Email:</strong> info@lanca.gr</p>
-                    </div>
-
-                    <div class="office-card">
-                        <h4 style="font-size:16px; font-weight:800; color:var(--accent-teal); margin-bottom:12px;">🛡️ Κλάδοι Δραστηριότητας</h4>
-                        <ul style="padding-left:20px; font-size:13.5px; color:var(--text-secondary); line-height:1.8;">
-                            <li>Ασφάλιση Ζωής & Προστασίας Οικογένειας</li>
-                            <li>Προγράμματα Υγείας & Νοσοκομειακής Περίθαλψης</li>
-                            <li>Συνταξιοδοτικά & Αποταμιευτικά Προγράμματα</li>
-                            <li>Επαγγελματική Αστική Ευθύνη & Νομική Προστασία</li>
-                            <li>Γενικοί Κλάδοι (Αυτοκίνητο, Περιουσία, Σκάφη)</li>
-                        </ul>
-                    </div>
-
-                    <div class="office-card">
-                        <h4 style="font-size:16px; font-weight:800; color:var(--accent-gold); margin-bottom:12px;">🔗 Χρήσιμοι Σύνδεσμοι & Εποπτεία</h4>
-                        <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-                            <a href="https://www.bankofgreece.gr" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-weight:600;">🏛️ Τράπεζα της Ελλάδος (ΔΕΙΑ) ↗</a>
-                            <a href="http://www.eaee.gr" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-weight:600;">🛡️ Ένωση Ασφαλιστικών Εταιριών Ελλάδος ↗</a>
-                            <a href="https://www.hic.gr" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-weight:600;">🚗 Επικουρικό Κεφάλαιο (Έλεγχος Οχημάτων) ↗</a>
-                            <a href="https://lanca.gr" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-weight:600;">🌐 Επίσημη Ιστοσελίδα lanca.gr ↗</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 🏢 OFFICIAL LANCA FOOTER -->
-        <footer style="text-align:center; padding:30px 20px; color:var(--text-muted); font-size:13px; border-top:1px solid rgba(226,232,240,0.8); margin-top:20px;">
-            <p style="font-weight:700; color:var(--text-secondary); margin-bottom:4px;">
+        <!-- ==========================================================================
+             🏢 OFFICIAL LANCA FOOTER (COMPANY DETAILS)
+             ========================================================================== -->
+        <footer class="official-footer">
+            <p style="font-weight:800; font-size:14px; color:var(--brand-navy); margin-bottom:4px;">
                 LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε. • Agency 1411 (ERGO)
             </p>
-            <p style="margin-bottom:4px;">
-                Διεύθυνση: Τέρμα Τρικούπη, Μεσολόγγι • ΑΦΜ: 800217829 • ΔΟΥ: Μεσολογγίου
+            <p style="margin-bottom:4px; color:var(--text-secondary);">
+                Συντονιστής / Agency Manager: <strong>Νίκος Αναγνωστόπουλος</strong> • 
+                Διεύθυνση: <strong>Τέρμα Τρικούπη, 30200 Μεσολόγγι</strong> • 
+                ΑΦΜ: <strong>800217829</strong> • ΔΟΥ: <strong>Μεσολογγίου</strong>
             </p>
-            <p>
-                Τηλ: 26310 51222 • Κιν: 6944 347151 • Email: info@lanca.gr • 
+            <p style="color:var(--text-secondary);">
+                Τηλέφωνο: <strong>26310 51222</strong> • Κινητό: <strong>6944 347151</strong> • Email: <a href="mailto:info@lanca.gr" style="color:var(--brand-blue); text-decoration:none; font-weight:600;">info@lanca.gr</a> • 
                 <a href="https://lanca.gr" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-weight:600;">lanca.gr</a> • 
                 <a href="https://lanca.stavrostsamadias.gr" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-weight:600;">lanca.stavrostsamadias.gr</a>
             </p>
@@ -1377,7 +1686,75 @@
     </div>
 
     <!-- ==========================================================================
-         ⚡ JAVASCRIPT ENGINE & DATA MANAGEMENT
+         🔍 360° POLICY & CLIENT MODAL (LEVEL 3 DRILLDOWN)
+         ========================================================================== -->
+    <div id="policyModal" class="modal-overlay" onclick="if(event.target===this) closePolicyModal()">
+        <div class="modal-glass-card">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-family:'Outfit'; font-size:20px; font-weight:800; color:var(--brand-navy);" id="modal-policy-num">Συμβόλαιο</h3>
+                    <span style="font-size:12px; color:var(--accent-teal); font-weight:600;" id="modal-package-name">ERGO Health Care Superior</span>
+                </div>
+                <button class="btn-pill btn-ghost" onclick="closePolicyModal()">✕ Κλείσιμο</button>
+            </div>
+
+            <!-- Client Profile -->
+            <div class="client-profile-grid">
+                <div class="profile-item">
+                    <span class="profile-label">Ονοματεπώνυμο Πελάτη</span>
+                    <span class="profile-val" id="modal-client-name">-</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">ΑΦΜ</span>
+                    <span class="profile-val" id="modal-client-afm">-</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Τηλέφωνο</span>
+                    <span class="profile-val" id="modal-client-phone">-</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Email</span>
+                    <span class="profile-val" id="modal-client-email">info@lanca.gr</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Διεύθυνση</span>
+                    <span class="profile-val" id="modal-client-address">-</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Agency Manager</span>
+                    <span class="profile-val">Νίκος Αναγνωστόπουλος (1411)</span>
+                </div>
+            </div>
+
+            <!-- 27 Coverages Table -->
+            <div>
+                <h4 style="font-size:14px; font-weight:700; color:var(--brand-navy); margin-bottom:8px;">🛡️ Αναλυτικές Καλύψεις Συμβολαίου (UATOP)</h4>
+                <div class="table-responsive">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Κωδικός</th>
+                                <th>Περιγραφή Κάλυψης</th>
+                                <th>Ασφαλισμένο Κεφάλαιο (€)</th>
+                                <th>Καθαρό (€)</th>
+                                <th>Προμήθεια (€)</th>
+                                <th>Agency 20% (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-coverages-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(226,232,240,0.8); padding-top:14px;">
+                <button class="btn-pill btn-pdf" onclick="printModalContractPDF()">📄 Εκτύπωση Καρτέλας Πελάτη PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         ⚡ JAVASCRIPT ENGINE
          ========================================================================== -->
     <script>
         let globalData = {
@@ -1386,24 +1763,17 @@
             agency: [],
             producers: [],
             coverages: [],
-            reconciliation: []
+            reconciliation: [],
+            producersReg: [],
+            docs: [],
+            selectedFilter: 'all'
         };
 
-        // === 🔒 LOGIN & AUTH ===
-        function submitLogin() {
-            const u = document.getElementById('loginUsername').value;
-            const p = document.getElementById('loginPassword').value;
-            if ((u === 'admin' && p === 'admin') || (u === 'lanca' && p === 'lanca') || u === 'stayros' || u === 'stavros') {
-                document.getElementById('loginOverlayModal').style.display = 'none';
-                loadAllData();
-            } else {
-                const err = document.getElementById('loginErrorMsg');
-                err.style.display = 'block';
-                err.innerText = 'Λάθος διαπιστευτήρια! Δοκιμάστε admin/admin';
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+        });
 
-        // === 🧭 NAVIGATION & TAB SWITCHING ===
+        // === 🧭 TAB SWITCHING ===
         function switchTab(tabId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -1412,22 +1782,16 @@
             if (targetTab) targetTab.classList.add('active');
 
             if (tabId === 'tab-dashboard') document.getElementById('nav-btn-dash')?.classList.add('active');
-            else if (tabId === 'tab-contracts') document.getElementById('nav-btn-crm')?.classList.add('active');
-            else if (tabId === 'tab-agency' || tabId === 'tab-reconciliation' || tabId === 'tab-coverages') document.getElementById('nav-btn-recon')?.classList.add('active');
-            else if (tabId === 'tab-calculator' || tabId === 'tab-products') document.getElementById('nav-btn-tools')?.classList.add('active');
-            else if (tabId === 'tab-office') document.getElementById('nav-btn-office')?.classList.add('active');
+            else if (tabId === 'tab-reconciliation') document.getElementById('nav-btn-57')?.classList.add('active');
+            else if (tabId === 'tab-contracts' || tabId === 'tab-producers-reg') document.getElementById('nav-btn-crm')?.classList.add('active');
+            else if (tabId === 'tab-calculator' || tabId === 'tab-docs') document.getElementById('nav-btn-tools')?.classList.add('active');
+            else document.getElementById('nav-btn-recon')?.classList.add('active');
         }
 
-        // === 🎴 EXPANDING FLEX CARDS (Inspired by CodePen OBPJKK) ===
-        function expandCard(cardId, targetTabId) {
+        // === 🎴 EXPANDING CARDS ===
+        function expandCard(cardId) {
             document.querySelectorAll('.flex-card').forEach(c => c.classList.remove('expanded'));
-            const clickedCard = document.getElementById(cardId);
-            if (clickedCard) {
-                clickedCard.classList.add('expanded');
-            }
-            if (targetTabId) {
-                switchTab(targetTabId);
-            }
+            document.getElementById(cardId)?.classList.add('expanded');
         }
 
         // === 📊 DATA LOADING ENGINE ===
@@ -1437,6 +1801,7 @@
                 const resDash = await fetch('/api/dashboard/summary');
                 const dData = await resDash.json();
                 globalData.summary = dData;
+                
                 if (dData.kpis) {
                     const gross = dData.kpis.total_gross || 0;
                     const net = dData.kpis.total_net || 0;
@@ -1451,35 +1816,11 @@
                     document.getElementById('exp-avg-gross').innerText = formatEur(gross / (dData.monthly_summary.length || 1));
                     document.getElementById('exp-taxes').innerText = formatEur(gross - net);
                     document.getElementById('exp-total-rev').innerText = formatEur(syn + agn);
-                    
-                    const tbody = document.getElementById('dashboard-monthly-tbody');
-                    tbody.innerHTML = '';
-                    let tgross=0, tnet=0, tsyn=0, tagn=0, trev=0, tcnt=0;
-                    dData.monthly_summary.forEach(r => {
-                        tcnt += r.count; tgross += r.gross; tnet += r.net; tsyn += r.comm_syn; tagn += r.comm_agn; trev += r.total_rev;
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><strong>${r.statement_month}</strong></td>
-                            <td><span class="badge badge-blue">${r.count} κινήσεις</span></td>
-                            <td>${formatEur(r.gross)}</td>
-                            <td>${formatEur(r.net)}</td>
-                            <td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.comm_syn)}</td>
-                            <td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.comm_agn)}</td>
-                            <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(r.total_rev)}</td>
-                            <td><span class="badge badge-success">✔ Εκκαθαρίστηκε</span></td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                    document.getElementById('tot-m-count').innerText = tcnt;
-                    document.getElementById('exp-count').innerText = tcnt;
-                    document.getElementById('tot-m-gross').innerText = formatEur(tgross);
-                    document.getElementById('tot-m-net').innerText = formatEur(tnet);
-                    document.getElementById('tot-m-syn').innerText = formatEur(tsyn);
-                    document.getElementById('tot-m-agn').innerText = formatEur(tagn);
-                    document.getElementById('tot-m-rev').innerText = formatEur(trev);
+
+                    renderDashboardTable(dData.monthly_summary);
                 }
 
-                // 2. CRM & Contracts
+                // 2. Contracts
                 const resCont = await fetch('/api/contracts');
                 const contData = await resCont.json();
                 globalData.contracts = contData.contracts || [];
@@ -1489,90 +1830,41 @@
                 const resAgn = await fetch('/api/agency');
                 const aData = await resAgn.json();
                 globalData.agency = aData.overridings || [];
-                const agnTbody = document.getElementById('agency-tbody');
-                agnTbody.innerHTML = '';
-                globalData.agency.forEach((r, idx) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${idx+1}</td>
-                        <td><strong>${r.statement_month}</strong></td>
-                        <td><code>${r.policy_number}</code></td>
-                        <td>${r.client_name||'-'}</td>
-                        <td>${formatEur(r.net_premium_total)}</td>
-                        <td>${formatEur(r.producer_commission_amount)}</td>
-                        <td style="color:var(--accent-purple); font-weight:800;">${formatEur(r.agency_overriding_amount)}</td>
-                        <td><span class="badge badge-purple">Agency 20%</span></td>
-                    `;
-                    agnTbody.appendChild(tr);
-                });
-                document.getElementById('agency-total-val').innerText = formatEur(aData.total_overriding);
-                document.getElementById('exp-agn-count').innerText = globalData.agency.length;
+                renderAgencyTable(globalData.agency);
 
                 // 4. Producers
                 const resProd = await fetch('/api/producers');
                 const pData = await resProd.json();
                 globalData.producers = pData.commissions || [];
-                const prodTbody = document.getElementById('producers-tbody');
-                prodTbody.innerHTML = '';
-                globalData.producers.forEach((r, idx) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${idx+1}</td>
-                        <td><strong>${r.statement_month}</strong></td>
-                        <td><code>${r.policy_number}</code></td>
-                        <td>${r.client_name||'-'}</td>
-                        <td>${formatEur(r.net_premium_total)}</td>
-                        <td><span class="badge badge-gold">${r.producer_commission_rate||25}%</span></td>
-                        <td style="color:var(--accent-gold); font-weight:800;">${formatEur(r.producer_commission_amount)}</td>
-                        <td><span class="badge badge-gold">Κατηγορία Α</span></td>
-                    `;
-                    prodTbody.appendChild(tr);
-                });
-                document.getElementById('producers-total-val').innerText = formatEur(pData.total_commission);
-                document.getElementById('exp-syn-count').innerText = globalData.producers.length;
+                renderProducersTable(globalData.producers);
+                renderCategoryTables();
 
                 // 5. Coverages
                 const resCov = await fetch('/api/coverages');
                 const covData = await resCov.json();
                 globalData.coverages = covData.coverages || [];
-                const covTbody = document.getElementById('coverages-tbody');
-                covTbody.innerHTML = '';
-                globalData.coverages.forEach((r, idx) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${idx+1}</td>
-                        <td><code>${r.policy_number}</code></td>
-                        <td><span class="badge badge-blue">${r.coverage_code}</span></td>
-                        <td><strong>${r.coverage_description}</strong></td>
-                        <td>${formatEur(r.insured_capital)}</td>
-                        <td>${formatEur(r.net_premium)}</td>
-                        <td style="color:var(--accent-gold);">${formatEur(r.producer_commission_amount)}</td>
-                        <td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.agency_overriding_amount)}</td>
-                    `;
-                    covTbody.appendChild(tr);
-                });
+                renderCoveragesTable(globalData.coverages);
 
                 // 6. Reconciliation 57
                 const resRecon = await fetch('/api/reconciliation');
                 const rData = await resRecon.json();
                 globalData.reconciliation = rData.table_a_monthly || [];
-                const recTbody = document.getElementById('recon-tbody');
-                recTbody.innerHTML = '';
-                globalData.reconciliation.forEach(r => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${r.statement_month}</strong></td>
-                        <td>${formatEur(r.statement_total_amount)}</td>
-                        <td><span class="badge badge-purple">${r.account_57_release_month||'-'}</span></td>
-                        <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(r.account_57_released_amount)}</td>
-                        <td>${formatEur(r.variance_amount)}</td>
-                        <td><span class="badge badge-success">✔ 100% Ταύτιση</span></td>
-                    `;
-                    recTbody.appendChild(tr);
-                });
+                renderReconTable(globalData.reconciliation);
+
+                // 7. Producers Registry
+                const resProdReg = await fetch('/api/producers/list');
+                const prData = await resProdReg.json();
+                globalData.producersReg = prData.producers || [];
+                renderProducersRegTable(globalData.producersReg);
+
+                // 8. PDF Docs
+                const resDocs = await fetch('/api/docs/list');
+                const docsData = await resDocs.json();
+                globalData.docs = docsData.docs || [];
+                renderPDFDocs(globalData.docs);
 
             } catch (e) {
-                console.error("Data loading error:", e);
+                console.error("Data load error:", e);
             }
         }
 
@@ -1580,6 +1872,150 @@
             return '€ ' + Number(val || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        // === 📈 3-TIER MASTER-DETAIL DASHBOARD TABLE ===
+        function renderDashboardTable(monthlyList) {
+            const tbody = document.getElementById('dash-tbody');
+            tbody.innerHTML = '';
+            let tgross=0, tnet=0, tsyn=0, tagn=0, trev=0, tcnt=0;
+
+            monthlyList.forEach((m, idx) => {
+                tcnt += m.count; tgross += m.gross; tnet += m.net; tsyn += m.comm_syn; tagn += m.comm_agn; trev += m.total_rev;
+
+                // Month Row (Level 1)
+                const trMonth = document.createElement('tr');
+                trMonth.className = 'month-row';
+                trMonth.innerHTML = `
+                    <td><input type="checkbox" class="custom-checkbox dash-row-check" value="${m.statement_month}"></td>
+                    <td>${idx+1}</td>
+                    <td><strong>${m.statement_month}</strong></td>
+                    <td><span class="badge badge-blue">${m.count} κινήσεις</span></td>
+                    <td>${formatEur(m.gross)}</td>
+                    <td>${formatEur(m.net)}</td>
+                    <td style="color:var(--accent-gold); font-weight:700;">${formatEur(m.comm_syn)}</td>
+                    <td style="color:var(--accent-purple); font-weight:700;">${formatEur(m.comm_agn)}</td>
+                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(m.total_rev)}</td>
+                    <td style="text-align:center;"><button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="toggleMonthAccordion('nested-${idx}', this)">▼ Συμβόλαια</button></td>
+                `;
+                tbody.appendChild(trMonth);
+
+                // Nested Contracts Table (Level 2)
+                const trNested = document.createElement('tr');
+                trNested.id = `nested-${idx}`;
+                trNested.className = 'nested-contracts-row';
+                
+                const monthContracts = globalData.contracts.filter(c => c.statement_month === m.statement_month);
+                let nestedRowsHtml = '';
+                monthContracts.forEach((c, cIdx) => {
+                    nestedRowsHtml += `
+                        <tr>
+                            <td><input type="checkbox" class="custom-checkbox nested-check" value="${c.policy_number}"></td>
+                            <td>${cIdx+1}</td>
+                            <td><a class="policy-link" onclick="openPolicyModal('${c.policy_number}')">${c.policy_number}</a></td>
+                            <td><strong>${c.client_name || '-'}</strong></td>
+                            <td>${c.package_name || 'ERGO Health Care Superior'}</td>
+                            <td>${formatEur(c.net_premium_total)}</td>
+                            <td style="color:var(--accent-gold); font-weight:700;">${formatEur(c.producer_commission_amount)}</td>
+                            <td style="color:var(--accent-purple); font-weight:700;">${formatEur(c.agency_overriding_amount)}</td>
+                            <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(c.total_office_revenue)}</td>
+                        </tr>
+                    `;
+                });
+
+                trNested.innerHTML = `
+                    <td colspan="10" style="padding:8px 20px;">
+                        <div class="nested-box">
+                            <div style="font-weight:700; font-size:12.5px; color:var(--brand-blue); margin-bottom:8px;">
+                                📋 Συμβόλαια Μηνός ${m.statement_month} (${monthContracts.length} κινήσεις):
+                            </div>
+                            <table class="glass-table" style="font-size:12px; background:#FFF;">
+                                <thead>
+                                    <tr style="background:#F1F5F9;">
+                                        <th style="width:30px;"></th>
+                                        <th>Α/Α</th>
+                                        <th>Αρ. Συμβολαίου (Κλικ)</th>
+                                        <th>Ονοματεπώνυμο Πελάτη</th>
+                                        <th>Πρόγραμμα</th>
+                                        <th>Καθαρά (€)</th>
+                                        <th>Προμήθεια (€)</th>
+                                        <th>Agency 20% (€)</th>
+                                        <th>Σύνολο (€)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${nestedRowsHtml}</tbody>
+                            </table>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(trNested);
+            });
+
+            document.getElementById('tot-m-count').innerText = tcnt;
+            document.getElementById('exp-count').innerText = tcnt;
+            document.getElementById('tot-m-gross').innerText = formatEur(tgross);
+            document.getElementById('tot-m-net').innerText = formatEur(tnet);
+            document.getElementById('tot-m-syn').innerText = formatEur(tsyn);
+            document.getElementById('tot-m-agn').innerText = formatEur(tagn);
+            document.getElementById('tot-m-rev').innerText = formatEur(trev);
+        }
+
+        function toggleMonthAccordion(rowId, btn) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.classList.toggle('open');
+                btn.innerText = row.classList.contains('open') ? '▲ Σύμπτυξη' : '▼ Συμβόλαια';
+            }
+        }
+
+        // === 🔍 LEVEL 3 POLICY DRILLDOWN MODAL ===
+        async function openPolicyModal(policyNumber) {
+            try {
+                const res = await fetch(`/api/contracts/${policyNumber}`);
+                const data = await res.json();
+                
+                document.getElementById('modal-policy-num').innerText = `Συμβόλαιο #${policyNumber}`;
+                document.getElementById('modal-package-name').innerText = data.policy.package_name || 'ERGO Health Care Superior';
+                document.getElementById('modal-client-name').innerText = data.client.name;
+                document.getElementById('modal-client-afm').innerText = data.client.afm;
+                document.getElementById('modal-client-phone').innerText = data.client.phone_mobile || data.client.phone_landline;
+                document.getElementById('modal-client-email').innerText = data.client.email;
+                document.getElementById('modal-client-address').innerText = data.client.address;
+
+                const covTbody = document.getElementById('modal-coverages-tbody');
+                covTbody.innerHTML = '';
+                (data.coverages || []).forEach(cov => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="badge badge-blue">${cov.coverage_code}</span></td>
+                        <td><strong>${cov.coverage_description}</strong></td>
+                        <td>${formatEur(cov.insured_capital)}</td>
+                        <td>${formatEur(cov.net_premium)}</td>
+                        <td style="color:var(--accent-gold); font-weight:700;">${formatEur(cov.producer_commission_amount)}</td>
+                        <td style="color:var(--accent-purple); font-weight:700;">${formatEur(cov.agency_overriding_amount)}</td>
+                    `;
+                    covTbody.appendChild(tr);
+                });
+
+                document.getElementById('policyModal').classList.add('open');
+            } catch (e) {
+                console.error("Policy modal error:", e);
+            }
+        }
+
+        function closePolicyModal() {
+            document.getElementById('policyModal').classList.remove('open');
+        }
+
+        function printModalContractPDF() {
+            const card = document.querySelector('.modal-glass-card');
+            html2pdf().set({
+                margin: 10,
+                filename: `LANCA_Kartela_Symvolaiou_${new Date().getTime()}.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(card).save();
+        }
+
+        // === 👥 CRM TABLE & EDIT/DELETE ===
         function renderCRMTable(list) {
             const tbody = document.getElementById('crm-tbody');
             tbody.innerHTML = '';
@@ -1588,9 +2024,10 @@
                 let typeBadge = `<span class="badge badge-blue">${r.movement_type || 'Νέα Εργασία'}</span>`;
                 if (r.is_zero_offset) typeBadge = `<span class="badge badge-offset">Συμψηφισμός 0,00 €</span>`;
                 tr.innerHTML = `
+                    <td><input type="checkbox" class="custom-checkbox crm-row-check" value="${r.policy_number}"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
-                    <td><code>${r.policy_number}</code></td>
+                    <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
                     <td><strong>${r.client_name||'-'}</strong></td>
                     <td>${r.afm||'-'}</td>
                     <td>${r.phone_mobile || r.phone_landline || '-'}</td>
@@ -1607,12 +2044,233 @@
 
         function filterCRMTable() {
             const q = document.getElementById('crm-search').value.toLowerCase();
-            const m = document.getElementById('crm-month-filter').value;
             renderCRMTable(globalData.contracts.filter(c => {
-                const nameMatch = !q || (c.client_name && c.client_name.toLowerCase().includes(q)) || (c.afm && c.afm.includes(q)) || (c.policy_number && c.policy_number.includes(q));
-                const monthMatch = !m || c.statement_month === m;
-                return nameMatch && monthMatch;
+                return !q || (c.client_name && c.client_name.toLowerCase().includes(q)) || 
+                             (c.afm && c.afm.includes(q)) || 
+                             (c.policy_number && c.policy_number.includes(q)) ||
+                             (c.phone_mobile && c.phone_mobile.includes(q));
             }));
+        }
+
+        // === 🏢 AGENCY TABLE ===
+        function renderAgencyTable(list) {
+            const tbody = document.getElementById('agency-tbody');
+            tbody.innerHTML = '';
+            list.forEach((r, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="custom-checkbox agency-row-check" value="${r.policy_number}"></td>
+                    <td>${idx+1}</td>
+                    <td><strong>${r.statement_month}</strong></td>
+                    <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
+                    <td>${r.client_name||'-'}</td>
+                    <td>${formatEur(r.net_premium_total)}</td>
+                    <td>${formatEur(r.producer_commission_amount)}</td>
+                    <td style="color:var(--accent-purple); font-weight:800;">${formatEur(r.agency_overriding_amount)}</td>
+                    <td><span class="badge badge-purple">Agency 20%</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterAgencyTable() {
+            const q = document.getElementById('agency-search').value.toLowerCase();
+            renderAgencyTable(globalData.agency.filter(r => {
+                return !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                             (r.policy_number && r.policy_number.includes(q));
+            }));
+        }
+
+        // === 🤝 PRODUCERS TABLE ===
+        function renderProducersTable(list) {
+            const tbody = document.getElementById('producers-tbody');
+            tbody.innerHTML = '';
+            list.forEach((r, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="custom-checkbox prod-row-check" value="${r.policy_number}"></td>
+                    <td>${idx+1}</td>
+                    <td><strong>${r.statement_month}</strong></td>
+                    <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
+                    <td>${r.client_name||'-'}</td>
+                    <td>${formatEur(r.net_premium_total)}</td>
+                    <td><span class="badge badge-gold">${r.producer_commission_rate||25}%</span></td>
+                    <td style="color:var(--accent-gold); font-weight:800;">${formatEur(r.producer_commission_amount)}</td>
+                    <td><span class="badge badge-gold">Κατηγορία Α</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterProducersTable() {
+            const q = document.getElementById('prod-search').value.toLowerCase();
+            renderProducersTable(globalData.producers.filter(r => {
+                return !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                             (r.policy_number && r.policy_number.includes(q));
+            }));
+        }
+
+        // === 🎯 CATEGORIZED TABLES (Cat A, C, Health, Life) ===
+        function renderCategoryTables() {
+            const catATbody = document.getElementById('cat-a-tbody');
+            if (catATbody) {
+                catATbody.innerHTML = '';
+                globalData.producers.forEach((r, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${idx+1}</td><td>${r.statement_month}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.producer_commission_amount)}</td><td><span class="badge badge-gold">25% - 29%</span></td>`;
+                    catATbody.appendChild(tr);
+                });
+            }
+
+            const catCTbody = document.getElementById('cat-c-tbody');
+            if (catCTbody) {
+                catCTbody.innerHTML = '';
+                globalData.agency.forEach((r, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${idx+1}</td><td>${r.statement_month}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.agency_overriding_amount)}</td>`;
+                    catCTbody.appendChild(tr);
+                });
+            }
+
+            const healthTbody = document.getElementById('health-tbody');
+            if (healthTbody) {
+                healthTbody.innerHTML = '';
+                globalData.contracts.filter(c => !c.package_name || c.package_name.includes('Health') || c.package_name.includes('Superior')).forEach((r, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${idx+1}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${r.package_name||'ERGO Health Care'}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.producer_commission_amount)}</td><td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.agency_overriding_amount)}</td>`;
+                    healthTbody.appendChild(tr);
+                });
+            }
+
+            const lifeTbody = document.getElementById('life-tbody');
+            if (lifeTbody) {
+                lifeTbody.innerHTML = '';
+                globalData.contracts.filter(c => c.package_name && (c.package_name.includes('Life') || c.package_name.includes('Ζωή'))).forEach((r, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${idx+1}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${r.package_name}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.producer_commission_amount)}</td>`;
+                    lifeTbody.appendChild(tr);
+                });
+            }
+        }
+
+        // === 🔬 COVERAGES TABLE ===
+        function renderCoveragesTable(list) {
+            const tbody = document.getElementById('coverages-tbody');
+            tbody.innerHTML = '';
+            list.forEach((cov, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx+1}</td>
+                    <td><code>${cov.policy_number}</code></td>
+                    <td><span class="badge badge-blue">${cov.coverage_code}</span></td>
+                    <td><strong>${cov.coverage_description}</strong></td>
+                    <td>${formatEur(cov.insured_capital)}</td>
+                    <td>${formatEur(cov.net_premium)}</td>
+                    <td style="color:var(--accent-gold);">${formatEur(cov.producer_commission_amount)}</td>
+                    <td style="color:var(--accent-purple); font-weight:700;">${formatEur(cov.agency_overriding_amount)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterCoveragesTable() {
+            const q = document.getElementById('cov-search').value.toLowerCase();
+            renderCoveragesTable(globalData.coverages.filter(c => {
+                return !q || c.coverage_code.toLowerCase().includes(q) || 
+                             c.coverage_description.toLowerCase().includes(q) || 
+                             c.policy_number.includes(q);
+            }));
+        }
+
+        // === 🏦 RECONCILIATION 57 TABLE ===
+        function renderReconTable(list) {
+            const tbody = document.getElementById('recon-tbody');
+            tbody.innerHTML = '';
+            list.forEach((r, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx+1}</td>
+                    <td><strong>${r.statement_month}</strong></td>
+                    <td>${formatEur(r.statement_total_amount)}</td>
+                    <td><span class="badge badge-purple">${r.account_57_release_month||'-'}</span></td>
+                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(r.account_57_released_amount)}</td>
+                    <td>${formatEur(r.variance_amount)}</td>
+                    <td><span class="badge badge-success">✔ 100% Ταύτιση</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // === 🤝 PRODUCERS REGISTRY TABLE ===
+        function renderProducersRegTable(list) {
+            const tbody = document.getElementById('producers-reg-tbody');
+            tbody.innerHTML = '';
+            list.forEach((p, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx+1}</td>
+                    <td><span class="badge badge-purple">${p.producer_code || 'PR-1411-01'}</span></td>
+                    <td><strong>${p.producer_name}</strong></td>
+                    <td><span class="badge badge-blue">${p.total_policies || 0} συμβόλαια</span></td>
+                    <td>${formatEur(p.total_net)}</td>
+                    <td style="color:var(--accent-gold); font-weight:800;">${formatEur(p.total_commission)}</td>
+                    <td><span class="badge badge-gold">${p.avg_rate || 25}%</span></td>
+                    <td>${p.last_month || '07/2026'}</td>
+                    <td>
+                        <button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="editProducerModal('${p.producer_code}', '${p.producer_name}', ${p.avg_rate||25})">✏️ Επεξεργασία</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterProducersRegTable() {
+            const q = document.getElementById('prod-reg-search').value.toLowerCase();
+            renderProducersRegTable(globalData.producersReg.filter(p => {
+                return !q || p.producer_name.toLowerCase().includes(q) || 
+                             (p.producer_code && p.producer_code.toLowerCase().includes(q));
+            }));
+        }
+
+        // === 📖 PDF LIBRARY RENDERING ===
+        function renderPDFDocs(docs) {
+            const container = document.getElementById('pdf-docs-container');
+            container.innerHTML = '';
+            docs.forEach(doc => {
+                const div = document.createElement('div');
+                div.className = 'pdf-card';
+                div.innerHTML = `
+                    <div class="pdf-card-header">
+                        <div class="pdf-icon-box">📄</div>
+                        <div>
+                            <h4 style="font-size:14.5px; font-weight:800; color:var(--brand-navy);">${doc.title}</h4>
+                            <span style="font-size:11.5px; color:var(--text-muted); font-weight:600;">Κατηγορία: ${doc.category} • Μέγεθος: ${doc.size}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <a href="${doc.url}" target="_blank" class="btn-pill btn-ghost" style="flex:1; justify-content:center;">👁️ Προβολή</a>
+                        <a href="${doc.url}" download class="btn-pill btn-pdf" style="flex:1; justify-content:center;">📥 Λήψη PDF</a>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function uploadNewPDF(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/api/docs/upload', { method: 'POST', body: formData });
+                const d = await res.json();
+                alert(d.message || "Το PDF ανέβηκε επιτυχώς!");
+                const resDocs = await fetch('/api/docs/list');
+                const docsData = await resDocs.json();
+                renderPDFDocs(docsData.docs || []);
+            } catch (e) {
+                alert("Σφάλμα κατά το ανέβασμα του αρχείου!");
+            }
         }
 
         // === 🧮 CALCULATOR ===
@@ -1633,58 +2291,112 @@
             } catch (e) {}
         }
 
-        // === 📥 EXPORT TO EXCEL WITH PRECISE NAMING ===
+        // === 📅 PERIOD & MONTH FILTERING ===
+        function filterByPeriod(period, btn) {
+            document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            globalData.selectedFilter = period;
+            
+            if (!globalData.summary) return;
+            let list = globalData.summary.monthly_summary;
+            if (period === 'Q1') list = list.filter(m => ['02/2026', '03/2026', '04/2026'].includes(m.statement_month));
+            else if (period === 'Q2') list = list.filter(m => ['05/2026', '06/2026', '07/2026'].includes(m.statement_month));
+            else if (period === '2026') list = list.filter(m => m.statement_month.includes('2026'));
+            renderDashboardTable(list);
+        }
+
+        function filterByMonthSelect(val) {
+            if (!globalData.summary) return;
+            let list = globalData.summary.monthly_summary;
+            if (val !== 'all') list = list.filter(m => m.statement_month === val);
+            renderDashboardTable(list);
+        }
+
+        // === 👁️ COLUMN SELECTOR & SORTING ===
+        function toggleColSelector(menuId) {
+            document.getElementById(menuId)?.classList.toggle('show');
+        }
+
+        function toggleCol(tableId, colIndex) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const rows = table.querySelectorAll('tr');
+            rows.forEach(r => {
+                const cells = r.children;
+                if (cells[colIndex]) {
+                    cells[colIndex].style.display = cells[colIndex].style.display === 'none' ? '' : 'none';
+                }
+            });
+        }
+
+        function toggleSelectAll(type) {
+            const master = document.getElementById(`${type}-select-all`);
+            const checks = document.querySelectorAll(`.${type}-row-check`);
+            checks.forEach(c => {
+                c.checked = master.checked;
+                c.closest('tr')?.classList.toggle('selected', master.checked);
+            });
+        }
+
+        function sortGenericTable(tableId, colIdx) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const th = table.querySelectorAll('th')[colIdx];
+            const isAsc = !th.classList.contains('sort-asc');
+
+            table.querySelectorAll('th').forEach(h => { h.classList.remove('sort-asc'); h.classList.remove('sort-desc'); });
+            th.classList.toggle('sort-asc', isAsc);
+            th.classList.toggle('sort-desc', !isAsc);
+
+            rows.sort((a, b) => {
+                const aVal = a.children[colIdx]?.innerText.trim() || '';
+                const bVal = b.children[colIdx]?.innerText.trim() || '';
+                const aNum = parseFloat(aVal.replace(/[^0-9,-]+/g,"").replace(",","."));
+                const bNum = parseFloat(bVal.replace(/[^0-9,-]+/g,"").replace(",","."));
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAsc ? aNum - bNum : bNum - aNum;
+                }
+                return isAsc ? aVal.localeCompare(bVal, 'el') : bVal.localeCompare(aVal, 'el');
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+        }
+
+        // === 📥 EXPORT ENGINE (EXCEL & PDF) ===
         function exportToExcel(type) {
             const d = new Date();
             const dateStr = d.getFullYear() + "_" + String(d.getMonth() + 1).padStart(2, '0');
-            
-            let tableId = "table-dashboard";
-            let filename = `LANCA_ERGO_Ekatharistiko_Master_${dateStr}.xlsx`;
+            let tableId = "table-dash";
+            let filename = `LANCA_ERGO_Paragogi_Master_${dateStr}.xlsx`;
 
-            if (type === 'crm' || type === 'tab-contracts') {
-                tableId = "crm-table";
-                filename = `LANCA_CRM_Pelatologio_Symvolaia_${dateStr}.xlsx`;
-            } else if (type === 'agency' || type === 'tab-agency') {
-                tableId = "table-agency";
-                filename = `LANCA_Agency1411_Yperpromitheies_${dateStr}.xlsx`;
-            } else if (type === 'producers' || type === 'tab-producers') {
-                tableId = "table-producers";
-                filename = `LANCA_Syntelestes_Promitheies_${dateStr}.xlsx`;
-            } else if (type === 'coverages' || type === 'tab-coverages') {
-                tableId = "table-coverages";
-                filename = `LANCA_ERGO_UATOP615_Kalypseis_${dateStr}.xlsx`;
-            } else if (type === 'reconciliation' || type === 'tab-reconciliation') {
-                tableId = "table-reconciliation";
-                filename = `LANCA_ERGO_Symfonia_Logariasmos57_${dateStr}.xlsx`;
-            }
+            if (type === 'crm') { tableId = "crm-table"; filename = `LANCA_CRM_Pelatologio_${dateStr}.xlsx`; }
+            else if (type === 'agency') { tableId = "table-agency"; filename = `LANCA_Agency1411_Yperpromitheies_${dateStr}.xlsx`; }
+            else if (type === 'producers') { tableId = "table-producers"; filename = `LANCA_Syntelestes_Promitheies_${dateStr}.xlsx`; }
+            else if (type === 'coverages') { tableId = "table-coverages"; filename = `LANCA_ERGO_UATOP_Kalypseis_${dateStr}.xlsx`; }
+            else if (type === 'reconciliation') { tableId = "table-reconciliation"; filename = `LANCA_ERGO_Symfonia_Logariasmos57_${dateStr}.xlsx`; }
 
             const table = document.getElementById(tableId);
-            if (!table) {
-                window.location.href = '/api/export-excel';
-                return;
-            }
-
+            if (!table) return;
             const wb = XLSX.utils.table_to_book(table, { sheet: "LANCA_Export" });
             XLSX.writeFile(wb, filename);
         }
 
-        // === 📄 EXPORT TO PDF WITH OFFICIAL LANCA HEADER & CLEAR NAMING ===
         function exportToPDF(type) {
             const d = new Date();
             const dateStr = d.getFullYear() + "_" + String(d.getMonth() + 1).padStart(2, '0');
-            
             let elementId = "tab-dashboard";
-            let filename = `LANCA_ERGO_Ekatharistiko_Mina_${dateStr}.pdf`;
+            let filename = `LANCA_Ekatharistiko_${dateStr}.pdf`;
 
             if (type === 'crm') { elementId = "tab-contracts"; filename = `LANCA_CRM_Pelatologio_${dateStr}.pdf`; }
-            else if (type === 'agency') { elementId = "tab-agency"; filename = `LANCA_Agency1411_Yperpromitheies_${dateStr}.pdf`; }
-            else if (type === 'producers') { elementId = "tab-producers"; filename = `LANCA_Syntelestes_Promitheies_${dateStr}.pdf`; }
-            else if (type === 'reconciliation') { elementId = "tab-reconciliation"; filename = `LANCA_ERGO_Symfonia_Logariasmos57_${dateStr}.pdf`; }
+            else if (type === 'agency') { elementId = "tab-agency"; filename = `LANCA_Agency1411_${dateStr}.pdf`; }
+            else if (type === 'producers') { elementId = "tab-producers"; filename = `LANCA_Syntelestes_${dateStr}.pdf`; }
+            else if (type === 'reconciliation') { elementId = "tab-reconciliation"; filename = `LANCA_Symfonia57_${dateStr}.pdf`; }
 
             const element = document.getElementById(elementId);
             if (!element) return;
 
-            // Create printable container with official LANCA header
             const printWrapper = document.createElement('div');
             printWrapper.style.padding = '20px';
             printWrapper.style.background = '#FFFFFF';
@@ -1692,68 +2404,30 @@
             printWrapper.style.fontFamily = 'Arial, sans-serif';
 
             printWrapper.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #2F3490; padding-bottom:12px; margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:12px; margin-bottom:18px;">
                     <div>
                         <img src="LANCA-logo.png" style="height:44px; object-fit:contain;">
                     </div>
                     <div style="text-align:right; font-size:11px; color:#555; line-height:1.4;">
-                        <strong style="font-size:13px; color:#2F3490;">LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</strong><br>
+                        <strong style="font-size:13px; color:#1D4ED8;">LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</strong><br>
                         Διεύθυνση: Τέρμα Τρικούπη, Μεσολόγγι • ΑΦΜ: 800217829 • ΔΟΥ: Μεσολογγίου<br>
-                        Τηλ: 26310 51222 • Κιν: 6944 347151 • Email: info@lanca.gr<br>
-                        Agency Code: 1411 (ERGO) • Ημ/νία Έκδοσης: ${new Date().toLocaleDateString('el-GR')}
+                        Συντονιστής: Νίκος Αναγνωστόπουλος (Agency 1411 ERGO) • Τηλ: 26310 51222 • Email: info@lanca.gr
                     </div>
                 </div>
             `;
             printWrapper.appendChild(element.cloneNode(true));
 
-            const opt = {
-                margin: 10,
+            html2pdf().set({
+                margin: 8,
                 filename: filename,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                html2canvas: { scale: 2 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            };
-
-            html2pdf().set(opt).from(printWrapper).save();
+            }).from(printWrapper).save();
         }
 
-        // === 📤 FILE UPLOAD ===
-        async function handleFileUpload(event) {
-            const files = event.target.files;
-            if (!files.length) return;
-            const formData = new FormData();
-            for (let f of files) formData.append('files', f);
-            
-            document.getElementById('upload-status').innerHTML = '<span style="color:var(--brand-blue); font-weight:700;">⏳ Επεξεργασία & Καταχώρηση Αρχείων...</span>';
-            try {
-                const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                if (res.ok) {
-                    document.getElementById('upload-status').innerHTML = '<span style="color:#059669; font-weight:800;">✔ Τα αρχεία καταχωρήθηκαν επιτυχώς!</span>';
-                    loadAllData();
-                } else {
-                    const err = await res.json();
-                    document.getElementById('upload-status').innerHTML = `<span style="color:#DC2626;">❌ Σφάλμα: ${err.error||'Αποτυχία'}</span>`;
-                }
-            } catch(e) {
-                document.getElementById('upload-status').innerHTML = `<span style="color:#DC2626;">❌ Σφάλμα δικτύου: ${e}</span>`;
-            }
-        }
-
-        // === 🗑️ CLEAR DATABASE ===
-        async function clearDatabase() {
-            if (!confirm('ΠΡΟΣΟΧΗ: Είστε βέβαιοι ότι θέλετε να αδειάσετε ΟΛΑ τα δεδομένα από τη βάση;\nΌλοι οι πίνακες θα μηδενιστούν για να ανεβάσετε νέα αρχεία.')) {
-                return;
-            }
-            document.getElementById('upload-status').innerHTML = '<span style="color:#DC2626;">⏳ Άδειασμα βάσης...</span>';
-            try {
-                const res = await fetch('/api/clear-database', { method: 'POST' });
-                const d = await res.json();
-                alert(d.message || 'Η βάση δεδομένων αδειάστηκε επιτυχώς!');
-                loadAllData();
-                document.getElementById('upload-status').innerHTML = '<span style="color:#059669;">✔ Η βάση είναι άδεια. Μπορείτε να ανεβάσετε τα νέα σας αρχεία!</span>';
-            } catch(e) {
-                alert('Σφάλμα: ' + e);
-            }
+        function exportFilteredDashboard(type) {
+            if (type === 'xlsx') exportToExcel('dashboard');
+            else exportToPDF('dashboard');
         }
     </script>
 </body>

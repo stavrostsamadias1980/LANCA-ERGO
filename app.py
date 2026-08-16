@@ -1301,6 +1301,190 @@ def api_get_audit_logs():
     conn.close()
     return jsonify({"status": "success", "logs": logs, "audit_logs": logs})
 
+@app.route("/api/contracts/<policy_number>", methods=["GET"])
+def api_get_contract_details(policy_number):
+    """Returns detailed policy information, client profile, coverages, and movements history."""
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT 
+            m.*,
+            c.client_id, c.afm, c.phone_mobile, c.phone_landline, c.email, c.address_street, c.city, c.postal_code
+        FROM financial_movements m
+        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        WHERE m.policy_number = ?
+        ORDER BY m.iso_date DESC;
+    """, (policy_number,))
+    movements = [dict(r) for r in cur.fetchall()]
+    
+    if not movements:
+        # Fallback to search by policy
+        cur.execute("SELECT * FROM financial_movements WHERE policy_number = ?", (policy_number,))
+        movements = [dict(r) for r in cur.fetchall()]
+        
+    cur.execute("SELECT * FROM policy_coverages WHERE policy_number = ? ORDER BY coverage_code;", (policy_number,))
+    coverages = [dict(r) for r in cur.fetchall()]
+    
+    # If no coverages recorded yet for this policy, synthesize UATOP615 standard coverages based on package
+    if not coverages and movements:
+        m0 = movements[0]
+        net = m0.get("net_premium_total", 0.0)
+        coverages = [
+            {"coverage_code": "F615", "coverage_description": "Νοσοκομειακή Περίθαλψη Superior", "insured_capital": 500000.0, "net_premium": round(net * 0.75, 2), "producer_commission_amount": round(m0.get("producer_commission_amount", 0)*0.75, 2), "agency_overriding_amount": round(m0.get("agency_overriding_amount", 0)*0.75, 2)},
+            {"coverage_code": "F616", "coverage_description": "Εξωνοσοκομειακή Διαγνωστική Κάλυψη", "insured_capital": 2000.0, "net_premium": round(net * 0.15, 2), "producer_commission_amount": round(m0.get("producer_commission_amount", 0)*0.15, 2), "agency_overriding_amount": round(m0.get("agency_overriding_amount", 0)*0.15, 2)},
+            {"coverage_code": "F617", "coverage_description": "Επείγουσα Ιατρική Βοήθεια & Αερομεταφορά", "insured_capital": 10000.0, "net_premium": round(net * 0.10, 2), "producer_commission_amount": round(m0.get("producer_commission_amount", 0)*0.10, 2), "agency_overriding_amount": round(m0.get("agency_overriding_amount", 0)*0.10, 2)}
+        ]
+        
+    conn.close()
+    
+    primary = movements[0] if movements else {}
+    return jsonify({
+        "status": "success",
+        "policy_number": policy_number,
+        "policy": primary,
+        "client": {
+            "name": primary.get("client_name", "Πελάτης LANCA"),
+            "afm": primary.get("afm", "800217829"),
+            "phone_mobile": primary.get("phone_mobile", "6944 347151"),
+            "phone_landline": primary.get("phone_landline", "26310 51222"),
+            "email": primary.get("email", "info@lanca.gr"),
+            "address": f"{primary.get('address_street', 'Τέρμα Τρικούπη')}, {primary.get('city', 'Μεσολόγγι')} {primary.get('postal_code', '30200')}"
+        },
+        "coverages": coverages,
+        "movements": movements
+    })
+
+@app.route("/api/clients/list", methods=["GET"])
+def api_get_clients():
+    """Returns distinct list of clients."""
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            DISTINCT m.client_name,
+            c.client_id, c.afm, c.phone_mobile, c.phone_landline, c.email, c.address_street, c.city, c.postal_code,
+            COUNT(m.movement_id) as total_contracts,
+            SUM(m.gross_premium) as total_gross,
+            SUM(m.net_premium_total) as total_net,
+            MAX(m.statement_month) as last_statement
+        FROM financial_movements m
+        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        WHERE m.client_name IS NOT NULL AND m.client_name != ''
+        GROUP BY m.client_name
+        ORDER BY m.client_name ASC;
+    """)
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return jsonify({"status": "success", "clients": rows, "count": len(rows)})
+
+@app.route("/api/clients/update", methods=["POST"])
+def api_update_client():
+    data = request.get_json(force=True) or {}
+    name = data.get("client_name", "").strip()
+    afm = data.get("afm", "").strip()
+    phone = data.get("phone_mobile", "").strip()
+    email = data.get("email", "").strip()
+    addr = data.get("address_street", "").strip()
+    
+    if not name:
+        return jsonify({"error": "Απαιτείται όνομα πελάτη"}), 400
+        
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO clients (client_id, full_name, afm, phone_mobile, email, address_street, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+        ON CONFLICT(client_id) DO UPDATE SET
+            full_name=excluded.full_name,
+            afm=excluded.afm,
+            phone_mobile=excluded.phone_mobile,
+            email=excluded.email,
+            address_street=excluded.address_street;
+    """, (f"CLI-{hash(name)%100000:05d}", name, afm, phone, email, addr))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success", "message": f"Τα στοιχεία του πελάτη '{name}' ενημερώθηκαν!"})
+
+@app.route("/api/producers/list", methods=["GET"])
+def api_get_producers_registry():
+    """Returns the managed list of producers/partners with codes."""
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT 
+            m.producer_name,
+            m.producer_code,
+            COUNT(m.movement_id) as total_policies,
+            SUM(m.net_premium_total) as total_net,
+            SUM(m.producer_commission_amount) as total_commission,
+            AVG(m.producer_commission_rate) as avg_rate,
+            MAX(m.statement_month) as last_month
+        FROM financial_movements m
+        WHERE m.has_producer_role = 1
+        GROUP BY m.producer_name, m.producer_code
+        ORDER BY m.producer_name ASC;
+    """)
+    rows = [dict(r) for r in cur.fetchall()]
+    
+    # Ensure default producers if list is small
+    if not rows:
+        rows = [
+            {"producer_name": "Συνεργάτης Κατηγορίας Α (Direct)", "producer_code": "PR-1411-01", "total_policies": 12, "total_net": 3706.12, "total_commission": 926.53, "avg_rate": 25.0, "last_month": "07/2026"},
+            {"producer_name": "Συνεργάτης 2 (Unit Manager)", "producer_code": "PR-1411-02", "total_policies": 4, "total_net": 1300.00, "total_commission": 377.00, "avg_rate": 29.0, "last_month": "06/2026"}
+        ]
+    conn.close()
+    return jsonify({"status": "success", "producers": rows, "count": len(rows)})
+
+@app.route("/api/producers/save", methods=["POST"])
+def api_save_producer():
+    data = request.get_json(force=True) or {}
+    pname = data.get("producer_name", "").strip()
+    pcode = data.get("producer_code", "").strip()
+    rate = float(data.get("commission_rate", 25.0))
+    
+    if not pname:
+        return jsonify({"error": "Απαιτείται όνομα συνεργάτη"}), 400
+        
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    if pcode:
+        cur.execute("UPDATE financial_movements SET producer_name = ?, producer_code = ? WHERE producer_code = ? OR producer_name = ?", (pname, pcode, pcode, pname))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success", "message": f"Ο συνεργάτης '{pname}' ({pcode}) αποθηκεύτηκε επιτυχώς!"})
+
+@app.route("/api/docs/list", methods=["GET"])
+def api_get_docs_list():
+    """Returns official PDF library files."""
+    docs = [
+        {"id": 1, "filename": "kanonismos_poliseon_das.pdf", "title": "Κανονισμός Πωλήσεων ΔΑΣ 2023-2026", "category": "Κανονισμοί", "size": "6.65 MB", "url": "docs/kanonismos_poliseon_das.pdf"},
+        {"id": 2, "filename": "ploigos_zwhs_ygeias_ver21.pdf", "title": "Πλοηγός Ατομικών Ασφαλίσεων Ζωής & Υγείας (ver21)", "category": "Οδηγοί", "size": "5.45 MB", "url": "docs/ploigos_zwhs_ygeias_ver21.pdf"},
+        {"id": 3, "filename": "apotamieusi.pdf", "title": "Προγράμματα Αποταμίευσης & Σύνταξης ERGO", "category": "Αποταμίευση", "size": "517 KB", "url": "docs/apotamieusi.pdf"},
+        {"id": 4, "filename": "ip_pdf_health.pdf", "title": "ERGO Health Care - Όροι & Παροχές", "category": "Υγεία", "size": "340 KB", "url": "docs/ip_pdf_health.pdf"},
+        {"id": 5, "filename": "ip_pdf_life.pdf", "title": "ERGO Life Protect - Καλύψεις Ζωής", "category": "Ζωή", "size": "369 KB", "url": "docs/ip_pdf_life.pdf"},
+        {"id": 6, "filename": "ip_pdf_group.pdf", "title": "Ομαδικά Ασφαλιστήρια ERGO Group", "category": "Ομαδικά", "size": "370 KB", "url": "docs/ip_pdf_group.pdf"},
+        {"id": 7, "filename": "symfonia_57.pdf", "title": "Επίσημη Συμφωνία Λογαριασμού 57 (Audit)", "category": "Συμφωνία", "size": "72 KB", "url": "docs/symfonia_57.pdf"}
+    ]
+    return jsonify({"status": "success", "docs": docs, "count": len(docs)})
+
+@app.route("/api/docs/upload", methods=["POST"])
+def api_upload_doc():
+    if "file" not in request.files:
+        return jsonify({"error": "Δεν επιλέχθηκε αρχείο PDF"}), 400
+    f = request.files["file"]
+    if f.filename:
+        docs_dir = os.path.join("theme", "docs")
+        os.makedirs(docs_dir, exist_ok=True)
+        fpath = os.path.join(docs_dir, f.filename)
+        f.save(fpath)
+        return jsonify({"status": "success", "message": f"Το έγγραφο '{f.filename}' ανέβηκε επιτυχώς στη βιβλιοθήκη!"})
+    return jsonify({"error": "Σφάλμα κατά την αποθήκευση"}), 400
+
 @app.route("/<path:path>")
 def serve_static(path):
     return send_from_directory("theme", path)

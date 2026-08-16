@@ -1877,6 +1877,38 @@ def api_export_excel():
     df.to_excel(fallback_path, index=False)
     return send_file(fallback_path, as_attachment=True, download_name="Master_ERGO_Life_Health_Commissions_1411.xlsx")
 
+@app.route("/api/fix_db", methods=["GET"])
+def api_fix_db():
+    conn = get_pg_connection() if USE_POSTGRES else sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM producers_catalog WHERE producer_code = '11523' OR full_name LIKE '%ΤΣΑΜΑΔΙΑΣ%'")
+        cur.execute("""
+            UPDATE financial_movements 
+            SET producer_partner_code = '1',
+                producer_ergo_code = '40071 / 1411',
+                producer_name = '(1)ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ  ΝΙΚΟΣ',
+                producer_org_team = '👑 Agency Manager (ERGO 40071 / 1411)'
+            WHERE producer_partner_code = '11523' OR producer_name LIKE '%ΤΣΑΜΑΔΙΑΣ%'
+        """)
+        cur.execute("""
+            UPDATE policies
+            SET producer_partner_code = '1',
+                producer_ergo_code = '40071 / 1411',
+                producer_name = '(1)ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ  ΝΙΚΟΣ'
+            WHERE producer_partner_code = '11523' OR producer_name LIKE '%ΤΣΑΜΑΔΙΑΣ%'
+        """)
+        cur.execute("UPDATE financial_movements SET agency_partner_code = '3375Α'")
+        cur.execute("UPDATE policies SET agency_partner_code = '3375Α'")
+        conn.commit()
+        return jsonify({"status": "success", "message": "Live database cleaned and updated successfully!"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"status": "error", "message": str(e)})
+    finally:
+        cur.close()
+        conn.close()
+
 @app.route("/api/upload", methods=["POST"])
 def api_upload():
     user = get_authenticated_user()

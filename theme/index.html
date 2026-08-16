@@ -4075,17 +4075,7 @@
                 else if (st.includes('ΝΕΟΣ') || st.includes('NEW')) { statusColor = 'badge-gold'; statusIcon = '✨'; }
                 const statusBadge = `<span class="badge ${statusColor}">${statusIcon} ${p.status || 'Ενεργός'}</span>`;
 
-                // Compact info card for the last column
-                const phone  = p.phone && p.phone !== '-' ? `<span title="Τηλέφωνο">📞 ${p.phone}</span>` : '';
-                const email  = p.email && p.email !== '-' ? `<span title="Email">📧 <a href="mailto:${p.email}" style="color:var(--brand-blue);">${p.email}</a></span>` : '';
-                const nomos  = p.nomos && p.nomos !== '-' ? `<span title="Νομός">📍 ${p.nomos}</span>` : '';
-                const rate   = `<span title="Κατηγορία Προμήθειας">💰 ${p.avg_rate || 25}%</span>`;
-                const pols   = `<span title="Συμβόλαια">📄 ${p.total_policies || 0} συμβόλαια</span>`;
-                const net    = `<span title="Σύνολο Καθαρών">€ ${Number(p.total_net||0).toLocaleString('el-GR',{minimumFractionDigits:2})}</span>`;
-                const comm   = `<span title="Σύνολο Προμήθειας" style="color:var(--accent-gold);font-weight:700;">Προμ: € ${Number(p.total_commission||0).toLocaleString('el-GR',{minimumFractionDigits:2})}</span>`;
 
-                const infoLines = [phone, email, nomos, rate, pols, net, comm].filter(Boolean);
-                const infoHtml  = infoLines.map(ln => `<div style="margin-bottom:2px;">${ln}</div>`).join('');
 
                 tr.innerHTML = `
                     <td style="text-align:center;">
@@ -4117,16 +4107,13 @@
                     <!-- Ιεραρχία -->
                     <td style="font-size:12px; color:var(--text-secondary); max-width:130px;">${p.role || p.hierarchy || 'Πράκτορας'}</td>
 
-                    <!-- Στοιχεία Συνεργάτη-Παραγωγού (compact info + actions) -->
-                    <td>
-                        <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.7; display:flex; flex-direction:column; gap:1px;">
-                            ${infoHtml}
-                        </div>
-                        <div style="display:flex; gap:4px; margin-top:6px; flex-wrap:wrap;">
-                            <button class="btn-pill btn-primary" style="padding:3px 10px; font-size:11px;" onclick="openProducerCard('${p.producer_code}', 'info')" title="Στοιχεία & Επεξεργασία">✏️ Στοιχεία</button>
-                            <button class="btn-pill btn-gold" style="padding:3px 10px; font-size:11px;" onclick="openProducerCard('${p.producer_code}', 'comm')" title="Προμήθειες Συνεργάτη">💰 Προμήθειες</button>
-                            <button class="btn-pill btn-ghost" style="padding:3px 10px; font-size:11px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό">📜</button>
-                            <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>
+                    <!-- Ενέργειες Συνεργάτη — μόνο κουμπιά, τα στοιχεία εμφανίζονται στην καρτέλα -->
+                    <td style="white-space:nowrap;">
+                        <div style="display:flex; gap:5px; flex-wrap:nowrap; align-items:center;">
+                            <button class="btn-pill btn-primary" style="padding:4px 12px; font-size:12px;" onclick="openProducerCard('${p.producer_code}', 'info')" title="Στοιχεία & Επεξεργασία">✏️ Στοιχεία</button>
+                            <button class="btn-pill btn-gold" style="padding:4px 12px; font-size:12px;" onclick="openProducerCard('${p.producer_code}', 'comm')" title="Προμήθειες Συνεργάτη">💰 Προμήθειες</button>
+                            <button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:12px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό Παραγωγής & Κωδικού">📜</button>
+                            <button class="btn-pill btn-danger" style="padding:4px 9px; font-size:12px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>
                         </div>
                     </td>
                 `;

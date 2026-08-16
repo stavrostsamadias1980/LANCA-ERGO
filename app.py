@@ -379,15 +379,110 @@ def init_databases():
         details TEXT,
         ip_address TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS producer_code_history (
+        history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        producer_code TEXT NOT NULL,
+        ergo_code TEXT,
+        producer_name TEXT NOT NULL,
+        partner_type TEXT,
+        valid_from TEXT,
+        valid_to TEXT,
+        assigned_by TEXT DEFAULT 'ADMIN',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS commission_schemes (
+        scheme_id TEXT PRIMARY KEY,
+        product_name TEXT NOT NULL,
+        branch_category TEXT,
+        year_1_rate REAL DEFAULT 29.0,
+        year_2_rate REAL DEFAULT 20.0,
+        year_3_rate REAL DEFAULT 15.0,
+        year_renewal_rate REAL DEFAULT 10.0,
+        subcode_payout_share REAL DEFAULT 50.0,
+        notes TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS subcode_payout_agreements (
+        agreement_id TEXT PRIMARY KEY,
+        producer_code TEXT NOT NULL UNIQUE,
+        ergo_code TEXT,
+        producer_name TEXT NOT NULL,
+        split_percentage REAL DEFAULT 50.0,
+        payout_tier TEXT DEFAULT 'Κατηγορία Α (50% / 50%)',
+        effective_from TEXT,
+        effective_to TEXT,
+        notes TEXT
+    );
     """)
-    try:
-        cur.execute("ALTER TABLE account_57_transactions ADD COLUMN statement_month TEXT;")
-    except Exception:
-        pass
-    try:
-        cur.execute("ALTER TABLE account_57_transactions ADD COLUMN matched_statement_month TEXT;")
-    except Exception:
-        pass
+
+    # Schema Migrations
+    for tbl, col, ctype in [
+        ("account_57_transactions", "statement_month", "TEXT"),
+        ("account_57_transactions", "matched_statement_month", "TEXT"),
+        ("financial_movements", "producer_ergo_code", "TEXT"),
+        ("financial_movements", "producer_name", "TEXT"),
+        ("financial_movements", "producer_org_team", "TEXT"),
+        ("policies", "producer_ergo_code", "TEXT"),
+        ("policies", "producer_name", "TEXT"),
+        ("producers_catalog", "valid_from", "TEXT"),
+        ("producers_catalog", "valid_to", "TEXT"),
+        ("producers_catalog", "active_year", "TEXT")
+    ]:
+        try:
+            cur.execute(f"ALTER TABLE {tbl} ADD COLUMN {col} {ctype};")
+        except Exception:
+            pass
+
+    # Seed default commission schemes if empty
+    cur.execute("SELECT COUNT(*) FROM commission_schemes;")
+    if cur.fetchone()[0] == 0:
+        default_schemes = [
+            ("SCH-SUP", "ERGO Health Care Superior", "HEALTH", 29.0, 20.0, 15.0, 10.0, 50.0, "Νοσοκομειακό Πρόγραμμα Superior (29% 1ο έτος)"),
+            ("SCH-ADV", "ERGO Health Care Advanced", "HEALTH", 29.0, 20.0, 15.0, 10.0, 50.0, "Νοσοκομειακό Πρόγραμμα Advanced (29% 1ο έτος)"),
+            ("SCH-SMP", "ERGO Health Care Simple", "HEALTH", 25.0, 18.0, 12.0, 8.0, 50.0, "Πρόγραμμα Simple (25% 1ο έτος)"),
+            ("SCH-LIFE", "ERGO Life Protect", "LIFE", 25.0, 20.0, 15.0, 10.0, 50.0, "Πρόσκαιρη / Ισόβια Ασφάλιση Ζωής (25%)"),
+            ("SCH-SAV", "ERGO My Saving Simple", "SAVINGS", 15.0, 10.0, 7.0, 5.0, 50.0, "Αποταμιευτικά Προγράμματα")
+        ]
+        cur.executemany("""
+            INSERT OR REPLACE INTO commission_schemes 
+            (scheme_id, product_name, branch_category, year_1_rate, year_2_rate, year_3_rate, year_renewal_rate, subcode_payout_share, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, default_schemes)
+
+    # Ensure Stavros Tsamadias (11523) is in producers_catalog
+    cur.execute("SELECT COUNT(*) FROM producers_catalog WHERE producer_code = '11523' OR ergo_code = '11523';")
+    if cur.fetchone()[0] == 0:
+        cur.execute("""
+            INSERT OR REPLACE INTO producers_catalog
+            (producer_code, ergo_code, full_name, partner_type, partner_type_label, role, hierarchy, tier, manager, phone, email, address, nomos, comm_cat, status, commission_rate, notes, valid_from, valid_to)
+            VALUES ('11523', '11523', 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ', 'DIRECT_AGENT', '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)', 'Ασφαλιστικός Πράκτορας', 'ΠΑΡΑΓΩΓΟΣ', 'Κατηγορία Α (25% - 29%)', 'ΙΔΙΟΣ', '6974123456', 'stavros@lanca.gr', 'Αθήνα', 'ΑΤΤΙΚΗΣ', 'A', 'FULL TIME ACTIVE', 29.0, 'Ενεργός Συνεργάτης Ομάδας 40071', '2025-01-01', 'Ενεργός');
+        """)
+
+    # Seed initial sample history if empty
+    cur.execute("SELECT COUNT(*) FROM producer_code_history;")
+    if cur.fetchone()[0] == 0:
+        cur.execute("""
+            INSERT INTO producer_code_history (producer_code, ergo_code, producer_name, partner_type, valid_from, valid_to, notes)
+            VALUES ('11523', '11523', 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ', 'DIRECT_AGENT', '2025-01-01', '2026-12-31', 'Ενεργός Παραγωγός Οργανωτικής Ομάδας 40071');
+        """)
+        cur.execute("""
+            INSERT INTO producer_code_history (producer_code, ergo_code, producer_name, partner_type, valid_from, valid_to, notes)
+            VALUES ('1411', '40071', 'ΝΙΚΟΣ ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ', 'AGENCY_MANAGER', '2024-01-01', '2026-12-31', 'Συντονιστής Agency 1411');
+        """)
+
+    # Backfill default producer details in financial movements if null
+    cur.execute("""
+        UPDATE financial_movements 
+        SET producer_name = 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ',
+            producer_partner_code = '11523',
+            producer_ergo_code = '11523',
+            producer_org_team = '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)'
+        WHERE producer_name IS NULL OR producer_name = '';
+    """)
+
     conn.commit()
     conn.close()
 
@@ -986,8 +1081,13 @@ def api_get_contracts():
     cur.execute("""
         SELECT 
             m.*,
+            COALESCE(p.full_name, m.producer_name, 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ') as producer_name,
+            COALESCE(p.producer_code, m.producer_partner_code, '11523') as producer_partner_code,
+            COALESCE(p.ergo_code, m.producer_ergo_code, '11523') as producer_ergo_code,
+            COALESCE(p.partner_type_label, m.producer_org_team, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
             c.afm, c.phone_mobile, c.phone_landline, c.email, c.address_street, c.city, c.postal_code
         FROM financial_movements m
+        LEFT JOIN producers_catalog p ON (p.producer_code = m.producer_partner_code OR p.ergo_code = m.producer_partner_code OR p.ergo_code = m.producer_ergo_code)
         LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
         ORDER BY m.iso_date, m.policy_number;
     """)
@@ -1011,6 +1111,10 @@ def api_get_contracts():
             "policy": c["policy_number"],
             "client": c["client_name"],
             "product": c["package_name"],
+            "producer_code": c.get("producer_partner_code", "11523"),
+            "producer_ergo": c.get("producer_ergo_code", "11523"),
+            "producer_name": c.get("producer_name", "ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ"),
+            "producer_team": c.get("partner_type_label", "🏢 Οργανωτική Ομάδα 40071"),
             "payment_freq": "Ετήσιο",
             "duration": "1 έτη",
             "year": 1,
@@ -1038,15 +1142,21 @@ def api_get_contracts():
 
 @app.route("/api/agency", methods=["GET"])
 def api_get_agency():
-    """Returns Agency overridings (Sheet 8 - 16 rows, €260.00)."""
+    """Returns Agency overridings with explicit producing partner and organizational team."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute("""
         SELECT 
             m.*,
+            COALESCE(p.full_name, m.producer_name, 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ') as producer_name,
+            COALESCE(p.producer_code, m.producer_partner_code, '11523') as producer_partner_code,
+            COALESCE(p.ergo_code, m.producer_ergo_code, '11523') as producer_ergo_code,
+            COALESCE(p.partner_type_label, m.producer_org_team, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
+            COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
+        LEFT JOIN producers_catalog p ON (p.producer_code = m.producer_partner_code OR p.ergo_code = m.producer_partner_code OR p.ergo_code = m.producer_ergo_code)
         LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
         WHERE m.has_agency_role = 1
         ORDER BY m.iso_date, m.policy_number;
@@ -1069,8 +1179,12 @@ def api_get_producers():
     cur.execute("""
         SELECT 
             m.*,
+            COALESCE(p.full_name, m.producer_name, 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ') as producer_name,
+            COALESCE(p.producer_code, m.producer_partner_code, '11523') as producer_partner_code,
+            COALESCE(p.ergo_code, m.producer_ergo_code, '11523') as producer_ergo_code,
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
+        LEFT JOIN producers_catalog p ON (p.producer_code = m.producer_partner_code OR p.ergo_code = m.producer_partner_code OR p.ergo_code = m.producer_ergo_code)
         LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
         WHERE m.has_producer_role = 1
         ORDER BY m.iso_date, m.policy_number;
@@ -1083,6 +1197,332 @@ def api_get_producers():
         "count": len(rows),
         "total_commission": sum(r["producer_commission_amount"] for r in rows)
     })
+
+@app.route("/api/producers/search", methods=["GET"])
+def api_search_producers():
+    """
+    Searches producers across producers_catalog and producer_code_history
+    by producer_code (office number/code), ergo_code, or full_name.
+    """
+    q = request.args.get("q", "").strip()
+    
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    if not q:
+        cur.execute("""
+            SELECT 
+                p.producer_code,
+                COALESCE(p.ergo_code, '-') as ergo_code,
+                p.full_name as producer_name,
+                COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
+                COALESCE(p.partner_type_label, '🏢 Οργανωτική Ομάδα 40071') as partner_type_label,
+                p.role,
+                COALESCE(p.hierarchy, 'ΠΑΡΑΓΩΓΟΣ') as hierarchy,
+                p.tier,
+                COALESCE(p.manager, 'ΙΔΙΟΣ') as manager,
+                COALESCE(p.phone, '-') as phone,
+                COALESCE(p.email, '-') as email,
+                COALESCE(p.nomos, '-') as nomos,
+                COALESCE(p.status, 'Ενεργός') as status,
+                p.commission_rate as avg_rate,
+                COALESCE(p.valid_from, '2025-01-01') as valid_from,
+                COALESCE(p.valid_to, '2026-12-31') as valid_to
+            FROM producers_catalog p
+            ORDER BY p.producer_code ASC
+            LIMIT 50;
+        """)
+        results = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return jsonify({"status": "success", "results": results, "count": len(results)})
+        
+    like_term = f"%{q}%"
+    cur.execute("""
+        SELECT 
+            p.producer_code,
+            COALESCE(p.ergo_code, '-') as ergo_code,
+            p.full_name as producer_name,
+            COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
+            COALESCE(p.partner_type_label, '🏢 Οργανωτική Ομάδα 40071') as partner_type_label,
+            p.role,
+            COALESCE(p.hierarchy, 'ΠΑΡΑΓΩΓΟΣ') as hierarchy,
+            p.tier,
+            COALESCE(p.manager, 'ΙΔΙΟΣ') as manager,
+            COALESCE(p.phone, '-') as phone,
+            COALESCE(p.email, '-') as email,
+            COALESCE(p.nomos, '-') as nomos,
+            COALESCE(p.status, 'Ενεργός') as status,
+            p.commission_rate as avg_rate,
+            COALESCE(p.valid_from, '2025-01-01') as valid_from,
+            COALESCE(p.valid_to, '2026-12-31') as valid_to
+        FROM producers_catalog p
+        WHERE p.producer_code LIKE ? 
+           OR p.ergo_code LIKE ? 
+           OR p.full_name LIKE ? 
+           OR p.phone LIKE ? 
+           OR p.nomos LIKE ?
+        GROUP BY p.producer_code
+        ORDER BY 
+            CASE 
+                WHEN p.producer_code = ? THEN 1
+                WHEN p.ergo_code = ? THEN 2
+                WHEN p.full_name LIKE ? THEN 3
+                ELSE 4
+            END,
+            p.producer_code ASC
+        LIMIT 30;
+    """, (like_term, like_term, like_term, like_term, like_term, q, q, f"{q}%"))
+    
+    results = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return jsonify({"status": "success", "query": q, "results": results, "count": len(results)})
+
+@app.route("/api/contracts/assign-producer", methods=["POST"])
+def api_assign_producer_to_contract():
+    """
+    Updates the assigned producer (Office code + ERGO code + Name + Org Team) for a contract,
+    and logs to GDPR audit.
+    """
+    user = get_authenticated_user()
+    data = request.get_json(force=True) or {}
+    pol = str(data.get("policy_number", "")).strip()
+    producer_code = str(data.get("producer_code", "")).strip()
+    ergo_code = str(data.get("ergo_code", "")).strip()
+    producer_name = str(data.get("producer_name", "")).strip()
+    org_team = str(data.get("org_team", "")).strip()
+    
+    if not pol or not producer_code:
+        return jsonify({"error": "Απαιτείται αριθμός συμβολαίου και κωδικός συνεργάτη"}), 400
+        
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    
+    if not producer_name or not ergo_code:
+        cur.execute("SELECT full_name, ergo_code, partner_type_label FROM producers_catalog WHERE producer_code = ? OR ergo_code = ? LIMIT 1;", (producer_code, producer_code))
+        row = cur.fetchone()
+        if row:
+            producer_name = producer_name or row[0]
+            ergo_code = ergo_code or row[1]
+            org_team = org_team or row[2]
+            
+    cur.execute("""
+        UPDATE financial_movements 
+        SET producer_partner_code = ?,
+            producer_ergo_code = ?,
+            producer_name = ?,
+            producer_org_team = ?
+        WHERE TRIM(policy_number) = ?;
+    """, (producer_code, ergo_code, producer_name, org_team, pol))
+    
+    cur.execute("""
+        UPDATE policies 
+        SET producer_partner_code = ?,
+            producer_ergo_code = ?,
+            producer_name = ?
+        WHERE TRIM(policy_number) = ?;
+    """, (producer_code, ergo_code, producer_name, pol))
+    
+    conn.commit()
+    conn.close()
+    
+    log_gdpr_audit(user.get("username", "admin"), "ASSIGN_PRODUCER", f"Assigned contract {pol} to producer {producer_code} ({producer_name})")
+    return jsonify({
+        "status": "success",
+        "message": f"Το συμβόλαιο {pol} ανατέθηκε επιτυχώς στον συνεργάτη {producer_name} (Κωδ. {producer_code})!"
+    })
+
+@app.route("/api/producers/history/<producer_code>", methods=["GET"])
+def api_get_producer_history(producer_code):
+    """
+    Returns full contract history produced by this collaborator along with chronological code assignments.
+    """
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    cur.execute("SELECT * FROM producers_catalog WHERE producer_code = ? OR ergo_code = ? LIMIT 1;", (producer_code, producer_code))
+    profile_row = cur.fetchone()
+    profile = dict(profile_row) if profile_row else {"producer_code": producer_code, "full_name": "Συνεργάτης"}
+    
+    cur.execute("""
+        SELECT * FROM producer_code_history 
+        WHERE producer_code = ? OR ergo_code = ? 
+        ORDER BY valid_from DESC;
+    """, (producer_code, producer_code))
+    code_history = [dict(r) for r in cur.fetchall()]
+    
+    cur.execute("""
+        SELECT 
+            m.*,
+            c.afm, c.phone_mobile, c.email, c.city
+        FROM financial_movements m
+        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        WHERE m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ?
+        ORDER BY m.iso_date DESC;
+    """, (producer_code, profile.get("ergo_code", ""), producer_code, profile.get("full_name", "")))
+    contracts = [dict(r) for r in cur.fetchall()]
+    
+    tot_net = sum(c["net_premium_total"] for c in contracts)
+    tot_comm = sum(c["producer_commission_amount"] for c in contracts)
+    tot_agn = sum(c["agency_overriding_amount"] for c in contracts)
+    
+    conn.close()
+    
+    return jsonify({
+        "status": "success",
+        "producer": profile,
+        "code_history": code_history,
+        "contracts": contracts,
+        "count": len(contracts),
+        "totals": {
+            "total_net": tot_net,
+            "total_commission": tot_comm,
+            "total_agency_overriding": tot_agn,
+            "total_revenue": tot_comm + tot_agn
+        }
+    })
+
+@app.route("/api/subcodes/payout-statement", methods=["POST", "GET"])
+def api_get_subcode_payout_statement():
+    """
+    Generates a dedicated subcode commission payout sheet:
+    Calculates gross ERGO commissions, subcode split payout (e.g. 50%),
+    office net retention, and detailed policy items.
+    """
+    if request.method == "POST":
+        data = request.get_json(force=True) or {}
+    else:
+        data = request.args
+        
+    producer_code = str(data.get("producer_code", "1411")).strip()
+    month = str(data.get("month", "all")).strip()
+    split_pct = float(data.get("split_pct", 50.0))
+    
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    cur.execute("SELECT * FROM producers_catalog WHERE producer_code = ? OR ergo_code = ? LIMIT 1;", (producer_code, producer_code))
+    p_row = cur.fetchone()
+    partner = dict(p_row) if p_row else {
+        "producer_code": producer_code,
+        "ergo_code": producer_code,
+        "full_name": f"Συνεργάτης {producer_code}",
+        "partner_type_label": "🔹 Έμμεσος Υποκωδικός (Μέσω 1411)",
+        "commission_rate": split_pct
+    }
+    
+    query = """
+        SELECT 
+            m.*,
+            c.afm, c.phone_mobile, c.email, c.city
+        FROM financial_movements m
+        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        WHERE (m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ? OR ? = 'ALL_PRODUCERS')
+    """
+    params = [producer_code, partner.get("ergo_code", ""), producer_code, partner.get("full_name", ""), producer_code]
+    
+    if month and month != "all":
+        query += " AND (m.statement_month = ? OR m.statement_month = ?)"
+        params.extend([month, month.replace('/', '_')])
+        
+    query += " ORDER BY m.iso_date DESC, m.policy_number;"
+    
+    cur.execute(query, params)
+    raw_contracts = [dict(r) for r in cur.fetchall()]
+    
+    if not raw_contracts:
+        cur.execute("""
+            SELECT 
+                m.*,
+                c.afm, c.phone_mobile, c.email, c.city
+            FROM financial_movements m
+            LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+            ORDER BY m.iso_date DESC LIMIT 20;
+        """)
+        raw_contracts = [dict(r) for r in cur.fetchall()]
+        
+    statement_items = []
+    tot_net = 0.0
+    tot_ergo_comm = 0.0
+    tot_subcode_payout = 0.0
+    tot_office_retention = 0.0
+    
+    for c in raw_contracts:
+        net = float(c.get("net_premium_total", 0.0))
+        ergo_syn_comm = float(c.get("producer_commission_amount", 0.0))
+        ergo_agn_over = float(c.get("agency_overriding_amount", 0.0))
+        ergo_total_comm = ergo_syn_comm + ergo_agn_over
+        
+        sub_rate = split_pct / 100.0
+        sub_payout = round(ergo_syn_comm * sub_rate, 2) if ergo_syn_comm > 0 else round(net * 0.25 * sub_rate, 2)
+        office_retention = round(ergo_total_comm - sub_payout, 2)
+        
+        tot_net += net
+        tot_ergo_comm += ergo_total_comm
+        tot_subcode_payout += sub_payout
+        tot_office_retention += office_retention
+        
+        statement_items.append({
+            "policy_number": c.get("policy_number"),
+            "receipt_number": c.get("receipt_number"),
+            "statement_month": c.get("statement_month"),
+            "movement_date": c.get("movement_date"),
+            "client_name": c.get("client_name"),
+            "afm": c.get("afm", "-"),
+            "package_name": c.get("package_name"),
+            "policy_year": c.get("policy_year", 1),
+            "net_premium": net,
+            "ergo_commission_total": ergo_total_comm,
+            "ergo_comm_pct": round(ergo_total_comm / net * 100, 2) if net > 0 else 0.0,
+            "subcode_split_pct": split_pct,
+            "subcode_payout_amount": sub_payout,
+            "office_retention_amount": office_retention,
+            "producer_name": partner.get("full_name"),
+            "producer_code": partner.get("producer_code")
+        })
+        
+    conn.close()
+    
+    return jsonify({
+        "status": "success",
+        "partner": partner,
+        "period": month,
+        "split_pct": split_pct,
+        "items": statement_items,
+        "count": len(statement_items),
+        "totals": {
+            "total_net": round(tot_net, 2),
+            "total_ergo_commission": round(tot_ergo_comm, 2),
+            "total_subcode_payout": round(tot_subcode_payout, 2),
+            "total_office_retention": round(tot_office_retention, 2),
+            "tax_deduction": round(tot_subcode_payout * 0.20, 2),
+            "net_payable": round(tot_subcode_payout * 0.80, 2)
+        }
+    })
+
+@app.route("/api/commission-rules/matrix", methods=["GET", "POST"])
+def api_commission_rules_matrix():
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    if request.method == "POST":
+        data = request.get_json(force=True) or {}
+        schemes = data.get("schemes", [])
+        for s in schemes:
+            cur.execute("""
+                INSERT OR REPLACE INTO commission_schemes
+                (scheme_id, product_name, branch_category, year_1_rate, year_2_rate, year_3_rate, year_renewal_rate, subcode_payout_share, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """, (s.get("scheme_id"), s.get("product_name"), s.get("branch_category"), float(s.get("year_1_rate", 29)), float(s.get("year_2_rate", 20)), float(s.get("year_3_rate", 15)), float(s.get("year_renewal_rate", 10)), float(s.get("subcode_payout_share", 50)), s.get("notes", "")))
+        conn.commit()
+        
+    cur.execute("SELECT * FROM commission_schemes ORDER BY scheme_id ASC;")
+    schemes = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return jsonify({"status": "success", "schemes": schemes})
 
 
 
@@ -2002,11 +2442,23 @@ def api_update_contract():
     net = float(data.get("net_premium_total", 0.0))
     pcomm = float(data.get("producer_commission_amount", 0.0))
     acomm = float(data.get("agency_overriding_amount", 0.0))
+    pcode = str(data.get("producer_code", "")).strip()
+    ergo_code = str(data.get("producer_ergo_code", "") or data.get("ergo_code", "")).strip()
     pname = str(data.get("producer_name", "")).strip()
     pkg = str(data.get("package_name", "")).strip()
+    org_team = str(data.get("org_team", "")).strip()
 
     conn = sqlite3.connect(SQLITE_PATH)
     cur = conn.cursor()
+    
+    if pcode and (not pname or not ergo_code):
+        cur.execute("SELECT full_name, ergo_code, partner_type_label FROM producers_catalog WHERE producer_code = ? OR ergo_code = ? LIMIT 1;", (pcode, pcode))
+        p_row = cur.fetchone()
+        if p_row:
+            pname = pname or p_row[0]
+            ergo_code = ergo_code or p_row[1]
+            org_team = org_team or p_row[2]
+
     cur.execute("""
         UPDATE financial_movements 
         SET client_name = COALESCE(NULLIF(?, ''), client_name),
@@ -2015,24 +2467,26 @@ def api_update_contract():
             net_premium_total = CASE WHEN ? > 0 THEN ? ELSE net_premium_total END,
             producer_commission_amount = CASE WHEN ? > 0 THEN ? ELSE producer_commission_amount END,
             agency_overriding_amount = CASE WHEN ? > 0 THEN ? ELSE agency_overriding_amount END,
+            producer_partner_code = COALESCE(NULLIF(?, ''), producer_partner_code),
+            producer_ergo_code = COALESCE(NULLIF(?, ''), producer_ergo_code),
             producer_name = COALESCE(NULLIF(?, ''), producer_name),
+            producer_org_team = COALESCE(NULLIF(?, ''), producer_org_team),
             package_name = COALESCE(NULLIF(?, ''), package_name)
         WHERE TRIM(policy_number) = ?
-    """, (cname, afm, phone, net, net, pcomm, pcomm, acomm, acomm, pname, pkg, pol))
+    """, (cname, afm, phone, net, net, pcomm, pcomm, acomm, acomm, pcode, ergo_code, pname, org_team, pkg, pol))
     
     cur.execute("""
-        UPDATE ergo_statements_1411 
-        SET client_name = COALESCE(NULLIF(?, ''), client_name),
-            net_premium = CASE WHEN ? > 0 THEN ? ELSE net_premium END,
-            commission_amount = CASE WHEN ? > 0 THEN ? ELSE commission_amount END,
-            agency_overriding_amount = CASE WHEN ? > 0 THEN ? ELSE agency_overriding_amount END
+        UPDATE policies 
+        SET producer_partner_code = COALESCE(NULLIF(?, ''), producer_partner_code),
+            producer_ergo_code = COALESCE(NULLIF(?, ''), producer_ergo_code),
+            producer_name = COALESCE(NULLIF(?, ''), producer_name)
         WHERE TRIM(policy_number) = ?
-    """, (cname, net, net, pcomm, pcomm, acomm, pol))
+    """, (pcode, ergo_code, pname, pol))
     
     conn.commit()
     conn.close()
     
-    log_gdpr_audit(user["username"], "UPDATE_CONTRACT", f"Updated contract {pol} for client {cname}")
+    log_gdpr_audit(user.get("username", "admin"), "UPDATE_CONTRACT", f"Updated contract {pol} for client {cname} (Producer: {pname} / {pcode})")
     return jsonify({"status": "success", "message": f"Το συμβόλαιο {pol} ενημερώθηκε επιτυχώς!"})
 
 @app.route("/api/docs/list", methods=["GET"])

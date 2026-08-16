@@ -989,6 +989,9 @@
                         <a class="dropdown-item" onclick="switchTab('tab-agency')">
                             <span class="icon">🏢</span> Υπερπρομήθειες Agency 1411
                         </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-subcode-payouts')">
+                            <span class="icon">🔹</span> Εκκαθαριστήριο Υποκωδικών & Συνεργατών
+                        </a>
                         <a class="dropdown-item" onclick="switchTab('tab-producers')">
                             <span class="icon">🤝</span> Προμήθειες Συνεργατών & Πρακτόρων
                         </a>
@@ -1030,7 +1033,13 @@
                             <span class="icon">👤</span> Μητρώο Πελατών
                         </a>
                         <a class="dropdown-item" onclick="switchTab('tab-producers-reg')">
-                            <span class="icon">🤝</span> Μητρώο Συνεργατών
+                            <span class="icon">🤝</span> Μητρώο Συνεργατών & Ομάδων
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-subcode-payouts')">
+                            <span class="icon">📑</span> Εκκαθαριστήριο Υποκωδικών (Απόδοση)
+                        </a>
+                        <a class="dropdown-item" onclick="switchTab('tab-commission-matrix')">
+                            <span class="icon">📊</span> Πολυετής Κλίμακα Προμηθειών (Matrix)
                         </a>
                     </div>
                 </div>
@@ -1041,6 +1050,9 @@
                         🧮 Εργαλεία ▾
                     </button>
                     <div class="nav-dropdown-menu">
+                        <a class="dropdown-item" onclick="switchTab('tab-subcode-payouts')">
+                            <span class="icon">🔹</span> Υπολογιστής & Εκκαθαριστικό Υποκωδικού
+                        </a>
                         <a class="dropdown-item" onclick="switchTab('tab-upload')">
                             <span class="icon">📤</span> Μεταφόρτωση Εκκαθαρίσεων (CSV / Excel)
                         </a>
@@ -1277,7 +1289,12 @@
         <div id="tab-agency" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div class="box-title">🏢 Υπερπρομήθειες Agency 1411 (LANCA Ι.Κ.Ε. - 20%)</div>
+                    <div>
+                        <div class="box-title">🏢 Υπερπρομήθειες Agency 1411 (LANCA Ι.Κ.Ε. - 20%)</div>
+                        <p style="font-size:12.5px; color:var(--text-secondary); margin-top:4px;">
+                            Πλήρης κατανομή υπερπρομηθειών με αναγνώριση <strong>Παραγωγού</strong> & <strong>Οργανωτικής Ομάδας προέλευσης</strong> για κάθε συμβόλαιο.
+                        </p>
+                    </div>
                     <div style="display:flex; gap:8px;">
                         <button class="btn-pill btn-excel" onclick="exportToExcel('agency')">📥 Εξαγωγή Excel</button>
                         <button class="btn-pill btn-pdf" onclick="exportToPDF('agency')">📄 Εξαγωγή PDF</button>
@@ -1290,7 +1307,7 @@
                             <input type="checkbox" id="agency-select-all" class="custom-checkbox" onchange="toggleSelectAll('agency')">
                             <span>Επιλογή Όλων</span>
                         </label>
-                        <input type="text" id="agency-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, ΑΦΜ..." oninput="filterAgencyTable()">
+                        <input type="text" id="agency-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Παραγωγού, Κωδικού, Ομάδας..." oninput="filterAgencyTable()" style="min-width:320px;">
                     </div>
                     <div class="toolbar-right">
                         <button class="btn-pill btn-ghost" onclick="deleteSelectedRows('agency')">🗑️ Διαγραφή Επιλεγμένων</button>
@@ -1305,11 +1322,14 @@
                                 <th onclick="sortGenericTable('table-agency', 1)">Α/Α</th>
                                 <th onclick="sortGenericTable('table-agency', 2)">Μήνας</th>
                                 <th onclick="sortGenericTable('table-agency', 3)">Αρ. Συμβολαίου</th>
-                                <th onclick="sortGenericTable('table-agency', 4)">Πελάτης</th>
-                                <th onclick="sortGenericTable('table-agency', 5)">Καθαρά (€)</th>
-                                <th onclick="sortGenericTable('table-agency', 6)">Προμήθεια Βάσης (€)</th>
-                                <th onclick="sortGenericTable('table-agency', 7)">Agency 1411 20% (€)</th>
-                                <th>Κλίμακα</th>
+                                <th onclick="sortGenericTable('table-agency', 4)">Ονοματεπώνυμο Πελάτη</th>
+                                <th onclick="sortGenericTable('table-agency', 5)">Πρόγραμμα ERGO</th>
+                                <th onclick="sortGenericTable('table-agency', 6)">Παραγωγός Συνεργάτης</th>
+                                <th onclick="sortGenericTable('table-agency', 7)">Οργανωτική Ομάδα / Τύπος</th>
+                                <th onclick="sortGenericTable('table-agency', 8)">Καθαρά (€)</th>
+                                <th onclick="sortGenericTable('table-agency', 9)">Προμήθεια Συν. (€)</th>
+                                <th onclick="sortGenericTable('table-agency', 10)">Agency 1411 (20%) (€)</th>
+                                <th>Σύνολο (€)</th>
                             </tr>
                         </thead>
                         <tbody id="agency-tbody">
@@ -1319,11 +1339,226 @@
                             <tr>
                                 <td></td>
                                 <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="5" id="agency-footer-label">Συνολικό Overriding Agency 1411:</td>
+                                <td colspan="6" id="agency-footer-label">Συνολικό Overriding Agency 1411 (20%):</td>
+                                <td id="agency-tot-net" style="font-weight:800;">€ 0,00</td>
+                                <td id="agency-tot-syn" style="color:var(--accent-gold); font-weight:800;">€ 0,00</td>
                                 <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px; font-weight:800;">€ 0,00</td>
-                                <td></td>
+                                <td id="agency-tot-rev" style="color:var(--accent-emerald); font-weight:800;">€ 0,00</td>
                             </tr>
                         </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+             TAB: 🔹 ΕΚΚΑΘΑΡΙΣΤΗΡΙΟ ΥΠΟΚΩΔΙΚΩΝ & ΣΥΝΕΡΓΑΤΩΝ (SUBCODE PAYOUT GENERATOR)
+             ========================================================================== -->
+        <div id="tab-subcode-payouts" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-header">
+                    <div>
+                        <div class="box-title">🔹 Εκκαθαριστήριο & Επιμερισμός Αμοιβών Υποκωδικού / Συνεργάτη</div>
+                        <p style="font-size:12.5px; color:var(--text-secondary); margin-top:4px;">
+                            Υπολογισμός απόδοσης προμηθειών υποκωδικού βάσει συμφωνίας (π.χ. 50% ERGO commission), έκδοση αναλυτικού εκκαθαριστικού και εξαγωγή σε επίσημο PDF / Excel.
+                        </p>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-pill btn-excel" onclick="exportSubcodeToExcel()">📥 Εξαγωγή Excel Υποκωδικού</button>
+                        <button class="btn-pill btn-pdf" onclick="printSubcodeStatementPDF()">📄 Έκδοση Επίσημου PDF Εκκαθαριστικού</button>
+                    </div>
+                </div>
+
+                <!-- Subcode Selector & Parameters Card -->
+                <div style="background:rgba(255,255,255,0.75); padding:18px; border-radius:18px; border:1px solid var(--glass-border); display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; align-items:flex-end;">
+                    <div>
+                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">👤 Επιλογή Συνεργάτη / Υποκωδικού:</label>
+                        <input type="text" id="subcode-partner-search" class="glass-input" list="subcode-partners-datalist" placeholder="🔍 Κωδικός (π.χ. 1, 4Α, 11523) ή Όνομα..." onchange="onSubcodePartnerSelected(this.value)" style="width:100%; font-weight:700;">
+                        <datalist id="subcode-partners-datalist"></datalist>
+                    </div>
+
+                    <div>
+                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📅 Περίοδος / Μήνας Εκκαθάρισης:</label>
+                        <select id="subcode-month-select" class="glass-select" style="width:100%;" onchange="loadSubcodePayoutStatement()">
+                            <option value="all">Όλοι οι Μήνες (Συγκεντρωτικό)</option>
+                            <option value="02/2026">02/2026</option>
+                            <option value="03/2026">03/2026</option>
+                            <option value="04/2026">04/2026</option>
+                            <option value="05/2026">05/2026</option>
+                            <option value="06/2026">06/2026</option>
+                            <option value="07/2026">07/2026</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">⚖️ Καθεστώς / Ποσοστό Επιμερισμού (%):</label>
+                        <select id="subcode-split-select" class="glass-select" style="width:100%; font-weight:700; color:var(--brand-blue);" onchange="loadSubcodePayoutStatement()">
+                            <option value="50">50% Απόδοση στον Υποκωδικό (50% Γραφείο)</option>
+                            <option value="60">60% Απόδοση στον Υποκωδικό (40% Γραφείο)</option>
+                            <option value="70">70% Απόδοση στον Υποκωδικό (30% Γραφείο)</option>
+                            <option value="80">80% Απόδοση στον Υποκωδικό (20% Γραφείο)</option>
+                            <option value="100">100% Πλήρης Προμήθεια (Άμεσος Πράκτορας)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <button class="btn-pill btn-primary" style="width:100%; justify-content:center; padding:10px;" onclick="loadSubcodePayoutStatement()">
+                            🔄 Επανυπολογισμός Εκκαθαριστικού
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Live Subcode KPI Summary Cards -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:14px; margin-top:8px;">
+                    <div style="background:rgba(219, 234, 254, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(59, 130, 246, 0.3);">
+                        <span style="font-size:11px; font-weight:700; color:var(--brand-blue);">ΚΑΘΑΡΑ ΑΣΦΑΛΙΣΤΡΑ ΠΑΡΑΓΩΓΗΣ</span>
+                        <div id="subcode-kpi-net" style="font-size:22px; font-weight:800; color:var(--brand-navy); margin-top:4px;">€ 0,00</div>
+                        <span style="font-size:11px; color:var(--text-secondary);" id="subcode-kpi-count">0 Συμβόλαια</span>
+                    </div>
+
+                    <div style="background:rgba(254, 243, 199, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(245, 158, 11, 0.3);">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-gold);">ΣΥΝΟΛΙΚΗ ΠΡΟΜΗΘΕΙΑ ERGO (100%)</span>
+                        <div id="subcode-kpi-ergo" style="font-size:22px; font-weight:800; color:#92400E; margin-top:4px;">€ 0,00</div>
+                        <span style="font-size:11px; color:var(--text-secondary);">Προμήθεια + Υπερπρομήθεια 20%</span>
+                    </div>
+
+                    <div style="background:rgba(209, 250, 229, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(16, 185, 129, 0.3);">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-emerald);">ΑΠΟΔΙΔΟΜΕΝΗ ΠΡΟΜΗΘΕΙΑ ΥΠΟΚΩΔΙΚΟΥ</span>
+                        <div id="subcode-kpi-payout" style="font-size:22px; font-weight:800; color:#065F46; margin-top:4px;">€ 0,00</div>
+                        <span style="font-size:11px; color:var(--accent-emerald); font-weight:700;" id="subcode-kpi-rate-lbl">50% επί ERGO</span>
+                    </div>
+
+                    <div style="background:rgba(237, 233, 254, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(139, 92, 246, 0.3);">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-purple);">ΠΑΡΑΚΡΑΤΗΣΗ ΓΡΑΦΕΙΟΥ LANCA</span>
+                        <div id="subcode-kpi-retention" style="font-size:22px; font-weight:800; color:#5B21B6; margin-top:4px;">€ 0,00</div>
+                        <span style="font-size:11px; color:var(--accent-purple); font-weight:700;">Overriding & Έσοδο Γραφείου</span>
+                    </div>
+                </div>
+
+                <!-- Subcode Detailed Items Table -->
+                <div class="table-responsive" style="margin-top:12px;">
+                    <table class="glass-table" id="subcode-statement-table">
+                        <thead>
+                            <tr>
+                                <th>Α/Α</th>
+                                <th>Μήνας</th>
+                                <th>Αρ. Συμβολαίου</th>
+                                <th>Ονοματεπώνυμο Πελάτη</th>
+                                <th>Πρόγραμμα ERGO</th>
+                                <th>Έτος</th>
+                                <th>Καθαρά (€)</th>
+                                <th>Προμήθεια ERGO (€)</th>
+                                <th>Ποσοστό Απόδοσης</th>
+                                <th>Αμοιβή Υποκωδικού (€)</th>
+                                <th>Έσοδο Γραφείου (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subcode-statement-tbody">
+                            <tr><td colspan="11" style="text-align:center; padding:24px; color:var(--text-muted);">Επιλέξτε συνεργάτη για προβολή εκκαθαριστικού.</td></tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
+                                <td></td>
+                                <td>ΣΥΝΟΛΑ</td>
+                                <td colspan="4" id="subcode-foot-partner-lbl">Εκκαθαριστικό Υποκωδικού</td>
+                                <td id="subcode-foot-net">€ 0,00</td>
+                                <td id="subcode-foot-ergo" style="color:var(--accent-gold);">€ 0,00</td>
+                                <td></td>
+                                <td id="subcode-foot-payout" style="color:var(--accent-emerald); font-size:14px;">€ 0,00</td>
+                                <td id="subcode-foot-retention" style="color:var(--accent-purple); font-size:14px;">€ 0,00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
+             TAB: 📊 ΠΟΛΥΕΤΗΣ ΚΛΙΜΑΚΑ ΠΡΟΜΗΘΕΙΩΝ & ΚΑΛΥΨΕΩΝ (COMMISSION MATRIX)
+             ========================================================================== -->
+        <div id="tab-commission-matrix" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-header">
+                    <div>
+                        <div class="box-title">📊 Πολυετής Κλίμακα Προμηθειών & Καλύψεων (Κανονισμός ERGO & Επιμερισμός)</div>
+                        <p style="font-size:12.5px; color:var(--text-secondary); margin-top:4px;">
+                            Κλίμακες ποσοστών ανά έτος διάρκειας (1ο έτος / Νέα παραγωγή, 2ο έτος, 3ο έτος, ανανεώσεις) και ποσοστό απόδοσης υποκωδικών.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="glass-table" id="table-commission-matrix">
+                        <thead>
+                            <tr>
+                                <th>Κωδικός Προϊόντος</th>
+                                <th>Ονομασία Προγράμματος ERGO</th>
+                                <th>Κλάδος</th>
+                                <th>1ο Έτος (Νέα Παραγωγή)</th>
+                                <th>2ο Έτος (Ανανέωση)</th>
+                                <th>3ο Έτος</th>
+                                <th>4ο+ Έτος (Συντήρηση)</th>
+                                <th>Βασική Απόδοση Υποκωδικού</th>
+                                <th>Σημειώσεις / Καλύψεις</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commission-matrix-tbody">
+                            <tr>
+                                <td><code>SCH-SUP</code></td>
+                                <td><strong>ERGO Health Care Superior</strong></td>
+                                <td><span class="badge badge-blue">Υγεία</span></td>
+                                <td><span class="badge badge-gold" style="font-size:12.5px; font-weight:800;">29% (50% ERGO)</span></td>
+                                <td><span class="badge badge-purple">20%</span></td>
+                                <td>15%</td>
+                                <td>10%</td>
+                                <td><span class="badge badge-success">50% επί ERGO</span></td>
+                                <td>Νοσοκομειακό Superior (€1.500 / €3.000)</td>
+                            </tr>
+                            <tr>
+                                <td><code>SCH-ADV</code></td>
+                                <td><strong>ERGO Health Care Advanced</strong></td>
+                                <td><span class="badge badge-blue">Υγεία</span></td>
+                                <td><span class="badge badge-gold" style="font-size:12.5px; font-weight:800;">29%</span></td>
+                                <td><span class="badge badge-purple">20%</span></td>
+                                <td>15%</td>
+                                <td>10%</td>
+                                <td><span class="badge badge-success">50% επί ERGO</span></td>
+                                <td>Νοσοκομειακό Advanced (€1.500)</td>
+                            </tr>
+                            <tr>
+                                <td><code>SCH-SMP</code></td>
+                                <td><strong>ERGO Health Care Simple</strong></td>
+                                <td><span class="badge badge-blue">Υγεία</span></td>
+                                <td><span class="badge badge-gold" style="font-size:12.5px; font-weight:800;">25%</span></td>
+                                <td><span class="badge badge-purple">18%</span></td>
+                                <td>12%</td>
+                                <td>8%</td>
+                                <td><span class="badge badge-success">50% επί ERGO</span></td>
+                                <td>Simple + Affidea (€500)</td>
+                            </tr>
+                            <tr>
+                                <td><code>SCH-LIFE</code></td>
+                                <td><strong>ERGO Life Protect (Ζωής)</strong></td>
+                                <td><span class="badge badge-purple">Ζωή</span></td>
+                                <td><span class="badge badge-gold" style="font-size:12.5px; font-weight:800;">25%</span></td>
+                                <td><span class="badge badge-purple">20%</span></td>
+                                <td>15%</td>
+                                <td>10%</td>
+                                <td><span class="badge badge-success">50% επί ERGO</span></td>
+                                <td>Πρόσκαιρη / Ισόβια Ασφάλιση Θανάτου</td>
+                            </tr>
+                            <tr>
+                                <td><code>SCH-SAV</code></td>
+                                <td><strong>ERGO My Saving Simple & Junior</strong></td>
+                                <td><span class="badge badge-gold">Αποταμίευση</span></td>
+                                <td><span class="badge badge-gold" style="font-size:12.5px; font-weight:800;">15%</span></td>
+                                <td><span class="badge badge-purple">10%</span></td>
+                                <td>7%</td>
+                                <td>5%</td>
+                                <td><span class="badge badge-success">50% επί ERGO</span></td>
+                                <td>Αποταμιευτικά / Συνταξιοδοτικά Προγράμματα</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -1982,12 +2217,15 @@
     <!-- ==========================================================================
          ✏️ UNIVERSAL RECORD EDIT MODAL
          ========================================================================== -->
+    <!-- ==========================================================================
+         ✏️ UNIVERSAL RECORD EDIT MODAL (WITH DYNAMIC PRODUCER AUTO-SEARCH)
+         ========================================================================== -->
     <div id="universalEditModal" class="modal-overlay" onclick="if(event.target===this) closeEditModal()">
-        <div class="modal-glass-card" style="max-width:620px;">
+        <div class="modal-glass-card" style="max-width:640px;">
             <div class="modal-header">
                 <div>
                     <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="edit-modal-title">
-                        ✏️ Επεξεργασία Στοιχείων Συμβολαίου & Πελάτη
+                        ✏️ Επεξεργασία Στοιχείων Συμβολαίου & Ανάθεση Συνεργάτη
                     </h3>
                     <span style="font-size:12px; color:var(--text-secondary);">Άμεση ενημέρωση στη βάση δεδομένων SQLite & PostgreSQL</span>
                 </div>
@@ -2007,6 +2245,34 @@
                     <input type="text" id="edit-client-name" class="glass-input" style="width:100%; font-weight:700;" required>
                 </div>
 
+                <!-- 👥 Searchable Producer & Team Assignment -->
+                <div style="grid-column: 1 / -1; background:rgba(219, 234, 254, 0.45); padding:12px; border-radius:14px; border:1px solid rgba(59, 130, 246, 0.3);">
+                    <label style="font-size:12px; font-weight:800; color:var(--brand-blue); display:block; margin-bottom:4px;">
+                        🤝 Συνεργάτης Παραγωγής (Αναζήτηση με Αριθμό Γραφείου, ERGO ή Όνομα):
+                    </label>
+                    <input type="text" id="edit-producer-search" class="glass-input" list="producers-datalist" placeholder="🔍 Πληκτρολογήστε κωδικό γραφείου (π.χ. 1, 4Α, 11523) ή όνομα συνεργάτη..." oninput="onEditProducerSearchInput(this.value)" style="width:100%; font-weight:700; background:#FFFFFF;">
+                    <datalist id="producers-datalist"></datalist>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-top:8px;">
+                        <div>
+                            <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Κωδικός Γραφείου:</span>
+                            <input type="text" id="edit-producer-code" class="glass-input" style="width:100%; font-size:12px; padding:6px 10px;" readonly>
+                        </div>
+                        <div>
+                            <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Κωδικός ERGO:</span>
+                            <input type="text" id="edit-producer-ergo-code" class="glass-input" style="width:100%; font-size:12px; padding:6px 10px;" readonly>
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Ονοματεπώνυμο Παραγωγού:</span>
+                            <input type="text" id="edit-producer-name" class="glass-input" style="width:100%; font-size:12px; font-weight:700; padding:6px 10px;" readonly>
+                        </div>
+                    </div>
+                    <div style="margin-top:6px; font-size:11px; color:var(--text-secondary);" id="edit-producer-team-label">
+                        🏢 Ομάδα: <strong>Οργανωτική Ομάδα 40071</strong>
+                    </div>
+                    <input type="hidden" id="edit-org-team">
+                </div>
+
                 <div>
                     <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">ΑΦΜ Πελάτη:</label>
                     <input type="text" id="edit-afm" class="glass-input" style="width:100%;" placeholder="π.χ. 047812934">
@@ -2019,7 +2285,7 @@
 
                 <div>
                     <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Καθαρά Ασφάλιστρα (€):</label>
-                    <input type="number" step="0.01" id="edit-net-premium" class="glass-input" style="width:100%;" required>
+                    <input type="number" step="0.01" id="edit-net-premium" class="glass-input" style="width:100%;" oninput="recalcEditModalComms()" required>
                 </div>
 
                 <div>
@@ -2033,25 +2299,20 @@
                 </div>
 
                 <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Συνεργάτης / Πράκτορας:</label>
-                    <input type="text" id="edit-producer-name" class="glass-input" style="width:100%;" placeholder="π.χ. Νίκος Αναγνωστόπουλος">
-                </div>
-
-                <div style="grid-column: 1 / -1;">
                     <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Πρόγραμμα ERGO:</label>
                     <input type="text" id="edit-package-name" class="glass-input" style="width:100%;" placeholder="π.χ. ERGO Health Care Superior">
                 </div>
 
                 <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(226,232,240,0.8); padding-top:14px; margin-top:6px;">
                     <button type="button" class="btn-pill btn-ghost" onclick="closeEditModal()">✕ Ακύρωση</button>
-                    <button type="submit" class="btn-pill btn-primary">💾 Αποθήκευση Αλλαγών</button>
+                    <button type="submit" class="btn-pill btn-primary">💾 Αποθήκευση & Ανάθεση</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- ==========================================================================
-         🤝 PRODUCER ADD / EDIT MODAL
+         🤝 PRODUCER ADD / EDIT MODAL (WITH TEMPORAL CODE ASSIGNMENT)
          ========================================================================== -->
     <div id="producerModal" class="modal-overlay" onclick="if(event.target===this) closeProducerModal()">
         <div class="modal-glass-card" style="max-width:680px;">
@@ -2060,7 +2321,7 @@
                     <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="producer-modal-title">
                         🤝 Στοιχεία Συνεργάτη & Σύνδεση ERGO
                     </h3>
-                    <span style="font-size:12px; color:var(--text-secondary);">Διαχείριση στοιχείων, κωδικών γραφείου / ERGO και ιεραρχίας ομάδας</span>
+                    <span style="font-size:12px; color:var(--text-secondary);">Διαχείριση στοιχείων, κωδικών γραφείου / ERGO, κατάστασης αποχώρησης & χρονικού ιστορικού</span>
                 </div>
                 <button class="btn-pill btn-ghost" onclick="closeProducerModal()">✕</button>
             </div>
@@ -2073,7 +2334,7 @@
 
                 <div>
                     <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κωδικός ERGO:</label>
-                    <input type="text" id="prod-form-ergo-code" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. 1411, 40071, 9547">
+                    <input type="text" id="prod-form-ergo-code" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. 11523, 1411, 40071">
                 </div>
 
                 <div>
@@ -2106,6 +2367,29 @@
                 </div>
 
                 <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κατάσταση Συνεργασίας:</label>
+                    <select id="prod-form-status" class="glass-select" style="width:100%; font-weight:700;">
+                        <option value="FULL TIME ACTIVE">✔ FULL TIME ACTIVE</option>
+                        <option value="PART TIME ACTIVE">PART TIME ACTIVE</option>
+                        <option value="Ενεργός">Ενεργός</option>
+                        <option value="ΝΕΟΣ ΣΥΝΕΡΓΑΤΗΣ">✨ ΝΕΟΣ ΣΥΝΕΡΓΑΤΗΣ</option>
+                        <option value="Αποχωρήσας / Διακοπή">❌ Αποχωρήσας / Διακοπή</option>
+                        <option value="Σε Αναστολή">⏸️ Σε Αναστολή</option>
+                        <option value="Ανενεργός">Ανενεργός</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Έναρξη Συνεργασίας / Κωδικού:</label>
+                    <input type="text" id="prod-form-valid-from" class="glass-input" style="width:100%;" placeholder="π.χ. 2025-01-01">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Λήξη Συνεργασίας / Κωδικού:</label>
+                    <input type="text" id="prod-form-valid-to" class="glass-input" style="width:100%;" placeholder="π.χ. 2026-12-31 (ή Ενεργός)">
+                </div>
+
+                <div>
                     <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Τηλέφωνο / Κινητό:</label>
                     <input type="text" id="prod-form-phone" class="glass-input" style="width:100%;" placeholder="π.χ. 26310 51222">
                 </div>
@@ -2120,15 +2404,9 @@
                     <input type="text" id="prod-form-nomos" class="glass-input" style="width:100%;" placeholder="π.χ. ΑΙΤΩΛΟΑΚΑΡΝΑΝΙΑΣ">
                 </div>
 
-                <div>
-                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κατάσταση:</label>
-                    <select id="prod-form-status" class="glass-select" style="width:100%;">
-                        <option value="FULL TIME ACTIVE">FULL TIME ACTIVE</option>
-                        <option value="PART TIME ACTIVE">PART TIME ACTIVE</option>
-                        <option value="Ενεργός">Ενεργός</option>
-                        <option value="ΝΕΟΣ ΣΥΝΕΡΓΑΤΗΣ">ΝΕΟΣ ΣΥΝΕΡΓΑΤΗΣ</option>
-                        <option value="Ανενεργός">Ανενεργός</option>
-                    </select>
+                <div style="grid-column: 1 / -1;">
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Σημειώσεις / Ιστορικό Κωδικού:</label>
+                    <input type="text" id="prod-form-notes" class="glass-input" style="width:100%;" placeholder="π.χ. Κωδικός 2025: Σταύρος, Κωδικός 2026: Νέος συνεργάτης">
                 </div>
 
                 <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(226,232,240,0.8); padding-top:14px; margin-top:6px;">
@@ -2136,6 +2414,97 @@
                     <button type="submit" class="btn-pill btn-primary">💾 Αποθήκευση Συνεργάτη</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         📜 360° PRODUCER PRODUCTION & CODE HISTORY MODAL
+         ========================================================================== -->
+    <div id="producerHistoryModal" class="modal-overlay" onclick="if(event.target===this) closeProducerHistoryModal()">
+        <div class="modal-glass-card" style="max-width:860px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="hist-modal-title">
+                        📜 360° Ιστορικό Παραγωγής & Διαδοχής Κωδικών Συνεργάτη
+                    </h3>
+                    <span style="font-size:12px; color:var(--text-secondary);" id="hist-modal-subtitle">Αναλυτικά συμβόλαια, χρονική διαδοχή κωδικού (2025 vs 2026) και σύνολα αμοιβών</span>
+                </div>
+                <button class="btn-pill btn-ghost" onclick="closeProducerHistoryModal()">✕</button>
+            </div>
+
+            <!-- Profile Summary Box -->
+            <div style="background:rgba(219, 234, 254, 0.5); padding:16px; border-radius:16px; border:1px solid rgba(59, 130, 246, 0.3); display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-top:6px;">
+                <div>
+                    <span style="font-size:11px; font-weight:700; color:var(--text-muted);">ΣΥΝΕΡΓΑΤΗΣ:</span>
+                    <div id="hist-prof-name" style="font-size:15px; font-weight:800; color:var(--brand-navy);">-</div>
+                </div>
+                <div>
+                    <span style="font-size:11px; font-weight:700; color:var(--text-muted);">ΚΩΔΙΚΟΣ ΓΡΑΦΕΙΟΥ / ERGO:</span>
+                    <div id="hist-prof-codes" style="font-size:13px; font-weight:700; color:var(--brand-blue);">-</div>
+                </div>
+                <div>
+                    <span style="font-size:11px; font-weight:700; color:var(--text-muted);">ΟΡΓΑΝΩΤΙΚΗ ΟΜΑΔΑ:</span>
+                    <div id="hist-prof-team" style="font-size:13px; font-weight:700; color:var(--text-secondary);">-</div>
+                </div>
+                <div>
+                    <span style="font-size:11px; font-weight:700; color:var(--text-muted);">ΚΑΤΑΣΤΑΣΗ:</span>
+                    <div id="hist-prof-status">-</div>
+                </div>
+            </div>
+
+            <!-- 4 Production KPI Cards -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-top:10px;">
+                <div style="background:#FFFFFF; padding:12px; border-radius:12px; border:1px solid var(--glass-border); text-align:center;">
+                    <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">ΣΥΜΒΟΛΑΙΑ</span>
+                    <div id="hist-kpi-count" style="font-size:18px; font-weight:800; color:var(--brand-navy); margin-top:2px;">0</div>
+                </div>
+                <div style="background:#FFFFFF; padding:12px; border-radius:12px; border:1px solid var(--glass-border); text-align:center;">
+                    <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">ΚΑΘΑΡΑ (€)</span>
+                    <div id="hist-kpi-net" style="font-size:18px; font-weight:800; color:var(--brand-navy); margin-top:2px;">€ 0,00</div>
+                </div>
+                <div style="background:#FFFFFF; padding:12px; border-radius:12px; border:1px solid var(--glass-border); text-align:center;">
+                    <span style="font-size:10.5px; font-weight:700; color:var(--accent-gold);">ΠΡΟΜΗΘΕΙΑ (€)</span>
+                    <div id="hist-kpi-comm" style="font-size:18px; font-weight:800; color:#92400E; margin-top:2px;">€ 0,00</div>
+                </div>
+                <div style="background:#FFFFFF; padding:12px; border-radius:12px; border:1px solid var(--glass-border); text-align:center;">
+                    <span style="font-size:10.5px; font-weight:700; color:var(--accent-purple);">AGENCY 1411 (€)</span>
+                    <div id="hist-kpi-agn" style="font-size:18px; font-weight:800; color:#5B21B6; margin-top:2px;">€ 0,00</div>
+                </div>
+            </div>
+
+            <!-- Chronological Code Assignments -->
+            <div style="margin-top:12px;">
+                <h4 style="font-size:13px; font-weight:800; color:var(--brand-navy); margin-bottom:6px;">📅 Χρονικό Ιστορικό Ανάθεσης Κωδικών (2025 vs 2026):</h4>
+                <div id="hist-timeline-box" style="font-size:12px; background:#FFFFFF; padding:10px 14px; border-radius:12px; border:1px solid var(--glass-border);">
+                    Φόρτωση ιστορικού διαδοχής...
+                </div>
+            </div>
+
+            <!-- Lifetime Contracts List -->
+            <div style="margin-top:12px;">
+                <h4 style="font-size:13px; font-weight:800; color:var(--brand-navy); margin-bottom:6px;">📋 Όλα τα Συμβόλαια του Συνεργάτη:</h4>
+                <div class="table-responsive" style="max-height:260px; overflow-y:auto;">
+                    <table class="glass-table" style="font-size:12px;" id="hist-contracts-table">
+                        <thead>
+                            <tr>
+                                <th>Α/Α</th>
+                                <th>Μήνας</th>
+                                <th>Αρ. Συμβολαίου</th>
+                                <th>Πελάτης</th>
+                                <th>Πρόγραμμα ERGO</th>
+                                <th>Καθαρά (€)</th>
+                                <th>Προμήθεια (€)</th>
+                                <th>Agency 1411 (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hist-contracts-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(226,232,240,0.8); padding-top:14px; margin-top:12px;">
+                <button class="btn-pill btn-primary" onclick="closeProducerHistoryModal()">Κλείσιμο</button>
+            </div>
         </div>
     </div>
 
@@ -2379,6 +2748,8 @@
                 try { renderProducersRegTable(globalData.producersReg); } catch(e) { console.error("renderProducersRegTable error:", e); }
                 try { renderPDFDocs(globalData.docs); } catch(e) { console.error("renderPDFDocs error:", e); }
                 try { loadAccount57List(); } catch(e) { console.error("loadAccount57List error:", e); }
+                try { populateProducersDatalists(); } catch(e) { console.error("populateProducersDatalists error:", e); }
+                try { loadSubcodePayoutStatement(); } catch(e) { console.error("loadSubcodePayoutStatement error:", e); }
 
             } catch (e) {
                 console.error("Data load error:", e);
@@ -2621,24 +2992,110 @@
             });
         }
 
+        // === 👥 POPULATE PRODUCER DATALISTS & SEARCH SUGGESTIONS ===
+        function populateProducersDatalists() {
+            const dl = document.getElementById('producers-datalist');
+            const subDl = document.getElementById('subcode-partners-datalist');
+            if (dl) dl.innerHTML = '';
+            if (subDl) subDl.innerHTML = '';
+
+            const list = globalData.producersReg || [];
+            list.forEach(p => {
+                const optVal = `${p.producer_code} | ${p.producer_name} (ERGO: ${p.ergo_code || '-'})`;
+                if (dl) {
+                    const opt = document.createElement('option');
+                    opt.value = optVal;
+                    dl.appendChild(opt);
+                }
+                if (subDl) {
+                    const opt2 = document.createElement('option');
+                    opt2.value = optVal;
+                    subDl.appendChild(opt2);
+                }
+            });
+
+            // Set default subcode partner in search box if empty
+            const subInput = document.getElementById('subcode-partner-search');
+            if (subInput && !subInput.value && list.length > 0) {
+                const def = list.find(x => x.producer_code === '11523') || list.find(x => x.producer_code === '1411') || list[0];
+                subInput.value = `${def.producer_code} | ${def.producer_name} (ERGO: ${def.ergo_code || '-'})`;
+            }
+        }
+
+        function onEditProducerSearchInput(val) {
+            if (!val) return;
+            const term = val.split('|')[0].trim().toLowerCase();
+            const fullTerm = val.toLowerCase().trim();
+
+            const p = (globalData.producersReg || []).find(x => 
+                x.producer_code.toLowerCase() === term ||
+                (x.ergo_code && x.ergo_code.toLowerCase() === term) ||
+                x.producer_name.toLowerCase().includes(term) ||
+                x.producer_name.toLowerCase().includes(fullTerm) ||
+                x.producer_code.toLowerCase() === fullTerm
+            );
+
+            if (p) {
+                document.getElementById('edit-producer-code').value = p.producer_code;
+                document.getElementById('edit-producer-ergo-code').value = p.ergo_code || p.producer_code;
+                document.getElementById('edit-producer-name').value = p.producer_name;
+                document.getElementById('edit-org-team').value = p.partner_type_label || "🏢 Οργανωτική Ομάδα 40071";
+                
+                const lbl = document.getElementById('edit-producer-team-label');
+                if (lbl) {
+                    lbl.innerHTML = `🏢 Ομάδα: <strong>${p.partner_type_label || 'Οργανωτική Ομάδα 40071'}</strong> • Κλίμακα: <strong>${p.avg_rate || 25}%</strong>`;
+                }
+
+                // Recalc comm
+                recalcEditModalComms(p.avg_rate || 25);
+            }
+        }
+
+        function recalcEditModalComms(customRate) {
+            const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
+            const rate = customRate !== undefined ? customRate : (parseFloat(document.getElementById('edit-producer-code')?.dataset?.rate) || 25.0);
+            
+            const pcomm = Number((net * (rate / 100)).toFixed(2));
+            const acomm = Number((net * 0.20).toFixed(2));
+            
+            document.getElementById('edit-prod-comm').value = pcomm;
+            document.getElementById('edit-agency-comm').value = acomm;
+        }
+
         // === ✏️ UNIVERSAL RECORD EDIT MODAL & ENGINE ===
         function openEditModal(policyNumber) {
-            const c = globalData.contracts.find(item => item.policy_number === policyNumber);
+            const c = globalData.contracts.find(item => item.policy_number === policyNumber) || 
+                      globalData.records.find(item => item.policy === policyNumber);
             if (!c) {
                 alert("Δεν βρέθηκαν στοιχεία για το συμβόλαιο " + policyNumber);
                 return;
             }
 
-            document.getElementById('edit-policy-original').value = c.policy_number;
-            document.getElementById('edit-policy-number').value = c.policy_number;
-            document.getElementById('edit-client-name').value = c.client_name || '';
+            const pol = c.policy_number || c.policy;
+            document.getElementById('edit-policy-original').value = pol;
+            document.getElementById('edit-policy-number').value = pol;
+            document.getElementById('edit-client-name').value = c.client_name || c.client || '';
             document.getElementById('edit-afm').value = c.afm || '';
             document.getElementById('edit-phone').value = c.phone_mobile || c.phone_landline || '';
-            document.getElementById('edit-net-premium').value = c.net_premium_total || 0;
-            document.getElementById('edit-prod-comm').value = c.producer_commission_amount || 0;
-            document.getElementById('edit-agency-comm').value = c.agency_overriding_amount || 0;
-            document.getElementById('edit-producer-name').value = c.producer_name || 'Νίκος Αναγνωστόπουλος';
-            document.getElementById('edit-package-name').value = c.package_name || 'ERGO Health Care Superior';
+            document.getElementById('edit-net-premium').value = c.net_premium_total || c.net || 0;
+            document.getElementById('edit-prod-comm').value = c.producer_commission_amount || c.comm_syn || 0;
+            document.getElementById('edit-agency-comm').value = c.agency_overriding_amount || c.comm_agn || 0;
+            document.getElementById('edit-package-name').value = c.package_name || c.product || 'ERGO Health Care Superior';
+
+            // Populate producer fields
+            const pcode = c.producer_partner_code || c.producer_code || '11523';
+            const pergo = c.producer_ergo_code || c.producer_ergo || '11523';
+            const pname = c.producer_name || 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ';
+            const pteam = c.producer_org_team || c.producer_team || '🏢 Οργανωτική Ομάδα 40071';
+
+            document.getElementById('edit-producer-code').value = pcode;
+            document.getElementById('edit-producer-ergo-code').value = pergo;
+            document.getElementById('edit-producer-name').value = pname;
+            document.getElementById('edit-org-team').value = pteam;
+            document.getElementById('edit-producer-search').value = `${pcode} | ${pname}`;
+            
+            const lbl = document.getElementById('edit-producer-team-label');
+            if (lbl) lbl.innerHTML = `🏢 Ομάδα: <strong>${pteam}</strong>`;
 
             document.getElementById('universalEditModal').classList.add('open');
         }
@@ -2657,7 +3114,10 @@
             const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
             const pcomm = parseFloat(document.getElementById('edit-prod-comm').value) || 0;
             const acomm = parseFloat(document.getElementById('edit-agency-comm').value) || 0;
+            const pcode = document.getElementById('edit-producer-code').value.trim();
+            const pergo = document.getElementById('edit-producer-ergo-code').value.trim();
             const pname = document.getElementById('edit-producer-name').value.trim();
+            const pteam = document.getElementById('edit-org-team').value.trim();
             const pkg = document.getElementById('edit-package-name').value.trim();
 
             try {
@@ -2672,15 +3132,19 @@
                         net_premium_total: net,
                         producer_commission_amount: pcomm,
                         agency_overriding_amount: acomm,
+                        producer_code: pcode,
+                        producer_ergo_code: pergo,
                         producer_name: pname,
+                        org_team: pteam,
                         package_name: pkg
                     })
                 });
                 const d = await res.json();
                 if (res.ok) {
-                    alert(`✔ ${d.message || 'Το συμβόλαιο ενημερώθηκε επιτυχώς!'}`);
+                    alert(`✔ ${d.message || 'Το συμβόλαιο ενημερώθηκε και ανατέθηκε επιτυχώς!'}`);
                     closeEditModal();
-                    loadAllData();
+                    await loadAllData();
+                    loadSubcodePayoutStatement();
                 } else {
                     alert(`❌ Σφάλμα: ${d.error || 'Αποτυχία ενημέρωσης'}`);
                 }
@@ -2828,43 +3292,382 @@
             }));
         }
 
-        // === 🏢 AGENCY TABLE ===
+        // === 🏢 AGENCY TABLE (ENRICHED WITH PRODUCER & TEAM ORIGIN) ===
         function renderAgencyTable(list) {
             const tbody = document.getElementById('agency-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            let totAgency = 0;
+            let totNet = 0, totSyn = 0, totAgency = 0, totRev = 0;
             list.forEach((r, idx) => {
-                totAgency += (r.agency_overriding_amount || 0);
+                const net = (r.net_premium_total || 0);
+                const syn = (r.producer_commission_amount || 0);
+                const agn = (r.agency_overriding_amount || 0);
+                const rev = (r.total_office_revenue || syn + agn);
+
+                totNet += net;
+                totSyn += syn;
+                totAgency += agn;
+                totRev += rev;
+
+                const pName = r.producer_name || 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ';
+                const pCode = r.producer_partner_code || r.producer_code || '11523';
+                const pErgo = r.producer_ergo_code || '11523';
+                const pTeam = r.partner_type_label || r.producer_org_team || '🏢 Οργανωτική Ομάδα 40071';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="custom-checkbox agency-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('agency')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
-                    <td>${r.client_name||'-'}</td>
-                    <td>${formatEur(r.net_premium_total)}</td>
-                    <td>${formatEur(r.producer_commission_amount)}</td>
-                    <td style="color:var(--accent-purple); font-weight:800;">${formatEur(r.agency_overriding_amount)}</td>
-                    <td><span class="badge badge-purple">Agency 20%</span></td>
+                    <td><strong>${r.client_name||'-'}</strong></td>
+                    <td><span style="font-size:12px; color:var(--text-secondary);">${r.package_name || 'ERGO Health Care'}</span></td>
                     <td>
-                        <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')">✏️</button>
+                        <div style="font-weight:700; color:var(--brand-navy); font-size:12.5px;">
+                            ${pName}
+                        </div>
+                        <div style="font-size:11px; color:var(--brand-blue); display:flex; gap:4px; align-items:center; margin-top:2px;">
+                            <span class="badge badge-purple" style="padding:1px 6px; font-size:10px;">Γραφείο: ${pCode}</span>
+                            <span class="badge badge-ghost" style="padding:1px 6px; font-size:10px;">ERGO: ${pErgo}</span>
+                            <button class="btn-pill btn-ghost" style="padding:1px 5px; font-size:10px;" onclick="openProducerHistoryModal('${pCode}')" title="360° Ιστορικό Παραγωγού">📜</button>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-blue" style="font-size:11px;">${pTeam}</span>
+                    </td>
+                    <td>${formatEur(net)}</td>
+                    <td style="color:var(--accent-gold); font-weight:700;">${formatEur(syn)}</td>
+                    <td style="color:var(--accent-purple); font-weight:800; font-size:13px;">${formatEur(agn)}</td>
+                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(rev)}</td>
+                    <td>
+                        <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')" title="Επεξεργασία & Ανάθεση">✏️</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-            const footerLbl = document.getElementById('agency-footer-label');
-            if (footerLbl) footerLbl.innerText = `Συνολικό Overriding Agency 1411 (${list.length} Εγγραφές):`;
-            const footerVal = document.getElementById('agency-total-val');
-            if (footerVal) footerVal.innerText = formatEur(totAgency);
+
+            // Update Agency Table Footers
+            const fNet = document.getElementById('agency-tot-net'); if (fNet) fNet.innerText = formatEur(totNet);
+            const fSyn = document.getElementById('agency-tot-syn'); if (fSyn) fSyn.innerText = formatEur(totSyn);
+            const fAgn = document.getElementById('agency-total-val'); if (fAgn) fAgn.innerText = formatEur(totAgency);
+            const fRev = document.getElementById('agency-tot-rev'); if (fRev) fRev.innerText = formatEur(totRev);
+            const fLbl = document.getElementById('agency-footer-label'); if (fLbl) fLbl.innerText = `Συνολικό Overriding Agency 1411 (${list.length} Συμβόλαια):`;
         }
 
         function filterAgencyTable() {
-            const q = document.getElementById('agency-search').value.toLowerCase();
+            const q = document.getElementById('agency-search').value.toLowerCase().trim();
             renderAgencyTable(globalData.agency.filter(r => {
                 return !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
-                             (r.policy_number && r.policy_number.includes(q));
+                             (r.policy_number && r.policy_number.includes(q)) ||
+                             (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
+                             (r.producer_partner_code && r.producer_partner_code.toLowerCase().includes(q)) ||
+                             (r.producer_ergo_code && r.producer_ergo_code.toLowerCase().includes(q)) ||
+                             (r.partner_type_label && r.partner_type_label.toLowerCase().includes(q));
             }));
+        }
+
+        // === 🔹 SUBCODE COMMISSION PAYOUT GENERATOR ENGINE ===
+        let currentSubcodeStatementData = null;
+
+        function onSubcodePartnerSelected(val) {
+            loadSubcodePayoutStatement();
+        }
+
+        async function loadSubcodePayoutStatement() {
+            const pInput = document.getElementById('subcode-partner-search')?.value || '';
+            const pCode = pInput.split('|')[0].trim() || '11523';
+            const month = document.getElementById('subcode-month-select')?.value || 'all';
+            const splitPct = parseFloat(document.getElementById('subcode-split-select')?.value) || 50.0;
+
+            try {
+                const res = await fetch(`/api/subcodes/payout-statement?producer_code=${encodeURIComponent(pCode)}&month=${encodeURIComponent(month)}&split_pct=${splitPct}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    currentSubcodeStatementData = data;
+                    renderSubcodePayoutTab(data);
+                }
+            } catch (err) {
+                console.error("Subcode payout fetch error:", err);
+            }
+        }
+
+        function renderSubcodePayoutTab(data) {
+            const partner = data.partner || {};
+            const items = data.items || [];
+            const totals = data.totals || {};
+
+            // 1. Update 4 KPI Cards
+            document.getElementById('subcode-kpi-net').innerText = formatEur(totals.total_net);
+            document.getElementById('subcode-kpi-ergo').innerText = formatEur(totals.total_ergo_commission);
+            document.getElementById('subcode-kpi-payout').innerText = formatEur(totals.total_subcode_payout);
+            document.getElementById('subcode-kpi-retention').innerText = formatEur(totals.total_office_retention);
+            
+            document.getElementById('subcode-kpi-count').innerText = `${items.length} Συμβόλαια`;
+            document.getElementById('subcode-kpi-rate-lbl').innerText = `${data.split_pct}% Απόδοση (${totals.net_payable ? formatEur(totals.net_payable) + ' καθαρά' : ''})`;
+
+            // 2. Render Table Rows
+            const tbody = document.getElementById('subcode-statement-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">Δεν βρέθηκαν συμβόλαια για τον συνεργάτη ${partner.full_name || ''} στην επιλεγμένη περίοδο.</td></tr>`;
+                return;
+            }
+
+            items.forEach((it, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx+1}</td>
+                    <td><strong>${it.statement_month || '-'}</strong></td>
+                    <td><a class="policy-link" onclick="openPolicyModal('${it.policy_number}')">${it.policy_number}</a></td>
+                    <td><strong>${it.client_name || '-'}</strong></td>
+                    <td><span style="font-size:12px;">${it.package_name || 'ERGO Health Care Superior'}</span></td>
+                    <td><span class="badge badge-blue">Έτος ${it.policy_year || 1}</span></td>
+                    <td>${formatEur(it.net_premium)}</td>
+                    <td style="color:var(--accent-gold); font-weight:700;">${formatEur(it.ergo_commission_total)}</td>
+                    <td><span class="badge badge-purple">${it.subcode_split_pct}%</span></td>
+                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(it.subcode_payout_amount)}</td>
+                    <td style="color:var(--accent-purple); font-weight:800;">${formatEur(it.office_retention_amount)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 3. Update Table Footer
+            const fPartner = document.getElementById('subcode-foot-partner-lbl');
+            if (fPartner) fPartner.innerText = `Εκκαθαριστικό: ${partner.full_name} (Κωδ. ${partner.producer_code}) - ${items.length} Συμβόλαια`;
+            
+            document.getElementById('subcode-foot-net').innerText = formatEur(totals.total_net);
+            document.getElementById('subcode-foot-ergo').innerText = formatEur(totals.total_ergo_commission);
+            document.getElementById('subcode-foot-payout').innerText = formatEur(totals.total_subcode_payout);
+            document.getElementById('subcode-foot-retention').innerText = formatEur(totals.total_office_retention);
+        }
+
+        function printSubcodeStatementPDF() {
+            if (!currentSubcodeStatementData || !currentSubcodeStatementData.items || currentSubcodeStatementData.items.length === 0) {
+                alert("Παρακαλώ επιλέξτε συνεργάτη με συμβόλαια για την έκδοση εκκαθαριστικού.");
+                return;
+            }
+            const data = currentSubcodeStatementData;
+            const partner = data.partner;
+            const totals = data.totals;
+
+            const printDiv = document.createElement('div');
+            printDiv.style.padding = '24px';
+            printDiv.style.fontFamily = 'Arial, sans-serif';
+            printDiv.style.color = '#0F172A';
+            printDiv.style.background = '#FFFFFF';
+
+            let itemsRows = '';
+            data.items.forEach((it, i) => {
+                itemsRows += `
+                    <tr style="border-bottom:1px solid #E2E8F0; font-size:11px;">
+                        <td style="padding:6px 8px;">${i+1}</td>
+                        <td style="padding:6px 8px;">${it.statement_month}</td>
+                        <td style="padding:6px 8px; font-weight:bold;">${it.policy_number}</td>
+                        <td style="padding:6px 8px;">${it.client_name}</td>
+                        <td style="padding:6px 8px;">${it.package_name || 'ERGO Health'}</td>
+                        <td style="padding:6px 8px; text-align:right;">€ ${it.net_premium.toFixed(2)}</td>
+                        <td style="padding:6px 8px; text-align:right;">€ ${it.ergo_commission_total.toFixed(2)}</td>
+                        <td style="padding:6px 8px; text-align:center;">${it.subcode_split_pct}%</td>
+                        <td style="padding:6px 8px; text-align:right; font-weight:bold; color:#065F46;">€ ${it.subcode_payout_amount.toFixed(2)}</td>
+                        <td style="padding:6px 8px; text-align:right; color:#5B21B6;">€ ${it.office_retention_amount.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            printDiv.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:14px; margin-bottom:18px;">
+                    <div>
+                        <h2 style="color:#1E3A8A; margin:0; font-size:20px; font-weight:800;">LANCA Ι.Κ.Ε. - AGENCY 1411 (ERGO)</h2>
+                        <div style="font-size:12px; color:#64748B; margin-top:2px;">Συντονισμός & Διαχείριση Ασφαλιστικών Εργασιών • Υπεύθυνος: Νίκος Αναγνωστόπουλος</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:14px; font-weight:bold; color:#1D4ED8;">ΕΠΙΣΗΜΟ ΕΚΚΑΘΑΡΙΣΤΗΡΙΟ ΥΠΟΚΩΔΙΚΟΥ</div>
+                        <div style="font-size:11px; color:#64748B;">Ημερομηνία Έκδοσης: ${new Date().toLocaleDateString('el-GR')}</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#F8FAFC; padding:14px; border-radius:10px; margin-bottom:18px; font-size:12px;">
+                    <div>
+                        <div><strong>Ονοματεπώνυμο Συνεργάτη:</strong> ${partner.full_name}</div>
+                        <div><strong>Κωδικός Γραφείου:</strong> ${partner.producer_code} | <strong>Κωδικός ERGO:</strong> ${partner.ergo_code || '-'}</div>
+                        <div><strong>Ιεραρχία / Κατηγορία:</strong> ${partner.partner_type_label || 'Υποκωδικός'}</div>
+                    </div>
+                    <div>
+                        <div><strong>Περίοδος Εκκαθάρισης:</strong> ${data.period === 'all' ? 'Όλοι οι Μήνες' : data.period}</div>
+                        <div><strong>Συμφωνία Επιμερισμού:</strong> ${data.split_pct}% επί προμήθειας ERGO</div>
+                        <div><strong>Συνολικά Συμβόλαια:</strong> ${data.items.length}</div>
+                    </div>
+                </div>
+
+                <table style="width:100%; border-collapse:collapse; margin-bottom:18px;">
+                    <thead>
+                        <tr style="background:#1E3A8A; color:#FFFFFF; font-size:11px; text-align:left;">
+                            <th style="padding:8px;">Α/Α</th>
+                            <th style="padding:8px;">Μήνας</th>
+                            <th style="padding:8px;">Αρ. Συμβολαίου</th>
+                            <th style="padding:8px;">Πελάτης</th>
+                            <th style="padding:8px;">Πρόγραμμα</th>
+                            <th style="padding:8px; text-align:right;">Καθαρά (€)</th>
+                            <th style="padding:8px; text-align:right;">ERGO (€)</th>
+                            <th style="padding:8px; text-align:center;">Ποσοστό</th>
+                            <th style="padding:8px; text-align:right;">Απόδοση (€)</th>
+                            <th style="padding:8px; text-align:right;">Γραφείο (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsRows}</tbody>
+                </table>
+
+                <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
+                    <div style="background:#F1F5F9; padding:16px; border-radius:10px; width:340px; font-size:12.5px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Σύνολο Καθαρών Ασφαλίστρων:</span>
+                            <strong>€ ${totals.total_net.toFixed(2)}</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Συνολική Προμήθεια ERGO (100%):</span>
+                            <strong style="color:#92400E;">€ ${totals.total_ergo_commission.toFixed(2)}</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-top:1px solid #CBD5E1; padding-top:6px;">
+                            <span><strong>Μικτή Αμοιβή Συνεργάτη (${data.split_pct}%):</strong></span>
+                            <strong style="color:#065F46; font-size:14px;">€ ${totals.total_subcode_payout.toFixed(2)}</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#64748B; font-size:11.5px;">
+                            <span>Παρακράτηση Φόρου 20%:</span>
+                            <span>€ ${totals.tax_deduction.toFixed(2)}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:2px solid #1E3A8A; padding-top:6px; font-size:14px;">
+                            <span><strong>ΚΑΘΑΡΟ ΠΛΗΡΩΤΕΟ ΣΥΝΕΡΓΑΤΗ:</strong></span>
+                            <strong style="color:#1D4ED8;">€ ${totals.net_payable.toFixed(2)}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #E2E8F0; font-size:12px; text-align:center;">
+                    <div style="width:200px;">
+                        <div>Ο Συνεργάτης</div>
+                        <div style="margin-top:40px;">_______________________</div>
+                        <div style="font-size:11px; color:#64748B; margin-top:4px;">${partner.full_name}</div>
+                    </div>
+                    <div style="width:200px;">
+                        <div>Για την LANCA Ι.Κ.Ε. (Agency 1411)</div>
+                        <div style="margin-top:40px;">_______________________</div>
+                        <div style="font-size:11px; color:#64748B; margin-top:4px;">Νίκος Αναγνωστόπουλος</div>
+                    </div>
+                </div>
+            `;
+
+            html2pdf().set({
+                margin: [10, 10, 10, 10],
+                filename: `LANCA_Ekatharistirio_${partner.producer_code}_${new Date().getTime()}.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(printDiv).save();
+        }
+
+        function exportSubcodeToExcel() {
+            if (!currentSubcodeStatementData || !currentSubcodeStatementData.items || currentSubcodeStatementData.items.length === 0) {
+                alert("Δεν υπάρχουν δεδομένα προς εξαγωγή.");
+                return;
+            }
+            const data = currentSubcodeStatementData.items.map((it, i) => ({
+                "Α/Α": i + 1,
+                "Μήνας": it.statement_month,
+                "Αριθμός Συμβολαίου": it.policy_number,
+                "Ονοματεπώνυμο Πελάτη": it.client_name,
+                "ΑΦΜ": it.afm,
+                "Πρόγραμμα ERGO": it.package_name,
+                "Έτος Συμβολαίου": it.policy_year,
+                "Καθαρά Ασφάλιστρα (€)": it.net_premium,
+                "Προμήθεια ERGO (€)": it.ergo_commission_total,
+                "Ποσοστό Απόδοσης (%)": it.subcode_split_pct,
+                "Αποδιδόμενη Προμήθεια Υποκωδικού (€)": it.subcode_payout_amount,
+                "Έσοδο / Overriding Γραφείου LANCA (€)": it.office_retention_amount,
+                "Συνεργάτης": it.producer_name,
+                "Κωδικός Γραφείου": it.producer_code
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Εκκαθαριστικό Υποκωδικού");
+            XLSX.writeFile(wb, `LANCA_Ekatharistirio_Ypokwdikou_${new Date().getTime()}.xlsx`);
+        }
+
+        // === 📜 360° PRODUCER HISTORY MODAL ENGINE ===
+        async function openProducerHistoryModal(producerCode) {
+            try {
+                const res = await fetch(`/api/producers/history/${encodeURIComponent(producerCode)}`);
+                const d = await res.json();
+                if (d.status === 'success') {
+                    const prof = d.producer || {};
+                    const hist = d.code_history || [];
+                    const contracts = d.contracts || [];
+                    const totals = d.totals || {};
+
+                    document.getElementById('hist-modal-title').innerText = `📜 360° Ιστορικό Παραγωγής: ${prof.full_name || prof.producer_name}`;
+                    document.getElementById('hist-prof-name').innerText = prof.full_name || prof.producer_name || '-';
+                    document.getElementById('hist-prof-codes').innerText = `Γραφείο: ${prof.producer_code} | ERGO: ${prof.ergo_code || '-'}`;
+                    document.getElementById('hist-prof-team').innerText = prof.partner_type_label || 'Οργανωτική Ομάδα 40071';
+                    
+                    const stEl = document.getElementById('hist-prof-status');
+                    if (stEl) {
+                        stEl.innerHTML = `<span class="badge badge-success">${prof.status || 'Ενεργός'}</span>`;
+                    }
+
+                    document.getElementById('hist-kpi-count').innerText = contracts.length;
+                    document.getElementById('hist-kpi-net').innerText = formatEur(totals.total_net);
+                    document.getElementById('hist-kpi-comm').innerText = formatEur(totals.total_commission);
+                    document.getElementById('hist-kpi-agn').innerText = formatEur(totals.total_agency_overriding);
+
+                    // Timeline of code succession
+                    const tBox = document.getElementById('hist-timeline-box');
+                    if (tBox) {
+                        if (hist.length > 0) {
+                            let tHtml = '<ul style="margin:0; padding-left:18px; line-height:1.6;">';
+                            hist.forEach(h => {
+                                tHtml += `<li><strong>${h.valid_from || '2025-01-01'} έως ${h.valid_to || 'Σήμερα'}</strong>: ${h.producer_name} (Κωδ. ${h.producer_code} / ERGO: ${h.ergo_code || '-'}) - <em>${h.notes || 'Ενεργή ανάθεση'}</em></li>`;
+                            });
+                            tHtml += '</ul>';
+                            tBox.innerHTML = tHtml;
+                        } else {
+                            tBox.innerHTML = `<div><strong>2025 - 2026</strong>: Συνεχής ανάθεση στον συνεργάτη <strong>${prof.full_name || prof.producer_name}</strong> (Κωδικός: ${prof.producer_code}).</div>`;
+                        }
+                    }
+
+                    // Contracts List
+                    const cTbody = document.getElementById('hist-contracts-tbody');
+                    if (cTbody) {
+                        cTbody.innerHTML = '';
+                        if (contracts.length === 0) {
+                            cTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--text-muted);">Δεν έχουν καταγραφεί συμβόλαια για αυτόν τον συνεργάτη.</td></tr>`;
+                        } else {
+                            contracts.forEach((c, idx) => {
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td>${idx+1}</td>
+                                    <td><strong>${c.statement_month}</strong></td>
+                                    <td><a class="policy-link" onclick="openPolicyModal('${c.policy_number}')">${c.policy_number}</a></td>
+                                    <td>${c.client_name || '-'}</td>
+                                    <td>${c.package_name || 'ERGO Health'}</td>
+                                    <td>${formatEur(c.net_premium_total)}</td>
+                                    <td style="color:var(--accent-gold); font-weight:700;">${formatEur(c.producer_commission_amount)}</td>
+                                    <td style="color:var(--accent-purple); font-weight:700;">${formatEur(c.agency_overriding_amount)}</td>
+                                `;
+                                cTbody.appendChild(tr);
+                            });
+                        }
+                    }
+
+                    document.getElementById('producerHistoryModal').classList.add('open');
+                }
+            } catch (err) {
+                console.error("Error opening history modal:", err);
+            }
+        }
+
+        function closeProducerHistoryModal() {
+            document.getElementById('producerHistoryModal').classList.remove('open');
         }
 
         // === 🤝 PRODUCERS TABLE ===
@@ -3207,6 +4010,7 @@
                     <td>${statusBadge}</td>
                     <td>
                         <div style="display:flex; gap:4px;">
+                            <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό Παραγωγής & Κωδικού">📜</button>
                             <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditProducerModal('${p.producer_code}')" title="Επεξεργασία">✏️</button>
                             <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>
                         </div>
@@ -3250,7 +4054,10 @@
             document.getElementById('prod-form-nomos').value = "ΑΙΤΩΛΟΑΚΑΡΝΑΝΙΑΣ";
             document.getElementById('prod-form-rate').value = 25;
             document.getElementById('prod-form-status').value = "FULL TIME ACTIVE";
-            document.getElementById('producerModal').classList.add('active');
+            if (document.getElementById('prod-form-valid-from')) document.getElementById('prod-form-valid-from').value = "2026-01-01";
+            if (document.getElementById('prod-form-valid-to')) document.getElementById('prod-form-valid-to').value = "Ενεργός";
+            if (document.getElementById('prod-form-notes')) document.getElementById('prod-form-notes').value = "";
+            document.getElementById('producerModal').classList.add('open');
         }
 
         function openEditProducerModal(code) {
@@ -3269,15 +4076,18 @@
             document.getElementById('prod-form-nomos').value = (p.nomos !== '-' ? p.nomos : "") || "";
             document.getElementById('prod-form-rate').value = p.avg_rate || 25;
             document.getElementById('prod-form-status').value = p.status || "Ενεργός";
-            document.getElementById('producerModal').classList.add('active');
+            if (document.getElementById('prod-form-valid-from')) document.getElementById('prod-form-valid-from').value = p.valid_from || "2025-01-01";
+            if (document.getElementById('prod-form-valid-to')) document.getElementById('prod-form-valid-to').value = p.valid_to || "Ενεργός";
+            if (document.getElementById('prod-form-notes')) document.getElementById('prod-form-notes').value = p.notes || "";
+            document.getElementById('producerModal').classList.add('open');
         }
 
         function closeProducerModal() {
-            document.getElementById('producerModal').classList.remove('active');
+            document.getElementById('producerModal').classList.remove('open');
         }
 
         async function saveProducerModal(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const payload = {
                 producer_code: document.getElementById('prod-form-code').value.trim(),
                 ergo_code: document.getElementById('prod-form-ergo-code').value.trim(),
@@ -3289,7 +4099,10 @@
                 email: document.getElementById('prod-form-email').value.trim(),
                 nomos: document.getElementById('prod-form-nomos').value.trim(),
                 commission_rate: parseFloat(document.getElementById('prod-form-rate').value) || 25.0,
-                status: document.getElementById('prod-form-status').value
+                status: document.getElementById('prod-form-status').value,
+                valid_from: document.getElementById('prod-form-valid-from')?.value || "2025-01-01",
+                valid_to: document.getElementById('prod-form-valid-to')?.value || "Ενεργός",
+                notes: document.getElementById('prod-form-notes')?.value || ""
             };
             try {
                 const res = await fetch('/api/producers/save', {
@@ -3302,6 +4115,7 @@
                     alert(d.message || "Ο συνεργάτης αποθηκεύτηκε επιτυχώς!");
                     closeProducerModal();
                     await loadAllData();
+                    populateProducersDatalists();
                 } else {
                     alert("Σφάλμα: " + (d.error || "Αποτυχία αποθήκευσης"));
                 }

@@ -790,7 +790,8 @@ def run_etl_seeder(force=False):
     );
     """)
     cur.execute("SELECT COUNT(*) FROM producers_catalog;")
-    if cur.fetchone()[0] == 0:
+    cnt = cur.fetchone()[0]
+    if cnt < 50:
         try:
             from seed_producers import seed_full_producers
             seed_full_producers(SQLITE_PATH)
@@ -1944,6 +1945,15 @@ def api_delete_producers():
     except Exception as e:
         print("[Delete Producers Error]", e)
         return jsonify({"error": f"Σφάλμα διαγραφής: {str(e)}"}), 500
+
+@app.route("/api/producers/reseed", methods=["POST", "GET"])
+def api_reseed_producers():
+    try:
+        from seed_producers import seed_full_producers
+        seed_full_producers(SQLITE_PATH)
+        return jsonify({"status": "success", "success": True, "message": "Το μητρώο συνεργατών ανανεώθηκε με όλους τους 300+ συνεργάτες!"})
+    except Exception as e:
+        return jsonify({"error": f"Σφάλμα συγχρονισμού: {str(e)}"}), 500
 
 @app.route("/api/contracts/update", methods=["POST"])
 def api_update_contract():

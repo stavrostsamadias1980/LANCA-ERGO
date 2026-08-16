@@ -356,6 +356,17 @@
             color: #FFF;
         }
 
+        .btn-gold {
+            background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.28);
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(217, 119, 6, 0.38);
+        }
+
         /* ==========================================================================
            🎴 GLASSY DATEPICKER & PERIOD SELECTOR
            ========================================================================== */
@@ -2307,7 +2318,7 @@
          🤝 PRODUCER ADD / EDIT MODAL — TABBED CARD (Στοιχεία + Προμήθειες)
          ========================================================================== -->
     <div id="producerModal" class="modal-overlay" onclick="if(event.target===this) closeProducerModal()">
-        <div class="modal-glass-card" style="max-width:760px;">
+        <div class="modal-glass-card" style="max-width:98vw; width:98vw; max-height:96vh; height:96vh; display:flex; flex-direction:column; gap:0; padding:22px 26px;">
             <div class="modal-header" style="padding-bottom:0;">
                 <div style="flex:1;">
                     <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="producer-modal-title">
@@ -2418,7 +2429,7 @@
             </div><!-- end prod-tab-info -->
 
             <!-- TAB: Προμήθειες -->
-            <div id="prod-tab-comm" style="display:none; padding-top:14px;">
+            <div id="prod-tab-comm" style="display:none; padding-top:14px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
                 <!-- Quick settings bar -->
                 <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                     <div style="flex:1; min-width:180px;">
@@ -2458,8 +2469,8 @@
                     </div>
                 </div>
 
-                <!-- Breakdown Table -->
-                <div class="table-responsive" style="max-height:280px; overflow-y:auto;">
+                <!-- Breakdown Table — fills remaining height -->
+                <div class="table-responsive" style="flex:1; overflow-y:auto; max-height:calc(96vh - 340px);">
                     <table class="glass-table" style="font-size:12px;">
                         <thead>
                             <tr>
@@ -4087,8 +4098,8 @@
                         <button
                             class="btn-pill btn-primary"
                             style="padding:5px 14px; font-size:13px; font-weight:800; letter-spacing:.5px; min-width:56px;"
-                            onclick="openProducerCard('${p.producer_code}')"
-                            title="Άνοιγμα καρτέλας συνεργάτη ${p.producer_code} — επεξεργασία & προμήθειες"
+                            onclick="openProducerCard('${p.producer_code}', 'info')"
+                            title="Άνοιγμα καρτέλας συνεργάτη ${p.producer_code} — Στοιχεία & Προμήθειες"
                         >${p.producer_code}</button>
                     </td>
 
@@ -4112,8 +4123,9 @@
                             ${infoHtml}
                         </div>
                         <div style="display:flex; gap:4px; margin-top:6px; flex-wrap:wrap;">
-                            <button class="btn-pill btn-primary" style="padding:3px 10px; font-size:11px;" onclick="openProducerCard('${p.producer_code}')" title="Καρτέλα & Επεξεργασία">✏️ Καρτέλα</button>
-                            <button class="btn-pill btn-ghost" style="padding:3px 10px; font-size:11px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό">📜 Ιστορικό</button>
+                            <button class="btn-pill btn-primary" style="padding:3px 10px; font-size:11px;" onclick="openProducerCard('${p.producer_code}', 'info')" title="Στοιχεία & Επεξεργασία">✏️ Στοιχεία</button>
+                            <button class="btn-pill btn-gold" style="padding:3px 10px; font-size:11px;" onclick="openProducerCard('${p.producer_code}', 'comm')" title="Προμήθειες Συνεργάτη">💰 Προμήθειες</button>
+                            <button class="btn-pill btn-ghost" style="padding:3px 10px; font-size:11px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό">📜</button>
                             <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>
                         </div>
                     </td>
@@ -4208,12 +4220,17 @@
 
             if (tab === 'comm') {
                 infoDiv.style.display = 'none';
-                commDiv.style.display = 'block';
+                commDiv.style.display = 'flex';
+                commDiv.style.flexDirection = 'column';
+                commDiv.style.overflow = 'hidden';
+                commDiv.style.flex = '1';
                 if (btnInfo) { btnInfo.style.borderBottomColor = 'transparent'; btnInfo.style.color = mute; }
                 if (btnComm) { btnComm.style.borderBottomColor = blue; btnComm.style.color = blue; }
                 loadProducerCardComm();
             } else {
                 infoDiv.style.display = '';
+                infoDiv.style.overflowY = 'auto';
+                infoDiv.style.flex = '1';
                 commDiv.style.display = 'none';
                 if (btnInfo) { btnInfo.style.borderBottomColor = blue; btnInfo.style.color = blue; }
                 if (btnComm) { btnComm.style.borderBottomColor = 'transparent'; btnComm.style.color = mute; }

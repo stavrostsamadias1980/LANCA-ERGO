@@ -492,9 +492,9 @@ def init_databases():
     # Backfill default producer details in financial movements if null
     cur.execute("""
         UPDATE financial_movements 
-        SET producer_name = 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ',
-            producer_partner_code = '11523',
-            producer_ergo_code = '11523',
+        SET producer_name = '0',
+            producer_partner_code = '0',
+            producer_ergo_code = '0',
             producer_org_team = '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)'
         WHERE producer_name IS NULL OR producer_name = '';
     """)
@@ -1113,9 +1113,9 @@ def api_get_contracts():
     cur.execute("""
         SELECT 
             m.*,
-            COALESCE(p.full_name, m.producer_name, 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ') as producer_name,
-            COALESCE(p.producer_code, m.producer_partner_code, '11523') as producer_partner_code,
-            COALESCE(p.ergo_code, m.producer_ergo_code, '11523') as producer_ergo_code,
+            COALESCE(p.full_name, m.producer_name, '0') as producer_name,
+            COALESCE(p.producer_code, m.producer_partner_code, '0') as producer_partner_code,
+            COALESCE(p.ergo_code, m.producer_ergo_code, '0') as producer_ergo_code,
             COALESCE(p.partner_type_label, m.producer_org_team, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
             c.afm, c.phone_mobile, c.phone_landline, c.email, c.address_street, c.city, c.postal_code
         FROM financial_movements m
@@ -1143,9 +1143,9 @@ def api_get_contracts():
             "policy": c["policy_number"],
             "client": c["client_name"],
             "product": c["package_name"],
-            "producer_code": c.get("producer_partner_code", "11523"),
-            "producer_ergo": c.get("producer_ergo_code", "11523"),
-            "producer_name": c.get("producer_name", "ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ"),
+            "producer_code": c.get("producer_partner_code", "0"),
+            "producer_ergo": c.get("producer_ergo_code", "0"),
+            "producer_name": c.get("producer_name", "0"),
             "producer_team": c.get("partner_type_label", "🏢 Οργανωτική Ομάδα 40071"),
             "payment_freq": "Ετήσιο",
             "duration": "1 έτη",
@@ -1211,9 +1211,9 @@ def api_get_producers():
     cur.execute("""
         SELECT 
             m.*,
-            COALESCE(p.full_name, m.producer_name, 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ') as producer_name,
-            COALESCE(p.producer_code, m.producer_partner_code, '11523') as producer_partner_code,
-            COALESCE(p.ergo_code, m.producer_ergo_code, '11523') as producer_ergo_code,
+            COALESCE(p.full_name, m.producer_name, '0') as producer_name,
+            COALESCE(p.producer_code, m.producer_partner_code, '0') as producer_partner_code,
+            COALESCE(p.ergo_code, m.producer_ergo_code, '0') as producer_ergo_code,
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
         LEFT JOIN producers_catalog p ON (p.producer_code = m.producer_partner_code OR p.ergo_code = m.producer_partner_code OR p.ergo_code = m.producer_ergo_code)

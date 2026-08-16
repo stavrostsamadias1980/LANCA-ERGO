@@ -329,14 +329,14 @@ def init_databases():
     CREATE TABLE IF NOT EXISTS monthly_reconciliations (
         reconciliation_id TEXT PRIMARY KEY,
         statement_month TEXT NOT NULL UNIQUE,
-        statement_producer_comm REAL NOT NULL,
-        statement_agency_overriding REAL NOT NULL,
-        statement_total_amount REAL NOT NULL,
+        statement_producer_comm REAL DEFAULT 0.0,
+        statement_agency_overriding REAL DEFAULT 0.0,
+        statement_total_amount REAL DEFAULT 0.0,
         account_57_release_date TEXT,
         account_57_release_month TEXT,
-        account_57_released_amount REAL NOT NULL,
+        account_57_released_amount REAL DEFAULT 0.0,
         variance_amount REAL DEFAULT 0.0,
-        match_status TEXT DEFAULT 'PERFECT_MATCH',
+        match_status TEXT DEFAULT 'PENDING',
         notes TEXT
     );
 
@@ -1334,13 +1334,14 @@ def api_upload_account_57():
                             })
                             # Update or Insert monthly_reconciliations with the bank released amount
                             cur.execute("""
-                                INSERT INTO monthly_reconciliations (reconciliation_id, statement_month, account_57_release_date, account_57_release_month, account_57_released_amount)
-                                VALUES (?, ?, ?, ?, ?)
+                                INSERT INTO monthly_reconciliations 
+                                (reconciliation_id, statement_month, statement_producer_comm, statement_agency_overriding, statement_total_amount, account_57_release_date, account_57_release_month, account_57_released_amount, variance_amount, match_status, notes)
+                                VALUES (?, ?, 0.0, 0.0, 0.0, ?, ?, ?, ?, 'PENDING_STATEMENT', ?)
                                 ON CONFLICT(statement_month) DO UPDATE SET
                                     account_57_release_date = excluded.account_57_release_date,
                                     account_57_release_month = excluded.account_57_release_month,
                                     account_57_released_amount = excluded.account_57_released_amount;
-                            """, (f"REC-{stmt_m.replace('/', '-')}", stmt_m, f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}", dep_m, parsed_amt))
+                            """, (f"REC-{stmt_m.replace('/', '-')}", stmt_m, f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}", dep_m, parsed_amt, -parsed_amt, f"PDF 57: {line.strip()[:60]}"))
                             
                             cur.execute("""
                                 INSERT OR REPLACE INTO account_57_transactions

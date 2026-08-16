@@ -193,8 +193,8 @@ def get_authenticated_user():
         "username": "admin",
         "roles": ["admin", "manager"],
         "authenticated": True,
-        "email": "stayr@otenet.gr",
-        "name": "LANCA Manager (Stavros Tsamadias)",
+        "email": "info@lanca.gr",
+        "name": "LANCA Manager (Νίκος Αναγνωστόπουλος)",
         "source": "Session Auth"
     }
 
@@ -851,8 +851,8 @@ def auth_login():
             "username": f"LANCA Manager ({u.upper()})",
             "roles": ["admin", "manager"],
             "authenticated": True,
-            "email": "stayr@otenet.gr",
-            "name": "Σταύρος Τσαμαδιάς (LANCA Ε.Ε.)"
+            "email": "info@lanca.gr",
+            "name": "Νίκος Αναγνωστόπουλος (LANCA Ε.Ε.)"
         }
         session["user"] = user
         log_gdpr_audit(u, "AUTH_LOGIN", f"Successful login for user '{u}'")

@@ -1319,8 +1319,8 @@
                             <tr>
                                 <td></td>
                                 <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="5">Συνολικό Overriding Agency 1411 (16 Εγγραφές):</td>
-                                <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px;">€ 260,00</td>
+                                <td colspan="5" id="agency-footer-label">Συνολικό Overriding Agency 1411:</td>
+                                <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px; font-weight:800;">€ 0,00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -1374,8 +1374,8 @@
                             <tr>
                                 <td></td>
                                 <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="5">Συνολικές Προμήθειες Συνεργατών (12 Εγγραφές):</td>
-                                <td id="producers-total-val" style="color:var(--accent-gold); font-size:15px;">€ 926,53</td>
+                                <td colspan="5" id="prod-footer-label">Συνολικές Προμήθειες Συνεργατών:</td>
+                                <td id="producers-total-val" style="color:var(--accent-gold); font-size:15px; font-weight:800;">€ 0,00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -1517,6 +1517,17 @@
                             </tr>
                         </thead>
                         <tbody id="recon-tbody"></tbody>
+                        <tfoot>
+                            <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
+                                <td></td>
+                                <td>ΣΥΝΟΛΟ</td>
+                                <td id="recon-tot-stmt">€ 0,00</td>
+                                <td></td>
+                                <td id="recon-tot-rel" style="color:var(--accent-emerald);">€ 0,00</td>
+                                <td id="recon-tot-var">€ 0,00</td>
+                                <td><span id="recon-overall-status" class="badge badge-success">✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ</span></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -2632,7 +2643,9 @@
             const tbody = document.getElementById('agency-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            let totAgency = 0;
             list.forEach((r, idx) => {
+                totAgency += (r.agency_overriding_amount || 0);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="custom-checkbox agency-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('agency')"></td>
@@ -2650,6 +2663,10 @@
                 `;
                 tbody.appendChild(tr);
             });
+            const footerLbl = document.getElementById('agency-footer-label');
+            if (footerLbl) footerLbl.innerText = `Συνολικό Overriding Agency 1411 (${list.length} Εγγραφές):`;
+            const footerVal = document.getElementById('agency-total-val');
+            if (footerVal) footerVal.innerText = formatEur(totAgency);
         }
 
         function filterAgencyTable() {
@@ -2665,7 +2682,9 @@
             const tbody = document.getElementById('producers-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            let totProd = 0;
             list.forEach((r, idx) => {
+                totProd += (r.producer_commission_amount || 0);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="custom-checkbox prod-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('prod')"></td>
@@ -2683,6 +2702,10 @@
                 `;
                 tbody.appendChild(tr);
             });
+            const footerLbl = document.getElementById('prod-footer-label');
+            if (footerLbl) footerLbl.innerText = `Συνολικές Προμήθειες Συνεργατών (${list.length} Εγγραφές):`;
+            const footerVal = document.getElementById('producers-total-val');
+            if (footerVal) footerVal.innerText = formatEur(totProd);
         }
 
         function filterProducersTable() {
@@ -2771,19 +2794,61 @@
             const tbody = document.getElementById('recon-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            let totStmt = 0, totRel = 0, totVar = 0;
+
             list.forEach((r, idx) => {
                 const tr = document.createElement('tr');
+                const v = Number(r.variance_amount || 0);
+                const stmtAmt = Number(r.statement_total_amount || 0);
+                const relAmt = Number(r.account_57_released_amount || 0);
+                totStmt += stmtAmt;
+                totRel += relAmt;
+                totVar += v;
+
+                const isMatched = (r.is_reconciled === 1 || (Math.abs(v) < 0.01 && stmtAmt > 0));
+                
+                let badgeHtml = `<span class="badge badge-success">✔ 100% Συμφωνία</span>`;
+                if (!isMatched) {
+                    if (stmtAmt === 0) {
+                        badgeHtml = `<span class="badge badge-rose" style="background:#FFE4E6; color:#BE123C; font-weight:700;">❌ Διαγράφηκαν όλα τα συμβόλαια</span>`;
+                    } else {
+                        badgeHtml = `<span class="badge badge-warning" style="background:#FEF3C7; color:#B45309; font-weight:700;">⚠️ Απόκλιση (${formatEur(v)})</span>`;
+                    }
+                }
+
                 tr.innerHTML = `
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
-                    <td>${formatEur(r.statement_total_amount)}</td>
+                    <td style="font-weight:700;">${formatEur(stmtAmt)}</td>
                     <td><span class="badge badge-purple">${r.account_57_release_month||'-'}</span></td>
-                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(r.account_57_released_amount)}</td>
-                    <td>${formatEur(r.variance_amount)}</td>
-                    <td><span class="badge badge-success">✔ 100% Ταύτιση</span></td>
+                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(relAmt)}</td>
+                    <td style="font-weight:700; color:${Math.abs(v) < 0.01 ? 'var(--text-secondary)' : 'var(--accent-rose)'};">${formatEur(v)}</td>
+                    <td>${badgeHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            const fStmt = document.getElementById('recon-tot-stmt');
+            if (fStmt) fStmt.innerText = formatEur(totStmt);
+            const fRel = document.getElementById('recon-tot-rel');
+            if (fRel) fRel.innerText = formatEur(totRel);
+            const fVar = document.getElementById('recon-tot-var');
+            if (fVar) {
+                fVar.innerText = formatEur(totVar);
+                fVar.style.color = Math.abs(totVar) < 0.01 ? 'var(--accent-emerald)' : 'var(--accent-rose)';
+            }
+            const fStat = document.getElementById('recon-overall-status');
+            if (fStat) {
+                if (Math.abs(totVar) < 0.01 && totStmt > 0) {
+                    fStat.className = 'badge badge-success';
+                    fStat.innerText = '✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ';
+                } else {
+                    fStat.className = 'badge badge-rose';
+                    fStat.style.background = '#FFE4E6';
+                    fStat.style.color = '#BE123C';
+                    fStat.innerText = `⚠️ ΕΝΤΟΠΙΣΤΗΚΕ ΑΠΟΚΛΙΣΗ (${formatEur(totVar)})`;
+                }
+            }
         }
 
         // === 🤝 PRODUCERS REGISTRY TABLE ===

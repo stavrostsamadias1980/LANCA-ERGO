@@ -1084,40 +1084,70 @@ def api_get_coverages():
 
 @app.route("/api/reconciliation", methods=["GET"])
 def api_get_reconciliation():
-    """Returns full Account 57 reconciliation data with zero variance."""
+    """Returns full Account 57 reconciliation data calculated dynamically against live financial_movements."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     
     cur.execute("SELECT * FROM monthly_reconciliations ORDER BY statement_month;")
-    table_a = [dict(r) for r in cur.fetchall()]
+    stored_recon = [dict(r) for r in cur.fetchall()]
     
-    table_b = [
-        {"month": "01/2026", "life_health": 13.40, "general_comm": 1780.04, "general_agn": 6268.14, "mgmt_fee": 0.00, "total_credit": 8061.58, "bank_payment": 5739.08, "notes": "Αποδέσμευση Ζωής από 12/2025"},
-        {"month": "02/2026", "life_health": 15.79, "general_comm": 1285.20, "general_agn": 6243.86, "mgmt_fee": 1.60, "total_credit": 7546.45, "bank_payment": 11624.80, "notes": "Αποδέσμευση Ζωής από 01/2026"},
-        {"month": "03/2026", "life_health": 141.93, "general_comm": 2124.09, "general_agn": 7213.75, "mgmt_fee": 0.88, "total_credit": 9480.65, "bank_payment": 46522.93, "notes": "Ταύτιση με Statements 02/2026"},
-        {"month": "04/2026", "life_health": 444.74, "general_comm": 2634.77, "general_agn": 7128.96, "mgmt_fee": 0.00, "total_credit": 10208.47, "bank_payment": 9576.07, "notes": "Ταύτιση με Statements 03/2026"},
-        {"month": "05/2026", "life_health": 371.22, "general_comm": 2293.62, "general_agn": 7090.97, "mgmt_fee": 5.98, "total_credit": 9761.79, "bank_payment": 5221.86, "notes": "Ταύτιση με Statements 04/2026"},
-        {"month": "06/2026", "life_health": 60.71, "general_comm": 3163.54, "general_agn": 7214.20, "mgmt_fee": 0.00, "total_credit": 10438.45, "bank_payment": 15635.18, "notes": "Ταύτιση με Statements 05/2026"},
-        {"month": "07/2026", "life_health": 9.84, "general_comm": 1690.02, "general_agn": 8216.41, "mgmt_fee": 0.00, "total_credit": 9916.27, "bank_payment": 9246.38, "notes": "Ταύτιση με Statements 06/2026"},
-        {"month": "08/2026", "life_health": 158.09, "general_comm": 772.23, "general_agn": 2924.98, "mgmt_fee": 1.60, "total_credit": 3856.90, "bank_payment": 5127.02, "notes": "Ταύτιση με Statements 07/2026"}
-    ]
+    table_a = []
+    tot_stmt = 0.0
+    tot_pdf = 0.0
+    
+    for r in stored_recon:
+        st_mth = str(r["statement_month"]).strip()
+        # Query LIVE real-time sum and count from financial_movements
+        cur.execute("""
+            SELECT 
+                COALESCE(SUM(total_office_revenue), 0.0),
+                COUNT(*)
+            FROM financial_movements 
+            WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;
+        """, (st_mth, st_mth.replace('/', '_')))
+        row_stat = cur.fetchone()
+        live_stmt_amt = round(float(row_stat[0] or 0.0), 2)
+        live_count = int(row_stat[1] or 0)
+        
+        rel_amt = round(float(r["account_57_released_amount"] or 0.0), 2)
+        variance = round(live_stmt_amt - rel_amt, 2)
+        is_matched = (abs(variance) < 0.01 and live_count > 0)
+        
+        status_text = "✔ 100% Συμφωνία" if is_matched else (f"⚠️ Απόκλιση (€ {variance:+.2f})" if live_count > 0 else "❌ Διαγράφηκαν όλα τα συμβόλαια")
+        
+        table_a.append({
+            "statement_month": st_mth,
+            "statement_total_amount": live_stmt_amt,
+            "statement_count": live_count,
+            "account_57_release_month": r.get("account_57_release_month") or "-",
+            "account_57_released_amount": rel_amt,
+            "variance_amount": variance,
+            "is_reconciled": 1 if is_matched else 0,
+            "status_text": status_text
+        })
+        tot_stmt += live_stmt_amt
+        tot_pdf += rel_amt
     
     cur.execute("SELECT * FROM account_57_transactions WHERE branch_category = 'LIFE_HEALTH_RELEASE' ORDER BY iso_date;")
     table_c = [dict(r) for r in cur.fetchall()]
     
     conn.close()
     
-    tot_stmt = sum(r["statement_total_amount"] for r in table_a)
-    tot_pdf = sum(r["account_57_released_amount"] for r in table_a)
+    tot_stmt = round(tot_stmt, 2)
+    tot_pdf = round(tot_pdf, 2)
+    total_variance = round(tot_stmt - tot_pdf, 2)
+    
+    all_matched = all(x["is_reconciled"] == 1 for x in table_a) if table_a else False
+    overall_status = "✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ" if (all_matched and abs(total_variance) < 0.01) else f"⚠️ ΕΝΤΟΠΙΣΤΗΚΕ ΑΠΟΚΛΙΣΗ (€ {total_variance:+.2f})"
     
     return jsonify({
-        "status": "✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ",
-        "variance": round(tot_stmt - tot_pdf, 2),
+        "status": overall_status,
+        "variance": total_variance,
         "total_statements": tot_stmt,
         "total_released": tot_pdf,
         "table_a_monthly": table_a,
-        "table_b_all_branches": table_b,
+        "table_b_all_branches": [],
         "table_c_ledger_entries": table_c
     })
 

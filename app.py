@@ -468,25 +468,12 @@ def init_databases():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, default_schemes)
 
-    # Ensure Stavros Tsamadias (11523) is in producers_catalog
-    cur.execute("SELECT COUNT(*) FROM producers_catalog WHERE producer_code = '11523' OR ergo_code = '11523';")
-    if cur.fetchone()[0] == 0:
-        cur.execute("""
-            INSERT OR REPLACE INTO producers_catalog
-            (producer_code, ergo_code, full_name, partner_type, partner_type_label, role, hierarchy, tier, manager, phone, email, address, nomos, comm_cat, status, commission_rate, notes, valid_from, valid_to)
-            VALUES ('11523', '11523', 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ', 'DIRECT_AGENT', '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)', 'Ασφαλιστικός Πράκτορας', 'ΠΑΡΑΓΩΓΟΣ', 'Κατηγορία Α (25% - 29%)', 'ΙΔΙΟΣ', '6974123456', 'stavros@lanca.gr', 'Αθήνα', 'ΑΤΤΙΚΗΣ', 'A', 'FULL TIME ACTIVE', 29.0, 'Ενεργός Συνεργάτης Ομάδας 40071', '2025-01-01', 'Ενεργός');
-        """)
-
     # Seed initial sample history if empty
     cur.execute("SELECT COUNT(*) FROM producer_code_history;")
     if cur.fetchone()[0] == 0:
         cur.execute("""
             INSERT INTO producer_code_history (producer_code, ergo_code, producer_name, partner_type, valid_from, valid_to, notes)
-            VALUES ('11523', '11523', 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ', 'DIRECT_AGENT', '2025-01-01', '2026-12-31', 'Ενεργός Παραγωγός Οργανωτικής Ομάδας 40071');
-        """)
-        cur.execute("""
-            INSERT INTO producer_code_history (producer_code, ergo_code, producer_name, partner_type, valid_from, valid_to, notes)
-            VALUES ('1411', '40071', 'ΝΙΚΟΣ ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ', 'AGENCY_MANAGER', '2024-01-01', '2026-12-31', 'Συντονιστής Agency 1411');
+            VALUES ('1411', '40071', 'ΝΙΚΟΣ ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ', 'AGENCY_MANAGER', '2024-01-01', '2026-12-31', 'Συντονιστής Agency 3375Α');
         """)
 
     # Backfill default producer details in financial movements if null

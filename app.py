@@ -24,6 +24,10 @@ from flask import Flask, request, jsonify, send_from_directory, session, send_fi
 from werkzeug.middleware.proxy_fix import ProxyFix
 import psycopg2
 import pymupdf
+try:
+    import pdfplumber
+except ImportError:
+    pdfplumber = None
 import openpyxl
 
 app = Flask(__name__, static_folder="theme", static_url_path="")
@@ -528,12 +532,12 @@ def run_etl_seeder(force=False):
         """, (pol, c["client_id"], c["client_id"], "1411", "1411", prd_id, "2026-01-01", "Ετήσια", 1, 1, "ACTIVE"))
 
     # 3. Parse Commission Statement CSV Files
-    prom_files = find_candidate_files("1411*ΠΡΟΜΗΘΕΙΕΣ - ΥΠΕΡΠΡΟΜΗΘΕΙΕΣ*.csv")
+    prom_files = find_candidate_files("*.csv")
     events = {}
     
     for f in prom_files:
         fname = os.path.basename(f)
-        m = re.search(r'(\d{2})_(\d{4})\.csv', fname)
+        m = re.search(r'(\d{2})[_-](\d{4})', fname)
         st_month = f"{m.group(1)}/{m.group(2)}" if m else "02/2026"
         
         # Omit test month 08/2026 if requested
@@ -550,27 +554,33 @@ def run_etl_seeder(force=False):
             except Exception:
                 continue
                 
+        if not lines:
+            continue
+
+        # Check delimiter
+        delimiter = ';' if ';' in lines[0] else ','
+
         for l in lines[1:]:
-            p = [x.strip().strip('"') for x in l.split(';')]
-            if len(p) < 21:
+            p = [x.strip().strip('"') for x in l.split(delimiter)]
+            if len(p) < 15:
                 continue
-            role = p[0]
-            pol_no = p[6]
-            if not pol_no or pol_no.lower() in ["nan", "none"]:
+            role = p[0] if len(p) > 0 else ""
+            pol_no = p[6] if len(p) > 6 else ""
+            if not pol_no or pol_no.lower() in ["nan", "none", "συμβόλαιο", "policy"]:
                 continue
-            rcpt_no = p[7]
-            cust_last = p[9]
-            cust_first = p[10]
-            tr_plir = p[11]
-            dian_etos = p[12]
-            enarki = p[13]
-            diarkeia = p[14]
-            net_b = clean_num(p[15])
-            net_s = clean_num(p[16])
-            net_t = clean_num(p[17])
-            comm_b = clean_num(p[18])
-            comm_s = clean_num(p[19])
-            comm_t = clean_num(p[20])
+            rcpt_no = p[7] if len(p) > 7 else "1"
+            cust_last = p[9] if len(p) > 9 else ""
+            cust_first = p[10] if len(p) > 10 else ""
+            tr_plir = p[11] if len(p) > 11 else "Ετήσια"
+            dian_etos = p[12] if len(p) > 12 else "1"
+            enarki = p[13] if len(p) > 13 else "01/01/2026"
+            diarkeia = p[14] if len(p) > 14 else "1"
+            net_b = clean_num(p[15]) if len(p) > 15 else 0.0
+            net_s = clean_num(p[16]) if len(p) > 16 else 0.0
+            net_t = clean_num(p[17]) if len(p) > 17 else (net_b + net_s)
+            comm_b = clean_num(p[18]) if len(p) > 18 else 0.0
+            comm_s = clean_num(p[19]) if len(p) > 19 else 0.0
+            comm_t = clean_num(p[20]) if len(p) > 20 else (comm_b + comm_s)
             tax_v = clean_num(p[21]) if len(p) > 21 else 0.0
             
             # Key per contract per receipt per month per sign (matching 20 Master Excel rows)
@@ -1176,6 +1186,81 @@ def api_upload():
         "success": True,
         "message": f"Μεταφορτώθηκαν και καταχωρήθηκαν επιτυχώς {len(saved_files)} αρχεία!",
         "files": saved_files
+    })
+
+@app.route("/api/upload-57", methods=["POST"])
+def api_upload_account_57():
+    user = get_authenticated_user()
+    uploaded_files = request.files.getlist("files") or ([request.files["file"]] if "file" in request.files else [])
+    if not uploaded_files:
+        return jsonify({"error": "Δεν επιλέχθηκε κανένα αρχείο PDF Λογαριασμού 57"}), 400
+
+    saved_payouts = []
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+
+    for f in uploaded_files:
+        if not f.filename:
+            continue
+        docs_dir = os.path.join("theme", "docs")
+        os.makedirs(docs_dir, exist_ok=True)
+        fpath = os.path.join(docs_dir, f.filename)
+        f.save(fpath)
+
+        extracted_releases = []
+        try:
+            pages_text = []
+            if pdfplumber is not None:
+                with pdfplumber.open(fpath) as pdf:
+                    for page in pdf.pages:
+                        pages_text.append(page.extract_text() or "")
+            elif pymupdf is not None:
+                doc = pymupdf.open(fpath)
+                for page in doc:
+                    pages_text.append(page.get_text() or "")
+                doc.close()
+
+            for text in pages_text:
+                for line in text.splitlines():
+                    m_date = re.search(r'(\d{2})\.(\d{2})\.(\d{4})', line)
+                    if m_date and ("57" in line or "ΖΩΗΣ" in line.upper() or "ΥΓΕΙΑΣ" in line.upper() or "LIFE" in line.upper() or "HEALTH" in line.upper() or "ΠΡΟΜΗΘΕΙΩΝ" in line.upper()):
+                        amounts = re.findall(r'(\d{1,3}(?:\.\d{3})*,\d{2})', line)
+                        if amounts:
+                            parsed_amt = clean_num(amounts[0])
+                            iso_d = f"{m_date.group(3)}-{m_date.group(2)}-{m_date.group(1)}"
+                            mth = f"{m_date.group(2)}/{m_date.group(3)}"
+                            extracted_releases.append({
+                                "date": f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}",
+                                "iso_date": iso_d,
+                                "month": mth,
+                                "amount": parsed_amt,
+                                "line": line.strip()
+                            })
+        except Exception as e:
+            print("[PDF 57 Parse Note]", e)
+
+        for item in extracted_releases:
+            cur.execute("""
+                INSERT OR REPLACE INTO account_57_transactions
+                (transaction_code, statement_month, transaction_date, iso_date, branch_category, credit_amount, debit_amount, description)
+                VALUES (?, ?, ?, ?, ?, ?, 0.0, ?);
+            """, (f"REL-57-{item['month'].replace('/', '-')}", item['month'], item['date'], item['iso_date'], 'LIFE_HEALTH_RELEASE', item['amount'], f"Εκκαθάριση PDF 57: {item['line'][:60]}"))
+
+        saved_payouts.append({
+            "filename": f.filename,
+            "extracted_count": len(extracted_releases),
+            "releases": extracted_releases
+        })
+        log_gdpr_audit(user.get("username", "admin"), "UPLOAD_PDF_57", f"Uploaded & parsed PDF 57: {f.filename}")
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "status": "success",
+        "success": True,
+        "message": f"Το αρχείο PDF Λογαριασμού 57 ελέγχθηκε και καταχωρήθηκε επιτυχώς στη βάση δεδομένων!",
+        "payouts": saved_payouts
     })
 
 @app.route("/api/delete", methods=["POST"])

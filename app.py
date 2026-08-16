@@ -582,6 +582,15 @@ def run_etl_seeder(force=False):
         conn.close()
         return
 
+    # Backup existing manual assignments before clearing
+    cur.execute("SELECT policy_number, client_name, producer_partner_code, producer_ergo_code, producer_name, producer_org_team, agency_partner_code FROM financial_movements")
+    saved_assignments = {}
+    for r in cur.fetchall():
+        pol, cname, pcode, pergo, pname, pteam, agn = r
+        val = (pcode, pergo, pname, pteam, agn)
+        if pol and pcode: saved_assignments[pol.strip()] = val
+        if cname and pcode: saved_assignments[cname.strip()] = val
+
     # Clear tables for fresh idempotent sync
     for t in ["policy_coverages", "financial_movements", "policies", "insured_persons", "clients", "insurance_products", "monthly_reconciliations", "ergo_statements_1411"]:
         cur.execute(f"DELETE FROM {t};")
@@ -645,11 +654,15 @@ def run_etl_seeder(force=False):
 
     for pol, c in crm_map.items():
         prd_id, prd_name = package_map.get(pol, ("PRD-SUP-1500", "ERGO Health Care"))
+        
+        # Restore saved assignment or fallback to default
+        pcode, pergo, pname, pteam, agn = saved_assignments.get(str(pol).strip(), ("1411", "40071 / 1411", "ΕΡΓΟ Α.Ε.", "", "1411"))
+        
         cur.execute("""
         INSERT OR REPLACE INTO policies
-        (policy_number, client_id, primary_insured_id, producer_partner_code, agency_partner_code, product_id, start_date, payment_frequency, duration_years, current_policy_year, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (pol, c["client_id"], c["client_id"], "1411", "1411", prd_id, "2026-01-01", "Ετήσια", 1, 1, "ACTIVE"))
+        (policy_number, client_id, primary_insured_id, producer_partner_code, agency_partner_code, product_id, start_date, payment_frequency, duration_years, current_policy_year, status, producer_ergo_code, producer_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (pol, c["client_id"], c["client_id"], pcode, agn, prd_id, "2026-01-01", "Ετήσια", 1, 1, "ACTIVE", pergo, pname))
 
     # 3. Parse Commission Statement CSV Files
     prom_files = find_candidate_files("*.csv")
@@ -758,6 +771,9 @@ def run_etl_seeder(force=False):
         c_name = client_info.get("full_name", f"{m['eponymo']} {m['onoma']}".strip() or f"Πελάτης ERGO {pol}")
         prd_id, prd_name = package_map.get(pol, ("PRD-SUP-1500", "ERGO Health Care Superior"))
         
+        # Restore saved assignment or fallback
+        pcode, pergo, pname, pteam, agn = saved_assignments.get(str(pol).strip(), saved_assignments.get(c_name.strip(), ("1411", "40071 / 1411", "ΕΡΓΟ Α.Ε.", "", "1411")))
+        
         net_final = round(m["net_tot"], 2)
         syn_final = round(m["producer_prom_tot"], 2)
         agn_final = round(m["agency_prom_tot"], 2)
@@ -782,9 +798,9 @@ def run_etl_seeder(force=False):
         
         cur.execute("""
         INSERT OR REPLACE INTO financial_movements
-        (movement_id, policy_number, receipt_number, statement_month, statement_file_ref, movement_date, iso_date, movement_type, client_name, package_name, gross_premium, net_premium_basic, net_premium_supp, net_premium_total, policy_fee, tax_amount, producer_partner_code, producer_commission_amount, producer_commission_rate, agency_partner_code, agency_overriding_amount, agency_overriding_rate, total_office_revenue, has_agency_role, has_producer_role, is_zero_offset, reconciliation_status, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (mov_id, pol, rec, st_month, m["file"], m["enarki"], iso_d, mov_type, c_name, prd_name, g_val, m["net_bk"], m["net_sk"], net_final, round(g_val - net_final, 2), 0.0, "1411", syn_final, comm_pct, "1411", agn_final, agn_pct, tot_rev, m["has_agency_role"], m["has_producer_role"], is_zero, "MATCHED_IN_ACCOUNT_57", ""))
+        (movement_id, policy_number, receipt_number, statement_month, statement_file_ref, movement_date, iso_date, movement_type, client_name, package_name, gross_premium, net_premium_basic, net_premium_supp, net_premium_total, policy_fee, tax_amount, producer_partner_code, producer_commission_amount, producer_commission_rate, agency_partner_code, agency_overriding_amount, agency_overriding_rate, total_office_revenue, has_agency_role, has_producer_role, is_zero_offset, reconciliation_status, notes, producer_ergo_code, producer_name, producer_org_team)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (mov_id, pol, rec, st_month, m["file"], m["enarki"], iso_d, mov_type, c_name, prd_name, g_val, m["net_bk"], m["net_sk"], net_final, round(g_val - net_final, 2), 0.0, pcode, syn_final, comm_pct, agn, agn_final, agn_pct, tot_rev, m["has_agency_role"], m["has_producer_role"], is_zero, "MATCHED_IN_ACCOUNT_57", "", pergo, pname, pteam))
 
         cur.execute("""
         INSERT INTO ergo_statements_1411 

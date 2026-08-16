@@ -1879,9 +1879,10 @@ def api_export_excel():
 
 @app.route("/api/fix_db", methods=["GET"])
 def api_fix_db():
-    conn = get_pg_connection() if USE_POSTGRES else sqlite3.connect(SQLITE_PATH)
-    cur = conn.cursor()
     try:
+        conn = get_pg_connection() if USE_POSTGRES else sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
+        
         cur.execute("DELETE FROM producers_catalog WHERE producer_code = '11523' OR full_name LIKE '%ΤΣΑΜΑΔΙΑΣ%'")
         cur.execute("""
             UPDATE financial_movements 
@@ -1903,11 +1904,15 @@ def api_fix_db():
         conn.commit()
         return jsonify({"status": "success", "message": "Live database cleaned and updated successfully!"})
     except Exception as e:
-        conn.rollback()
-        return jsonify({"status": "error", "message": str(e)})
+        import traceback
+        try: conn.rollback()
+        except: pass
+        return jsonify({"status": "error", "message": str(e), "traceback": traceback.format_exc()})
     finally:
-        cur.close()
-        conn.close()
+        try: cur.close()
+        except: pass
+        try: conn.close()
+        except: pass
 
 @app.route("/api/upload", methods=["POST"])
 def api_upload():

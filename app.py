@@ -1464,6 +1464,53 @@ def api_save_producer():
     conn.close()
     return jsonify({"status": "success", "message": f"Ο συνεργάτης '{pname}' ({pcode}) αποθηκεύτηκε επιτυχώς!"})
 
+@app.route("/api/contracts/update", methods=["POST"])
+def api_update_contract():
+    user = get_authenticated_user()
+    data = request.get_json(force=True) or {}
+    pol = str(data.get("policy_number", "")).strip()
+    if not pol:
+        return jsonify({"error": "Απαιτείται αριθμός συμβολαίου"}), 400
+        
+    cname = str(data.get("client_name", "")).strip()
+    afm = str(data.get("afm", "")).strip()
+    phone = str(data.get("phone_mobile", "")).strip()
+    net = float(data.get("net_premium_total", 0.0))
+    pcomm = float(data.get("producer_commission_amount", 0.0))
+    acomm = float(data.get("agency_overriding_amount", 0.0))
+    pname = str(data.get("producer_name", "")).strip()
+    pkg = str(data.get("package_name", "")).strip()
+
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE financial_movements 
+        SET client_name = COALESCE(NULLIF(?, ''), client_name),
+            afm = COALESCE(NULLIF(?, ''), afm),
+            phone_mobile = COALESCE(NULLIF(?, ''), phone_mobile),
+            net_premium_total = CASE WHEN ? > 0 THEN ? ELSE net_premium_total END,
+            producer_commission_amount = CASE WHEN ? > 0 THEN ? ELSE producer_commission_amount END,
+            agency_overriding_amount = CASE WHEN ? > 0 THEN ? ELSE agency_overriding_amount END,
+            producer_name = COALESCE(NULLIF(?, ''), producer_name),
+            package_name = COALESCE(NULLIF(?, ''), package_name)
+        WHERE TRIM(policy_number) = ?
+    """, (cname, afm, phone, net, net, pcomm, pcomm, acomm, acomm, pname, pkg, pol))
+    
+    cur.execute("""
+        UPDATE ergo_statements_1411 
+        SET client_name = COALESCE(NULLIF(?, ''), client_name),
+            net_premium = CASE WHEN ? > 0 THEN ? ELSE net_premium END,
+            commission_amount = CASE WHEN ? > 0 THEN ? ELSE commission_amount END,
+            agency_overriding_amount = CASE WHEN ? > 0 THEN ? ELSE agency_overriding_amount END
+        WHERE TRIM(policy_number) = ?
+    """, (cname, net, net, pcomm, pcomm, acomm, pol))
+    
+    conn.commit()
+    conn.close()
+    
+    log_gdpr_audit(user["username"], "UPDATE_CONTRACT", f"Updated contract {pol} for client {cname}")
+    return jsonify({"status": "success", "message": f"Το συμβόλαιο {pol} ενημερώθηκε επιτυχώς!"})
+
 @app.route("/api/docs/list", methods=["GET"])
 def api_get_docs_list():
     """Returns official PDF library files."""

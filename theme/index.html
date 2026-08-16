@@ -1225,6 +1225,7 @@
                                 <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 6)"> Συνολική Αμοιβή (€)</label>
                             </div>
                         </div>
+                        <button class="btn-pill btn-ghost" style="color:var(--accent-rose);" onclick="deleteSelectedRows('dashboard')">🗑️ Διαγραφή Επιλεγμένων</button>
                     </div>
                     <div class="toolbar-right">
                         <input type="text" id="dash-search" class="glass-input" placeholder="🔍 Αναζήτηση σε μήνες..." oninput="filterDashTable()">
@@ -1818,6 +1819,77 @@
     </div>
 
     <!-- ==========================================================================
+         ✏️ UNIVERSAL RECORD EDIT MODAL
+         ========================================================================== -->
+    <div id="universalEditModal" class="modal-overlay" onclick="if(event.target===this) closeEditModal()">
+        <div class="modal-glass-card" style="max-width:620px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="edit-modal-title">
+                        ✏️ Επεξεργασία Στοιχείων Συμβολαίου & Πελάτη
+                    </h3>
+                    <span style="font-size:12px; color:var(--text-secondary);">Άμεση ενημέρωση στη βάση δεδομένων SQLite & PostgreSQL</span>
+                </div>
+                <button class="btn-pill btn-ghost" onclick="closeEditModal()">✕</button>
+            </div>
+
+            <form onsubmit="saveEditModal(event)" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-top:8px;">
+                <input type="hidden" id="edit-policy-original">
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Αριθμός Συμβολαίου:</label>
+                    <input type="text" id="edit-policy-number" class="glass-input" style="width:100%; font-weight:700;" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ονοματεπώνυμο Πελάτη:</label>
+                    <input type="text" id="edit-client-name" class="glass-input" style="width:100%; font-weight:700;" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">ΑΦΜ Πελάτη:</label>
+                    <input type="text" id="edit-afm" class="glass-input" style="width:100%;" placeholder="π.χ. 047812934">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κινητό Τηλέφωνο:</label>
+                    <input type="text" id="edit-phone" class="glass-input" style="width:100%;" placeholder="π.χ. 6974123456">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Καθαρά Ασφάλιστρα (€):</label>
+                    <input type="number" step="0.01" id="edit-net-premium" class="glass-input" style="width:100%;" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Προμήθεια Συνεργάτη (€):</label>
+                    <input type="number" step="0.01" id="edit-prod-comm" class="glass-input" style="width:100%; color:var(--accent-gold); font-weight:700;" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Agency 1411 (20% Overriding) (€):</label>
+                    <input type="number" step="0.01" id="edit-agency-comm" class="glass-input" style="width:100%; color:var(--accent-purple); font-weight:700;" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Συνεργάτης / Πράκτορας:</label>
+                    <input type="text" id="edit-producer-name" class="glass-input" style="width:100%;" placeholder="π.χ. Νίκος Αναγνωστόπουλος">
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Πρόγραμμα ERGO:</label>
+                    <input type="text" id="edit-package-name" class="glass-input" style="width:100%;" placeholder="π.χ. ERGO Health Care Superior">
+                </div>
+
+                <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(226,232,240,0.8); padding-top:14px; margin-top:6px;">
+                    <button type="button" class="btn-pill btn-ghost" onclick="closeEditModal()">✕ Ακύρωση</button>
+                    <button type="submit" class="btn-pill btn-primary">💾 Αποθήκευση Αλλαγών</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
          🔒 GLASSMORPHIC LOGIN MODAL OVERLAY (3375 / Lanca1966a)
          ========================================================================== -->
     <div id="loginOverlayModal" class="modal-overlay" style="display:flex; z-index:3000; background:rgba(15, 23, 42, 0.7); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);">
@@ -2003,73 +2075,57 @@
             document.getElementById(cardId)?.classList.add('expanded');
         }
 
-        // === 📊 DATA LOADING ENGINE ===
+        // === 📊 DATA LOADING ENGINE (SYNCHRONIZED PROMISE.ALL) ===
         async function loadAllData() {
             try {
-                // 1. Dashboard Summary
-                const resDash = await fetch('/api/dashboard/summary');
-                const dData = await resDash.json();
-                globalData.summary = dData;
-                
-                if (dData.kpis) {
-                    const gross = dData.kpis.total_gross || 0;
-                    const net = dData.kpis.total_net || 0;
-                    const syn = dData.kpis.total_producer_comm || 0;
-                    const agn = dData.kpis.total_agency_comm || 0;
+                const [resDash, resCont, resAgn, resProd, resCov, resRecon, resProdReg, resDocs] = await Promise.all([
+                    fetch('/api/dashboard/summary').then(r => r.json()),
+                    fetch('/api/contracts').then(r => r.json()),
+                    fetch('/api/agency').then(r => r.json()),
+                    fetch('/api/producers').then(r => r.json()),
+                    fetch('/api/coverages').then(r => r.json()),
+                    fetch('/api/reconciliation').then(r => r.json()),
+                    fetch('/api/producers/list').then(r => r.json()),
+                    fetch('/api/docs/list').then(r => r.json())
+                ]);
+
+                globalData.summary = resDash;
+                globalData.contracts = resCont.contracts || [];
+                globalData.records = resCont.records || [];
+                globalData.agency = resAgn.overridings || [];
+                globalData.producers = resProd.commissions || [];
+                globalData.coverages = resCov.coverages || [];
+                globalData.reconciliation = resRecon.table_a_monthly || [];
+                globalData.producersReg = resProdReg.producers || [];
+                globalData.docs = resDocs.docs || [];
+
+                // 1. Initial KPI Render
+                if (resDash && resDash.kpis) {
+                    const gross = resDash.kpis.total_gross || 0;
+                    const net = resDash.kpis.total_net || 0;
+                    const syn = resDash.kpis.total_producer_comm || 0;
+                    const agn = resDash.kpis.total_agency_comm || 0;
 
                     document.getElementById('kpi-gross').innerText = formatEur(gross);
                     document.getElementById('kpi-net').innerText = formatEur(net);
                     document.getElementById('kpi-comm-syn').innerText = formatEur(syn);
                     document.getElementById('kpi-comm-agn').innerText = formatEur(agn);
 
-                    document.getElementById('exp-avg-gross').innerText = formatEur(gross / (dData.monthly_summary.length || 1));
+                    document.getElementById('exp-avg-gross').innerText = formatEur(gross / (resDash.monthly_summary?.length || 1));
                     document.getElementById('exp-taxes').innerText = formatEur(gross - net);
                     document.getElementById('exp-total-rev').innerText = formatEur(syn + agn);
-
-                    renderDashboardTable(dData.monthly_summary);
+                    document.getElementById('exp-count').innerText = resDash.kpis.total_count || globalData.contracts.length;
                 }
 
-                // 2. Contracts
-                const resCont = await fetch('/api/contracts');
-                const contData = await resCont.json();
-                globalData.contracts = contData.contracts || [];
+                // 2. Render all tables (now that contracts are 100% loaded)
+                renderDashboardTable(resDash.monthly_summary || []);
                 renderCRMTable(globalData.contracts);
-
-                // 3. Agency Overridings
-                const resAgn = await fetch('/api/agency');
-                const aData = await resAgn.json();
-                globalData.agency = aData.overridings || [];
                 renderAgencyTable(globalData.agency);
-
-                // 4. Producers
-                const resProd = await fetch('/api/producers');
-                const pData = await resProd.json();
-                globalData.producers = pData.commissions || [];
                 renderProducersTable(globalData.producers);
                 renderCategoryTables();
-
-                // 5. Coverages
-                const resCov = await fetch('/api/coverages');
-                const covData = await resCov.json();
-                globalData.coverages = covData.coverages || [];
                 renderCoveragesTable(globalData.coverages);
-
-                // 6. Reconciliation 57
-                const resRecon = await fetch('/api/reconciliation');
-                const rData = await resRecon.json();
-                globalData.reconciliation = rData.table_a_monthly || [];
                 renderReconTable(globalData.reconciliation);
-
-                // 7. Producers Registry
-                const resProdReg = await fetch('/api/producers/list');
-                const prData = await resProdReg.json();
-                globalData.producersReg = prData.producers || [];
                 renderProducersRegTable(globalData.producersReg);
-
-                // 8. PDF Docs
-                const resDocs = await fetch('/api/docs/list');
-                const docsData = await resDocs.json();
-                globalData.docs = docsData.docs || [];
                 renderPDFDocs(globalData.docs);
 
             } catch (e) {
@@ -2081,76 +2137,130 @@
             return '€ ' + Number(val || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // === 📈 3-TIER MASTER-DETAIL DASHBOARD TABLE ===
+        // === 📈 3-TIER MASTER-DETAIL DASHBOARD TABLE WITH EXPAND & DRILLDOWN ===
         function renderDashboardTable(monthlyList) {
             const tbody = document.getElementById('dash-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             let tgross=0, tnet=0, tsyn=0, tagn=0, trev=0, tcnt=0;
 
             monthlyList.forEach((m, idx) => {
                 tcnt += m.count; tgross += m.gross; tnet += m.net; tsyn += m.comm_syn; tagn += m.comm_agn; trev += m.total_rev;
 
-                // Month Row (Level 1)
+                // Match contracts of this specific month
+                const monthContracts = globalData.contracts.filter(c => {
+                    const cMonth = (c.statement_month || '').trim();
+                    const mMonth = (m.statement_month || '').trim();
+                    return cMonth === mMonth || cMonth.replace('/', '_') === mMonth.replace('/', '_');
+                });
+
+                // Level 1: Month Row
                 const trMonth = document.createElement('tr');
                 trMonth.className = 'month-row';
                 trMonth.innerHTML = `
-                    <td><input type="checkbox" class="custom-checkbox dash-row-check" value="${m.statement_month}"></td>
+                    <td><input type="checkbox" class="custom-checkbox dash-month-check" data-month="${m.statement_month}" onchange="toggleMonthSelection('${m.statement_month}', this); updateDashboardTotals();"></td>
                     <td>${idx+1}</td>
-                    <td><strong>${m.statement_month}</strong></td>
+                    <td><strong style="color:var(--brand-navy); font-size:13.5px;">${m.statement_month}</strong></td>
                     <td><span class="badge badge-blue">${m.count} κινήσεις</span></td>
                     <td>${formatEur(m.gross)}</td>
                     <td>${formatEur(m.net)}</td>
                     <td style="color:var(--accent-gold); font-weight:700;">${formatEur(m.comm_syn)}</td>
                     <td style="color:var(--accent-purple); font-weight:700;">${formatEur(m.comm_agn)}</td>
                     <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(m.total_rev)}</td>
-                    <td style="text-align:center;"><button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="toggleMonthAccordion('nested-${idx}', this)">▼ Συμβόλαια</button></td>
+                    <td style="text-align:center;">
+                        <button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="event.stopPropagation(); toggleMonthAccordion('nested-${idx}', this)">
+                            ▼ Συμβόλαια (${monthContracts.length})
+                        </button>
+                    </td>
                 `;
+                trMonth.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+                        const btn = trMonth.querySelector('button');
+                        toggleMonthAccordion(`nested-${idx}`, btn);
+                    }
+                };
                 tbody.appendChild(trMonth);
 
-                // Nested Contracts Table (Level 2)
+                // Level 2: Nested Contracts Table (Accordion)
                 const trNested = document.createElement('tr');
                 trNested.id = `nested-${idx}`;
                 trNested.className = 'nested-contracts-row';
                 
-                const monthContracts = globalData.contracts.filter(c => c.statement_month === m.statement_month);
                 let nestedRowsHtml = '';
+                let mSubNet = 0, mSubSyn = 0, mSubAgn = 0, mSubTot = 0;
+
                 monthContracts.forEach((c, cIdx) => {
+                    mSubNet += (c.net_premium_total || 0);
+                    mSubSyn += (c.producer_commission_amount || 0);
+                    mSubAgn += (c.agency_overriding_amount || 0);
+                    mSubTot += (c.total_office_revenue || 0);
+
                     nestedRowsHtml += `
-                        <tr>
-                            <td><input type="checkbox" class="custom-checkbox nested-check" value="${c.policy_number}"></td>
+                        <tr class="contract-row" data-policy="${c.policy_number}" data-month="${m.statement_month}">
+                            <td><input type="checkbox" class="custom-checkbox nested-check" value="${c.policy_number}" data-month="${m.statement_month}" onchange="updateDashboardTotals()"></td>
                             <td>${cIdx+1}</td>
-                            <td><a class="policy-link" onclick="openPolicyModal('${c.policy_number}')">${c.policy_number}</a></td>
+                            <td>
+                                <a class="policy-link" onclick="openPolicyModal('${c.policy_number}')">
+                                    ${c.policy_number}
+                                </a>
+                            </td>
                             <td><strong>${c.client_name || '-'}</strong></td>
                             <td>${c.package_name || 'ERGO Health Care Superior'}</td>
                             <td>${formatEur(c.net_premium_total)}</td>
                             <td style="color:var(--accent-gold); font-weight:700;">${formatEur(c.producer_commission_amount)}</td>
                             <td style="color:var(--accent-purple); font-weight:700;">${formatEur(c.agency_overriding_amount)}</td>
                             <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(c.total_office_revenue)}</td>
+                            <td style="text-align:center; white-space:nowrap;">
+                                <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${c.policy_number}')" title="Επεξεργασία">✏️</button>
+                                <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px; color:var(--accent-rose);" onclick="deleteSingleContract('${c.policy_number}', '${m.statement_month}')" title="Διαγραφή">🗑️</button>
+                            </td>
                         </tr>
                     `;
                 });
 
+                if (monthContracts.length === 0) {
+                    nestedRowsHtml = `<tr><td colspan="10" style="text-align:center; padding:16px; color:var(--text-muted);">Δεν βρέθηκαν αναλυτικές εγγραφές συμβολαίων για το μήνα ${m.statement_month}.</td></tr>`;
+                }
+
                 trNested.innerHTML = `
                     <td colspan="10" style="padding:8px 20px;">
                         <div class="nested-box">
-                            <div style="font-weight:700; font-size:12.5px; color:var(--brand-blue); margin-bottom:8px;">
-                                📋 Συμβόλαια Μηνός ${m.statement_month} (${monthContracts.length} κινήσεις):
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <div style="font-weight:700; font-size:13px; color:var(--brand-blue);">
+                                    📋 Αναλυτικά Συμβόλαια Μηνός ${m.statement_month} (${monthContracts.length} κινήσεις):
+                                </div>
+                                <div style="font-size:11.5px; color:var(--text-secondary);">
+                                    💡 Κάντε κλικ στον αριθμό συμβολαίου για άνοιγμα της 360° Καρτέλας Πελάτη & Καλύψεων
+                                </div>
                             </div>
-                            <table class="glass-table" style="font-size:12px; background:#FFF;">
+                            <table class="glass-table" style="font-size:12px; background:#FFFFFF; border-radius:12px;">
                                 <thead>
                                     <tr style="background:#F1F5F9;">
                                         <th style="width:30px;"></th>
                                         <th>Α/Α</th>
                                         <th>Αρ. Συμβολαίου (Κλικ)</th>
                                         <th>Ονοματεπώνυμο Πελάτη</th>
-                                        <th>Πρόγραμμα</th>
+                                        <th>Πρόγραμμα ERGO</th>
                                         <th>Καθαρά (€)</th>
                                         <th>Προμήθεια (€)</th>
                                         <th>Agency 20% (€)</th>
                                         <th>Σύνολο (€)</th>
+                                        <th style="text-align:center;">Ενέργειες</th>
                                     </tr>
                                 </thead>
                                 <tbody>${nestedRowsHtml}</tbody>
+                                <tfoot style="background:#F8FAFC; font-weight:800; border-top:2px solid #CBD5E1;">
+                                    <tr>
+                                        <td></td>
+                                        <td>ΣΥΝΟΛΟ</td>
+                                        <td colspan="3">Μερικό Σύνολο Μήνα ${m.statement_month}:</td>
+                                        <td>${formatEur(mSubNet)}</td>
+                                        <td style="color:var(--accent-gold);">${formatEur(mSubSyn)}</td>
+                                        <td style="color:var(--accent-purple);">${formatEur(mSubAgn)}</td>
+                                        <td style="color:var(--accent-emerald);">${formatEur(mSubTot)}</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </td>
@@ -2158,6 +2268,7 @@
                 tbody.appendChild(trNested);
             });
 
+            // Update footer subtotals
             document.getElementById('tot-m-count').innerText = tcnt;
             document.getElementById('exp-count').innerText = tcnt;
             document.getElementById('tot-m-gross').innerText = formatEur(tgross);
@@ -2171,7 +2282,207 @@
             const row = document.getElementById(rowId);
             if (row) {
                 row.classList.toggle('open');
-                btn.innerText = row.classList.contains('open') ? '▲ Σύμπτυξη' : '▼ Συμβόλαια';
+                if (btn) {
+                    btn.innerText = row.classList.contains('open') ? '▲ Σύμπτυξη' : '▼ Συμβόλαια';
+                }
+            }
+        }
+
+        function toggleMonthSelection(monthStr, masterCheckbox) {
+            const nestedRow = document.querySelector(`.nested-contracts-row td div table tbody tr[data-month="${monthStr}"]`);
+            const checks = document.querySelectorAll(`.nested-check[data-month="${monthStr}"]`);
+            checks.forEach(c => {
+                c.checked = masterCheckbox.checked;
+                c.closest('tr')?.classList.toggle('selected', masterCheckbox.checked);
+            });
+        }
+
+        // === ⚡ DYNAMIC REACTIVE TOTALS (DASHBOARD & ALL TABLES) ===
+        function updateDashboardTotals() {
+            const checkedBoxes = Array.from(document.querySelectorAll('.nested-check:checked, .dash-month-check:checked'));
+            const checkedPolicies = new Set();
+            document.querySelectorAll('.nested-check:checked').forEach(c => checkedPolicies.add(c.value));
+
+            // Also if a month row is checked, add all its policies
+            document.querySelectorAll('.dash-month-check:checked').forEach(mCheck => {
+                const m = mCheck.dataset.month;
+                globalData.contracts.filter(c => c.statement_month === m).forEach(c => checkedPolicies.add(c.policy_number));
+            });
+
+            // If user checked specific rows, sum ONLY those!
+            if (checkedPolicies.size > 0) {
+                let sumGross = 0, sumNet = 0, sumSyn = 0, sumAgn = 0, sumTot = 0, sumCount = 0;
+                globalData.contracts.filter(c => checkedPolicies.has(c.policy_number)).forEach(c => {
+                    sumCount++;
+                    sumGross += (c.gross_premium || c.net_premium_total || 0);
+                    sumNet += (c.net_premium_total || 0);
+                    sumSyn += (c.producer_commission_amount || 0);
+                    sumAgn += (c.agency_overriding_amount || 0);
+                    sumTot += (c.total_office_revenue || 0);
+                });
+
+                // Update Table Footer
+                document.getElementById('tot-m-count').innerText = `${sumCount} (επιλεγμένα)`;
+                document.getElementById('tot-m-gross').innerText = formatEur(sumGross);
+                document.getElementById('tot-m-net').innerText = formatEur(sumNet);
+                document.getElementById('tot-m-syn').innerText = formatEur(sumSyn);
+                document.getElementById('tot-m-agn').innerText = formatEur(sumAgn);
+                document.getElementById('tot-m-rev').innerText = formatEur(sumTot);
+
+                // Update 4 Expanding KPI Cards Live!
+                document.getElementById('kpi-gross').innerText = formatEur(sumGross);
+                document.getElementById('kpi-net').innerText = formatEur(sumNet);
+                document.getElementById('kpi-comm-syn').innerText = formatEur(sumSyn);
+                document.getElementById('kpi-comm-agn').innerText = formatEur(sumAgn);
+                document.getElementById('exp-total-rev').innerText = formatEur(sumTot);
+                document.getElementById('exp-count').innerText = sumCount;
+            } else {
+                // Restore full dashboard sums
+                if (globalData.summary && globalData.summary.kpis) {
+                    const k = globalData.summary.kpis;
+                    document.getElementById('tot-m-count').innerText = k.total_count || globalData.contracts.length;
+                    document.getElementById('tot-m-gross').innerText = formatEur(k.total_gross);
+                    document.getElementById('tot-m-net').innerText = formatEur(k.total_net);
+                    document.getElementById('tot-m-syn').innerText = formatEur(k.total_producer_comm);
+                    document.getElementById('tot-m-agn').innerText = formatEur(k.total_agency_comm);
+                    document.getElementById('tot-m-rev').innerText = formatEur(k.total_office_revenue);
+
+                    document.getElementById('kpi-gross').innerText = formatEur(k.total_gross);
+                    document.getElementById('kpi-net').innerText = formatEur(k.total_net);
+                    document.getElementById('kpi-comm-syn').innerText = formatEur(k.total_producer_comm);
+                    document.getElementById('kpi-comm-agn').innerText = formatEur(k.total_agency_comm);
+                    document.getElementById('exp-total-rev').innerText = formatEur(k.total_producer_comm + k.total_agency_comm);
+                    document.getElementById('exp-count').innerText = k.total_count || globalData.contracts.length;
+                }
+            }
+
+            // Highlight tr rows
+            document.querySelectorAll('.nested-check').forEach(c => {
+                c.closest('tr')?.classList.toggle('selected', c.checked);
+            });
+        }
+
+        function updateGenericSelectionTotals(type) {
+            const checkedBoxes = document.querySelectorAll(`.${type}-row-check:checked`);
+            document.querySelectorAll(`.${type}-row-check`).forEach(c => {
+                c.closest('tr')?.classList.toggle('selected', c.checked);
+            });
+        }
+
+        // === ✏️ UNIVERSAL RECORD EDIT MODAL & ENGINE ===
+        function openEditModal(policyNumber) {
+            const c = globalData.contracts.find(item => item.policy_number === policyNumber);
+            if (!c) {
+                alert("Δεν βρέθηκαν στοιχεία για το συμβόλαιο " + policyNumber);
+                return;
+            }
+
+            document.getElementById('edit-policy-original').value = c.policy_number;
+            document.getElementById('edit-policy-number').value = c.policy_number;
+            document.getElementById('edit-client-name').value = c.client_name || '';
+            document.getElementById('edit-afm').value = c.afm || '';
+            document.getElementById('edit-phone').value = c.phone_mobile || c.phone_landline || '';
+            document.getElementById('edit-net-premium').value = c.net_premium_total || 0;
+            document.getElementById('edit-prod-comm').value = c.producer_commission_amount || 0;
+            document.getElementById('edit-agency-comm').value = c.agency_overriding_amount || 0;
+            document.getElementById('edit-producer-name').value = c.producer_name || 'Νίκος Αναγνωστόπουλος';
+            document.getElementById('edit-package-name').value = c.package_name || 'ERGO Health Care Superior';
+
+            document.getElementById('universalEditModal').classList.add('open');
+        }
+
+        function closeEditModal() {
+            document.getElementById('universalEditModal').classList.remove('open');
+        }
+
+        async function saveEditModal(e) {
+            if (e) e.preventDefault();
+            const originalPol = document.getElementById('edit-policy-original').value;
+            const pol = document.getElementById('edit-policy-number').value.trim();
+            const cname = document.getElementById('edit-client-name').value.trim();
+            const afm = document.getElementById('edit-afm').value.trim();
+            const phone = document.getElementById('edit-phone').value.trim();
+            const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
+            const pcomm = parseFloat(document.getElementById('edit-prod-comm').value) || 0;
+            const acomm = parseFloat(document.getElementById('edit-agency-comm').value) || 0;
+            const pname = document.getElementById('edit-producer-name').value.trim();
+            const pkg = document.getElementById('edit-package-name').value.trim();
+
+            try {
+                const res = await fetch('/api/contracts/update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        policy_number: pol,
+                        client_name: cname,
+                        afm: afm,
+                        phone_mobile: phone,
+                        net_premium_total: net,
+                        producer_commission_amount: pcomm,
+                        agency_overriding_amount: acomm,
+                        producer_name: pname,
+                        package_name: pkg
+                    })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(`✔ ${d.message || 'Το συμβόλαιο ενημερώθηκε επιτυχώς!'}`);
+                    closeEditModal();
+                    loadAllData();
+                } else {
+                    alert(`❌ Σφάλμα: ${d.error || 'Αποτυχία ενημέρωσης'}`);
+                }
+            } catch (err) {
+                alert("❌ Σφάλμα δικτύου κατά την αποθήκευση!");
+            }
+        }
+
+        // === 🗑️ DELETE ENGINE ===
+        async function deleteSingleContract(policyNumber, month) {
+            if (confirm(`Επιβεβαίωση οριστικής διαγραφής του συμβολαίου #${policyNumber} (${month});`)) {
+                try {
+                    const res = await fetch('/api/delete', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ records: [{ policy: policyNumber, month: month }] })
+                    });
+                    const d = await res.json();
+                    alert(`✔ ${d.message || 'Το συμβόλαιο διαγράφηκε επιτυχώς!'}`);
+                    loadAllData();
+                } catch(e) {
+                    alert("❌ Σφάλμα κατά τη διαγραφή");
+                }
+            }
+        }
+
+        async function deleteSelectedRows(type) {
+            let checks = [];
+            if (type === 'dashboard') checks = Array.from(document.querySelectorAll('.nested-check:checked'));
+            else checks = Array.from(document.querySelectorAll(`.${type}-row-check:checked`));
+
+            if (checks.length === 0) {
+                alert("Παρακαλώ επιλέξτε τουλάχιστον ένα συμβόλαιο προς διαγραφή (τσεκάρετε το αντίστοιχο κουτάκι).");
+                return;
+            }
+
+            if (confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε ΟΡΙΣΤΙΚΑ τα ${checks.length} επιλεγμένα συμβόλαια;`)) {
+                const recordsToDelete = checks.map(c => ({
+                    policy: c.value,
+                    month: c.dataset.month || ''
+                }));
+
+                try {
+                    const res = await fetch('/api/delete', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ records: recordsToDelete })
+                    });
+                    const d = await res.json();
+                    alert(`✔ ${d.message || 'Διαγράφηκαν επιτυχώς!'}`);
+                    loadAllData();
+                } catch(e) {
+                    alert("❌ Σφάλμα κατά τη διαγραφή");
+                }
             }
         }
 
@@ -2185,9 +2496,9 @@
                 document.getElementById('modal-package-name').innerText = data.policy.package_name || 'ERGO Health Care Superior';
                 document.getElementById('modal-client-name').innerText = data.client.name;
                 document.getElementById('modal-client-afm').innerText = data.client.afm;
-                document.getElementById('modal-client-phone').innerText = data.client.phone_mobile || data.client.phone_landline;
-                document.getElementById('modal-client-email').innerText = data.client.email;
-                document.getElementById('modal-client-address').innerText = data.client.address;
+                document.getElementById('modal-client-phone').innerText = data.client.phone_mobile || data.client.phone_landline || '-';
+                document.getElementById('modal-client-email').innerText = data.client.email || 'info@lanca.gr';
+                document.getElementById('modal-client-address').innerText = data.client.address || '-';
 
                 const covTbody = document.getElementById('modal-coverages-tbody');
                 covTbody.innerHTML = '';
@@ -2224,16 +2535,17 @@
             }).from(card).save();
         }
 
-        // === 👥 CRM TABLE & EDIT/DELETE ===
+        // === 👥 CRM TABLE & ACTIONS ===
         function renderCRMTable(list) {
             const tbody = document.getElementById('crm-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             list.forEach((r, idx) => {
                 const tr = document.createElement('tr');
                 let typeBadge = `<span class="badge badge-blue">${r.movement_type || 'Νέα Εργασία'}</span>`;
                 if (r.is_zero_offset) typeBadge = `<span class="badge badge-offset">Συμψηφισμός 0,00 €</span>`;
                 tr.innerHTML = `
-                    <td><input type="checkbox" class="custom-checkbox crm-row-check" value="${r.policy_number}"></td>
+                    <td><input type="checkbox" class="custom-checkbox crm-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('crm')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
@@ -2245,7 +2557,10 @@
                     <td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.producer_commission_amount)}</td>
                     <td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.agency_overriding_amount)}</td>
                     <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(r.total_office_revenue)}</td>
-                    <td>${typeBadge}</td>
+                    <td style="white-space:nowrap; text-align:center;">
+                        <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')">✏️</button>
+                        <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px; color:var(--accent-rose);" onclick="deleteSingleContract('${r.policy_number}', '${r.statement_month}')">🗑️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2264,11 +2579,12 @@
         // === 🏢 AGENCY TABLE ===
         function renderAgencyTable(list) {
             const tbody = document.getElementById('agency-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             list.forEach((r, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="checkbox" class="custom-checkbox agency-row-check" value="${r.policy_number}"></td>
+                    <td><input type="checkbox" class="custom-checkbox agency-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('agency')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
@@ -2277,6 +2593,9 @@
                     <td>${formatEur(r.producer_commission_amount)}</td>
                     <td style="color:var(--accent-purple); font-weight:800;">${formatEur(r.agency_overriding_amount)}</td>
                     <td><span class="badge badge-purple">Agency 20%</span></td>
+                    <td>
+                        <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')">✏️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2293,11 +2612,12 @@
         // === 🤝 PRODUCERS TABLE ===
         function renderProducersTable(list) {
             const tbody = document.getElementById('producers-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             list.forEach((r, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="checkbox" class="custom-checkbox prod-row-check" value="${r.policy_number}"></td>
+                    <td><input type="checkbox" class="custom-checkbox prod-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('prod')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
@@ -2306,6 +2626,9 @@
                     <td><span class="badge badge-gold">${r.producer_commission_rate||25}%</span></td>
                     <td style="color:var(--accent-gold); font-weight:800;">${formatEur(r.producer_commission_amount)}</td>
                     <td><span class="badge badge-gold">Κατηγορία Α</span></td>
+                    <td>
+                        <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')">✏️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2365,6 +2688,7 @@
         // === 🔬 COVERAGES TABLE ===
         function renderCoveragesTable(list) {
             const tbody = document.getElementById('coverages-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             list.forEach((cov, idx) => {
                 const tr = document.createElement('tr');
@@ -2394,6 +2718,7 @@
         // === 🏦 RECONCILIATION 57 TABLE ===
         function renderReconTable(list) {
             const tbody = document.getElementById('recon-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             list.forEach((r, idx) => {
                 const tr = document.createElement('tr');
@@ -2413,6 +2738,7 @@
         // === 🤝 PRODUCERS REGISTRY TABLE ===
         function renderProducersRegTable(list) {
             const tbody = document.getElementById('producers-reg-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             list.forEach((p, idx) => {
                 const tr = document.createElement('tr');
@@ -2426,7 +2752,7 @@
                     <td><span class="badge badge-gold">${p.avg_rate || 25}%</span></td>
                     <td>${p.last_month || '07/2026'}</td>
                     <td>
-                        <button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="editProducerModal('${p.producer_code}', '${p.producer_name}', ${p.avg_rate||25})">✏️ Επεξεργασία</button>
+                        <button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="openEditModal('${p.producer_code}')">✏️ Επεξεργασία</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2444,6 +2770,7 @@
         // === 📖 PDF LIBRARY RENDERING ===
         function renderPDFDocs(docs) {
             const container = document.getElementById('pdf-docs-container');
+            if (!container) return;
             container.innerHTML = '';
             docs.forEach(doc => {
                 const div = document.createElement('div');
@@ -2507,7 +2834,7 @@
             globalData.selectedFilter = period;
             
             if (!globalData.summary) return;
-            let list = globalData.summary.monthly_summary;
+            let list = globalData.summary.monthly_summary || [];
             if (period === 'Q1') list = list.filter(m => ['02/2026', '03/2026', '04/2026'].includes(m.statement_month));
             else if (period === 'Q2') list = list.filter(m => ['05/2026', '06/2026', '07/2026'].includes(m.statement_month));
             else if (period === '2026') list = list.filter(m => m.statement_month.includes('2026'));
@@ -2516,9 +2843,30 @@
 
         function filterByMonthSelect(val) {
             if (!globalData.summary) return;
-            let list = globalData.summary.monthly_summary;
+            let list = globalData.summary.monthly_summary || [];
             if (val !== 'all') list = list.filter(m => m.statement_month === val);
             renderDashboardTable(list);
+        }
+
+        function filterDashTable() {
+            const q = document.getElementById('dash-search')?.value.toLowerCase().trim() || '';
+            if (!globalData.summary || !globalData.summary.monthly_summary) return;
+            if (!q) {
+                renderDashboardTable(globalData.summary.monthly_summary);
+                return;
+            }
+            const filteredMonths = globalData.summary.monthly_summary.filter(m => {
+                const matchMonth = m.statement_month.toLowerCase().includes(q);
+                const hasMatchingContract = globalData.contracts.some(c => 
+                    c.statement_month === m.statement_month && (
+                        (c.client_name && c.client_name.toLowerCase().includes(q)) ||
+                        (c.policy_number && c.policy_number.toLowerCase().includes(q)) ||
+                        (c.afm && c.afm.includes(q))
+                    )
+                );
+                return matchMonth || hasMatchingContract;
+            });
+            renderDashboardTable(filteredMonths);
         }
 
         // === 👁️ COLUMN SELECTOR & SORTING ===
@@ -2540,19 +2888,29 @@
 
         function toggleSelectAll(type) {
             const master = document.getElementById(`${type}-select-all`);
-            const checks = document.querySelectorAll(`.${type}-row-check`);
-            checks.forEach(c => {
-                c.checked = master.checked;
-                c.closest('tr')?.classList.toggle('selected', master.checked);
-            });
+            if (type === 'dash') {
+                document.querySelectorAll('.dash-month-check, .nested-check').forEach(c => {
+                    c.checked = master.checked;
+                    c.closest('tr')?.classList.toggle('selected', master.checked);
+                });
+                updateDashboardTotals();
+            } else {
+                const checks = document.querySelectorAll(`.${type}-row-check`);
+                checks.forEach(c => {
+                    c.checked = master.checked;
+                    c.closest('tr')?.classList.toggle('selected', master.checked);
+                });
+                updateGenericSelectionTotals(type);
+            }
         }
 
         function sortGenericTable(tableId, colIdx) {
             const table = document.getElementById(tableId);
             if (!table) return;
             const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const rows = Array.from(tbody.querySelectorAll('tr:not(.nested-contracts-row)'));
             const th = table.querySelectorAll('th')[colIdx];
+            if (!th) return;
             const isAsc = !th.classList.contains('sort-asc');
 
             table.querySelectorAll('th').forEach(h => { h.classList.remove('sort-asc'); h.classList.remove('sort-desc'); });
@@ -2573,7 +2931,7 @@
             rows.forEach(r => tbody.appendChild(r));
         }
 
-        // === 📥 EXPORT ENGINE (EXCEL & PDF) ===
+        // === 📥 EXPORT ENGINE (EXCEL & PDF WITH SELECTIVE EXPORT) ===
         function exportToExcel(type) {
             const d = new Date();
             const dateStr = d.getFullYear() + "_" + String(d.getMonth() + 1).padStart(2, '0');
@@ -2588,8 +2946,23 @@
 
             const table = document.getElementById(tableId);
             if (!table) return;
-            const wb = XLSX.utils.table_to_book(table, { sheet: "LANCA_Export" });
-            XLSX.writeFile(wb, filename);
+
+            // Check if user selected specific rows
+            const checkedRows = table.querySelectorAll('tbody tr.selected');
+            if (checkedRows.length > 0) {
+                const tempTable = document.createElement('table');
+                tempTable.appendChild(table.querySelector('thead').cloneNode(true));
+                const tempTbody = document.createElement('tbody');
+                checkedRows.forEach(r => tempTbody.appendChild(r.cloneNode(true)));
+                tempTable.appendChild(tempTbody);
+                if (table.querySelector('tfoot')) tempTable.appendChild(table.querySelector('tfoot').cloneNode(true));
+                
+                const wb = XLSX.utils.table_to_book(tempTable, { sheet: "LANCA_Epilegmena" });
+                XLSX.writeFile(wb, filename);
+            } else {
+                const wb = XLSX.utils.table_to_book(table, { sheet: "LANCA_Export" });
+                XLSX.writeFile(wb, filename);
+            }
         }
 
         function exportToPDF(type) {
@@ -2663,7 +3036,6 @@
                     statusText.innerText = `✔ ${d.message || 'Τα αρχεία καταχωρήθηκαν και εκκαθαρίστηκαν επιτυχώς!'}`;
                     statusBox.style.background = 'rgba(209, 250, 229, 0.8)';
                     statusText.style.color = 'var(--accent-emerald)';
-                    // Reload all system data
                     setTimeout(() => {
                         loadAllData();
                     }, 1000);

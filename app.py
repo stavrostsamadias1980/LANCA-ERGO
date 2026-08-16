@@ -1084,50 +1084,67 @@ def api_get_coverages():
 
 @app.route("/api/reconciliation", methods=["GET"])
 def api_get_reconciliation():
-    """Returns full Account 57 reconciliation data calculated dynamically against live financial_movements."""
+    """Returns full Account 57 reconciliation data dynamically ONLY for active statement months."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     
-    cur.execute("SELECT * FROM monthly_reconciliations ORDER BY statement_month;")
-    stored_recon = [dict(r) for r in cur.fetchall()]
+    # 1. Query distinct active statement months from financial_movements
+    cur.execute("""
+        SELECT 
+            statement_month,
+            COALESCE(SUM(total_office_revenue), 0.0) as stmt_total,
+            COUNT(*) as stmt_count
+        FROM financial_movements
+        WHERE statement_month IS NOT NULL AND TRIM(statement_month) != ''
+        GROUP BY statement_month
+        ORDER BY statement_month;
+    """)
+    active_months = [dict(r) for r in cur.fetchall()]
     
     table_a = []
     tot_stmt = 0.0
     tot_pdf = 0.0
     
-    for r in stored_recon:
-        st_mth = str(r["statement_month"]).strip()
-        # Query LIVE real-time sum and count from financial_movements
+    for row in active_months:
+        st_mth = str(row["statement_month"]).strip()
+        live_stmt_amt = round(float(row["stmt_total"] or 0.0), 2)
+        live_count = int(row["stmt_count"] or 0)
+        
+        # Check if there is an uploaded or configured released amount for this month
         cur.execute("""
-            SELECT 
-                COALESCE(SUM(total_office_revenue), 0.0),
-                COUNT(*)
-            FROM financial_movements 
+            SELECT account_57_release_month, account_57_released_amount 
+            FROM monthly_reconciliations 
             WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;
         """, (st_mth, st_mth.replace('/', '_')))
-        row_stat = cur.fetchone()
-        live_stmt_amt = round(float(row_stat[0] or 0.0), 2)
-        live_count = int(row_stat[1] or 0)
+        recon_row = cur.fetchone()
         
-        rel_amt = round(float(r["account_57_released_amount"] or 0.0), 2)
+        rel_month = recon_row["account_57_release_month"] if recon_row and recon_row["account_57_release_month"] else "-"
+        rel_amt = round(float(recon_row["account_57_released_amount"] or 0.0), 2) if recon_row else 0.0
+        
         variance = round(live_stmt_amt - rel_amt, 2)
-        is_matched = (abs(variance) < 0.01 and live_count > 0)
+        is_matched = (abs(variance) < 0.01 and live_count > 0 and rel_amt > 0)
         
-        status_text = "✔ 100% Συμφωνία" if is_matched else (f"⚠️ Απόκλιση (€ {variance:+.2f})" if live_count > 0 else "❌ Διαγράφηκαν όλα τα συμβόλαια")
+        if is_matched:
+            status_text = "✔ 100% Συμφωνία"
+        elif rel_amt == 0.0:
+            status_text = "⏳ Εκκρεμεί Αποδέσμευση 57"
+        else:
+            status_text = f"⚠️ Απόκλιση (€ {variance:+.2f})"
         
         table_a.append({
             "statement_month": st_mth,
             "statement_total_amount": live_stmt_amt,
             "statement_count": live_count,
-            "account_57_release_month": r.get("account_57_release_month") or "-",
+            "account_57_release_month": rel_month,
             "account_57_released_amount": rel_amt,
-            "variance_amount": variance,
+            "variance_amount": variance if rel_amt > 0 else 0.0,
             "is_reconciled": 1 if is_matched else 0,
             "status_text": status_text
         })
         tot_stmt += live_stmt_amt
-        tot_pdf += rel_amt
+        if rel_amt > 0:
+            tot_pdf += rel_amt
     
     cur.execute("SELECT * FROM account_57_transactions WHERE branch_category = 'LIFE_HEALTH_RELEASE' ORDER BY iso_date;")
     table_c = [dict(r) for r in cur.fetchall()]
@@ -1136,10 +1153,14 @@ def api_get_reconciliation():
     
     tot_stmt = round(tot_stmt, 2)
     tot_pdf = round(tot_pdf, 2)
-    total_variance = round(tot_stmt - tot_pdf, 2)
+    total_variance = round(tot_stmt - tot_pdf, 2) if tot_pdf > 0 else 0.0
     
-    all_matched = all(x["is_reconciled"] == 1 for x in table_a) if table_a else False
-    overall_status = "✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ" if (all_matched and abs(total_variance) < 0.01) else f"⚠️ ΕΝΤΟΠΙΣΤΗΚΕ ΑΠΟΚΛΙΣΗ (€ {total_variance:+.2f})"
+    if not table_a:
+        overall_status = "📭 Δεν υπάρχουν καταχωρημένα δεδομένα"
+    elif all(x["is_reconciled"] == 1 for x in table_a):
+        overall_status = "✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ"
+    else:
+        overall_status = f"⚠️ ΕΝΤΟΠΙΣΤΗΚΕ ΑΠΟΚΛΙΣΗ (€ {total_variance:+.2f})" if total_variance != 0 else "⏳ Εκκρεμεί Έλεγχος Αποδεσμεύσεων"
     
     return jsonify({
         "status": overall_status,

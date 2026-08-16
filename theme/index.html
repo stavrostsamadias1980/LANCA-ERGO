@@ -2794,6 +2794,31 @@
             const tbody = document.getElementById('recon-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center; padding:35px 20px; color:var(--text-muted); font-size:13.5px; font-weight:600;">
+                            📭 Δεν υπάρχουν καταχωρημένα δεδομένα εκκαθάρισης στη βάση.<br>
+                            <span style="font-size:12px; color:var(--text-secondary); font-weight:400; margin-top:4px; display:inline-block;">
+                                Μεταφορτώστε τα αρχεία σας από το μενού <strong>🧮 Εργαλεία ▾</strong> για να ξεκινήσει ο αυτόματος έλεγχος συμφωνίας.
+                            </span>
+                        </td>
+                    </tr>
+                `;
+                const fStmt = document.getElementById('recon-tot-stmt'); if (fStmt) fStmt.innerText = '€ 0,00';
+                const fRel = document.getElementById('recon-tot-rel'); if (fRel) fRel.innerText = '€ 0,00';
+                const fVar = document.getElementById('recon-tot-var'); if (fVar) { fVar.innerText = '€ 0,00'; fVar.style.color = 'var(--text-secondary)'; }
+                const fStat = document.getElementById('recon-overall-status');
+                if (fStat) {
+                    fStat.className = 'badge badge-gold';
+                    fStat.style.background = '#F1F5F9';
+                    fStat.style.color = '#64748B';
+                    fStat.innerText = '📭 Κενή Βάση Δεδομένων';
+                }
+                return;
+            }
+
             let totStmt = 0, totRel = 0, totVar = 0;
 
             list.forEach((r, idx) => {
@@ -2805,11 +2830,13 @@
                 totRel += relAmt;
                 totVar += v;
 
-                const isMatched = (r.is_reconciled === 1 || (Math.abs(v) < 0.01 && stmtAmt > 0));
+                const isMatched = (r.is_reconciled === 1 || (Math.abs(v) < 0.01 && stmtAmt > 0 && relAmt > 0));
                 
                 let badgeHtml = `<span class="badge badge-success">✔ 100% Συμφωνία</span>`;
                 if (!isMatched) {
-                    if (stmtAmt === 0) {
+                    if (relAmt === 0) {
+                        badgeHtml = `<span class="badge badge-gold" style="background:#FEF3C7; color:#B45309; font-weight:700;">⏳ Εκκρεμεί Αποδέσμευση 57</span>`;
+                    } else if (stmtAmt === 0) {
                         badgeHtml = `<span class="badge badge-rose" style="background:#FFE4E6; color:#BE123C; font-weight:700;">❌ Διαγράφηκαν όλα τα συμβόλαια</span>`;
                     } else {
                         badgeHtml = `<span class="badge badge-warning" style="background:#FEF3C7; color:#B45309; font-weight:700;">⚠️ Απόκλιση (${formatEur(v)})</span>`;

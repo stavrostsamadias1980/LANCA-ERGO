@@ -1794,62 +1794,103 @@ def api_update_client():
 @app.route("/api/producers/list", methods=["GET"])
 def api_get_producers_registry():
     """Returns the persistent catalog of producers/partners joined with active metrics."""
-    conn = sqlite3.connect(SQLITE_PATH)
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    
-    cur.execute("""
-        SELECT 
-            p.producer_code,
-            COALESCE(p.ergo_code, '-') as ergo_code,
-            p.full_name as producer_name,
-            COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
-            COALESCE(p.partner_type_label, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
-            p.role,
-            COALESCE(p.hierarchy, 'ΠΑΡΑΓΩΓΟΣ') as hierarchy,
-            p.tier,
-            COALESCE(p.manager, 'ΙΔΙΟΣ') as manager,
-            COALESCE(p.phone, '-') as phone,
-            COALESCE(p.email, '-') as email,
-            COALESCE(p.address, '-') as address,
-            COALESCE(p.nomos, '-') as nomos,
-            COALESCE(p.comm_cat, '-') as comm_cat,
-            COALESCE(p.status, 'Ενεργός') as status,
-            p.commission_rate as avg_rate,
-            p.notes,
-            COUNT(m.movement_id) as total_policies,
-            COALESCE(SUM(m.net_premium_total), 0.0) as total_net,
-            COALESCE(SUM(m.producer_commission_amount), 0.0) as total_commission,
-            MAX(m.statement_month) as last_month
-        FROM producers_catalog p
-        LEFT JOIN financial_movements m ON m.producer_code = p.producer_code OR m.producer_name = p.full_name
-        GROUP BY p.producer_code
-        ORDER BY 
-            CASE 
-                WHEN p.partner_type = 'AGENCY_MANAGER' THEN 1
-                WHEN p.partner_type = 'SUBCODE_1411' THEN 2
-                ELSE 3 
-            END,
-            p.producer_code ASC;
-    """)
-    rows = [dict(r) for r in cur.fetchall()]
-    conn.close()
-    
-    subcodes_cnt = sum(1 for r in rows if r.get('partner_type') == 'SUBCODE_1411')
-    direct_cnt = sum(1 for r in rows if r.get('partner_type') == 'DIRECT_AGENT')
-    mgr_cnt = sum(1 for r in rows if r.get('partner_type') == 'AGENCY_MANAGER')
-    
-    return jsonify({
-        "status": "success",
-        "producers": rows,
-        "count": len(rows),
-        "counts": {
-            "total": len(rows),
-            "subcodes": subcodes_cnt,
-            "direct": direct_cnt,
-            "managers": mgr_cnt
-        }
-    })
+    try:
+        conn = sqlite3.connect(SQLITE_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        
+        # Ensure table and all columns exist
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS producers_catalog (
+            producer_code TEXT PRIMARY KEY,
+            ergo_code TEXT,
+            full_name TEXT NOT NULL,
+            partner_type TEXT,
+            partner_type_label TEXT,
+            role TEXT,
+            hierarchy TEXT,
+            tier TEXT,
+            manager TEXT,
+            phone TEXT,
+            email TEXT,
+            address TEXT,
+            nomos TEXT,
+            comm_cat TEXT,
+            status TEXT DEFAULT 'Ενεργός',
+            commission_rate REAL DEFAULT 25.0,
+            notes TEXT
+        );
+        """)
+        for col in ['ergo_code', 'partner_type', 'partner_type_label', 'hierarchy', 'manager', 'address', 'nomos', 'comm_cat']:
+            try:
+                cur.execute(f"ALTER TABLE producers_catalog ADD COLUMN {col} TEXT;")
+            except Exception:
+                pass
+        
+        # If empty or < 50, seed
+        cur.execute("SELECT COUNT(*) FROM producers_catalog;")
+        if cur.fetchone()[0] < 50:
+            try:
+                from seed_producers import seed_full_producers
+                seed_full_producers(SQLITE_PATH)
+            except Exception as se:
+                print("[Auto-seed error]", se)
+
+        cur.execute("""
+            SELECT 
+                p.producer_code,
+                COALESCE(p.ergo_code, '-') as ergo_code,
+                p.full_name as producer_name,
+                COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
+                COALESCE(p.partner_type_label, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
+                p.role,
+                COALESCE(p.hierarchy, 'ΠΑΡΑΓΩΓΟΣ') as hierarchy,
+                p.tier,
+                COALESCE(p.manager, 'ΙΔΙΟΣ') as manager,
+                COALESCE(p.phone, '-') as phone,
+                COALESCE(p.email, '-') as email,
+                COALESCE(p.address, '-') as address,
+                COALESCE(p.nomos, '-') as nomos,
+                COALESCE(p.comm_cat, '-') as comm_cat,
+                COALESCE(p.status, 'Ενεργός') as status,
+                p.commission_rate as avg_rate,
+                p.notes,
+                COUNT(m.movement_id) as total_policies,
+                COALESCE(SUM(m.net_premium_total), 0.0) as total_net,
+                COALESCE(SUM(m.producer_commission_amount), 0.0) as total_commission,
+                MAX(m.statement_month) as last_month
+            FROM producers_catalog p
+            LEFT JOIN financial_movements m ON m.producer_code = p.producer_code OR m.producer_name = p.full_name
+            GROUP BY p.producer_code
+            ORDER BY 
+                CASE 
+                    WHEN p.partner_type = 'AGENCY_MANAGER' THEN 1
+                    WHEN p.partner_type = 'SUBCODE_1411' THEN 2
+                    ELSE 3 
+                END,
+                p.producer_code ASC;
+        """)
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        
+        subcodes_cnt = sum(1 for r in rows if r.get('partner_type') == 'SUBCODE_1411')
+        direct_cnt = sum(1 for r in rows if r.get('partner_type') == 'DIRECT_AGENT')
+        mgr_cnt = sum(1 for r in rows if r.get('partner_type') == 'AGENCY_MANAGER')
+        
+        return jsonify({
+            "status": "success",
+            "producers": rows,
+            "count": len(rows),
+            "counts": {
+                "total": len(rows),
+                "subcodes": subcodes_cnt,
+                "direct": direct_cnt,
+                "managers": mgr_cnt
+            }
+        })
+    except Exception as e:
+        print("[api_get_producers_registry Error]", e)
+        return jsonify({"error": f"Error fetching producers: {str(e)}"}), 500
 
 @app.route("/api/producers/save", methods=["POST"])
 def api_save_producer():

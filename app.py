@@ -1638,16 +1638,47 @@ def api_update_contract():
 
 @app.route("/api/docs/list", methods=["GET"])
 def api_get_docs_list():
-    """Returns official PDF library files."""
-    docs = [
-        {"id": 1, "filename": "kanonismos_poliseon_das.pdf", "title": "Κανονισμός Πωλήσεων ΔΑΣ 2023-2026", "category": "Κανονισμοί", "size": "6.65 MB", "url": "docs/kanonismos_poliseon_das.pdf"},
-        {"id": 2, "filename": "ploigos_zwhs_ygeias_ver21.pdf", "title": "Πλοηγός Ατομικών Ασφαλίσεων Ζωής & Υγείας (ver21)", "category": "Οδηγοί", "size": "5.45 MB", "url": "docs/ploigos_zwhs_ygeias_ver21.pdf"},
-        {"id": 3, "filename": "apotamieusi.pdf", "title": "Προγράμματα Αποταμίευσης & Σύνταξης ERGO", "category": "Αποταμίευση", "size": "517 KB", "url": "docs/apotamieusi.pdf"},
-        {"id": 4, "filename": "ip_pdf_health.pdf", "title": "ERGO Health Care - Όροι & Παροχές", "category": "Υγεία", "size": "340 KB", "url": "docs/ip_pdf_health.pdf"},
-        {"id": 5, "filename": "ip_pdf_life.pdf", "title": "ERGO Life Protect - Καλύψεις Ζωής", "category": "Ζωή", "size": "369 KB", "url": "docs/ip_pdf_life.pdf"},
-        {"id": 6, "filename": "ip_pdf_group.pdf", "title": "Ομαδικά Ασφαλιστήρια ERGO Group", "category": "Ομαδικά", "size": "370 KB", "url": "docs/ip_pdf_group.pdf"},
-        {"id": 7, "filename": "symfonia_57.pdf", "title": "Επίσημη Συμφωνία Λογαριασμού 57 (Audit)", "category": "Συμφωνία", "size": "72 KB", "url": "docs/symfonia_57.pdf"}
-    ]
+    """Returns ONLY the actual physical Program Guide PDFs stored in theme/docs."""
+    docs_dir = os.path.join("theme", "docs")
+    os.makedirs(docs_dir, exist_ok=True)
+    
+    title_map = {
+        "kanonismos_poliseon_das.pdf": ("Κανονισμός Πωλήσεων ΔΑΣ 2023-2026", "Κανονισμοί"),
+        "ploigos_zwhs_ygeias_ver21.pdf": ("Πλοηγός Ατομικών Ασφαλίσεων Ζωής & Υγείας (ver21)", "Οδηγοί"),
+        "apotamieusi.pdf": ("Προγράμματα Αποταμίευσης & Σύνταξης ERGO", "Αποταμίευση"),
+        "ip_pdf_health.pdf": ("ERGO Health Care - Όροι & Παροχές", "Υγεία"),
+        "ip_pdf_life.pdf": ("ERGO Life Protect - Καλύψεις Ζωής", "Ζωή"),
+        "ip_pdf_group.pdf": ("Ομαδικά Ασφαλιστήρια ERGO Group", "Ομαδικά"),
+    }
+    
+    docs = []
+    idx = 1
+    for fname in sorted(os.listdir(docs_dir)):
+        if not fname.lower().endswith(".pdf"):
+            continue
+        # Exclude any 57 statement / audit files that do not belong to Program Guides
+        if "57" in fname.lower() or fname.lower().startswith("1411"):
+            continue
+            
+        fpath = os.path.join(docs_dir, fname)
+        size_bytes = os.path.getsize(fpath)
+        if size_bytes >= 1024 * 1024:
+            size_str = f"{size_bytes / (1024 * 1024):.2f} MB"
+        else:
+            size_str = f"{size_bytes / 1024:.0f} KB"
+            
+        default_title, default_cat = title_map.get(fname, (fname.replace('.pdf', '').replace('_', ' ').title(), "Έγγραφα"))
+        
+        docs.append({
+            "id": idx,
+            "filename": fname,
+            "title": default_title,
+            "category": default_cat,
+            "size": size_str,
+            "url": f"docs/{fname}"
+        })
+        idx += 1
+        
     return jsonify({"status": "success", "docs": docs, "count": len(docs)})
 
 @app.route("/api/docs/upload", methods=["POST"])
@@ -1655,13 +1686,36 @@ def api_upload_doc():
     if "file" not in request.files:
         return jsonify({"error": "Δεν επιλέχθηκε αρχείο PDF"}), 400
     f = request.files["file"]
-    if f.filename:
+    if f and f.filename:
+        filename = f.filename
+        if not filename.lower().endswith(".pdf"):
+            return jsonify({"error": "Επιτρέπονται μόνο αρχεία μορφής PDF"}), 400
+        # Prevent placing 57 into docs
+        if "57" in filename:
+            return jsonify({"error": "Τα αρχεία Λογαριασμού 57 μεταφορτώνονται στο ειδικό εργαλείο 'Μεταφόρτωση Αρχείων Λογαριασμού 57' και όχι στον Οδηγό Προγραμμάτων."}), 400
+            
         docs_dir = os.path.join("theme", "docs")
         os.makedirs(docs_dir, exist_ok=True)
-        fpath = os.path.join(docs_dir, f.filename)
+        fpath = os.path.join(docs_dir, filename)
         f.save(fpath)
-        return jsonify({"status": "success", "message": f"Το έγγραφο '{f.filename}' ανέβηκε επιτυχώς στη βιβλιοθήκη!"})
+        return jsonify({"status": "success", "message": f"Το έγγραφο '{filename}' προστέθηκε επιτυχώς στον Οδηγό Προγραμμάτων!"})
     return jsonify({"error": "Σφάλμα κατά την αποθήκευση"}), 400
+
+@app.route("/api/docs/delete", methods=["POST"])
+def api_delete_doc():
+    data = request.get_json(force=True) or {}
+    filename = data.get("filename", "").strip()
+    if not filename:
+        return jsonify({"error": "Δεν καθορίστηκε όνομα αρχείου"}), 400
+    docs_dir = os.path.join("theme", "docs")
+    fpath = os.path.join(docs_dir, filename)
+    if os.path.exists(fpath):
+        try:
+            os.remove(fpath)
+            return jsonify({"status": "success", "message": f"Το έγγραφο '{filename}' διαγράφηκε επιτυχώς!"})
+        except Exception as e:
+            return jsonify({"error": f"Σφάλμα διαγραφής: {str(e)}"}), 500
+    return jsonify({"error": "Το αρχείο δεν βρέθηκε"}), 404
 
 @app.route("/<path:path>")
 def serve_static(path):

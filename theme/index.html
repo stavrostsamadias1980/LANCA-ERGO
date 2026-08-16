@@ -199,7 +199,7 @@
 
         .nav-dropdown-menu {
             position: absolute;
-            top: calc(100% + 10px);
+            top: 100%;
             left: 0;
             min-width: 260px;
             background: var(--glass-bg-dropdown);
@@ -213,15 +213,28 @@
             flex-direction: column;
             gap: 4px;
             z-index: 1050;
+            margin-top: 4px;
             animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .nav-item:hover .nav-dropdown-menu {
+        /* Invisible bridge to prevent mouse leaving hover area */
+        .nav-dropdown-menu::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: transparent;
+        }
+
+        .nav-item:hover .nav-dropdown-menu,
+        .nav-item.open .nav-dropdown-menu {
             display: flex;
         }
 
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-8px); }
+            from { opacity: 0; transform: translateY(-4px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -971,8 +984,8 @@
                 </button>
 
                 <!-- 2. Εκκαθαρίσεις ▾ -->
-                <div class="nav-item">
-                    <button class="nav-btn" id="nav-btn-recon">
+                <div class="nav-item" id="nav-item-recon">
+                    <button class="nav-btn" id="nav-btn-recon" onclick="toggleNavDropdown('nav-item-recon', event)">
                         📑 Εκκαθαρίσεις ▾
                     </button>
                     <div class="nav-dropdown-menu">
@@ -1011,8 +1024,8 @@
                 </button>
 
                 <!-- 4. Πελάτες & Συνεργάτες ▾ -->
-                <div class="nav-item">
-                    <button class="nav-btn" id="nav-btn-crm">
+                <div class="nav-item" id="nav-item-crm">
+                    <button class="nav-btn" id="nav-btn-crm" onclick="toggleNavDropdown('nav-item-crm', event)">
                         👥 Πελάτες & Συνεργάτες ▾
                     </button>
                     <div class="nav-dropdown-menu">
@@ -1026,11 +1039,14 @@
                 </div>
 
                 <!-- 5. Εργαλεία ▾ -->
-                <div class="nav-item">
-                    <button class="nav-btn" id="nav-btn-tools">
+                <div class="nav-item" id="nav-item-tools">
+                    <button class="nav-btn" id="nav-btn-tools" onclick="toggleNavDropdown('nav-item-tools', event)">
                         🧮 Εργαλεία ▾
                     </button>
                     <div class="nav-dropdown-menu">
+                        <a class="dropdown-item" onclick="switchTab('tab-upload')">
+                            <span class="icon">📤</span> Μεταφόρτωση Αρχείων (Upload)
+                        </a>
                         <a class="dropdown-item" onclick="switchTab('tab-calculator')">
                             <span class="icon">🧮</span> Live Υπολογιστής Προμηθειών
                         </a>
@@ -1046,6 +1062,9 @@
                     <span class="status-dot"></span>
                     <span>Νίκος Αναγνωστόπουλος</span>
                 </div>
+                <button class="btn-pill btn-ghost" style="padding: 6px 12px; font-size: 12px; color: var(--accent-rose); font-weight: 700;" onclick="userLogout()">
+                    🚪 Αποσύνδεση
+                </button>
             </div>
         </nav>
 
@@ -1665,6 +1684,51 @@
         </div>
 
         <!-- ==========================================================================
+             TAB: 📤 ΜΕΤΑΦΟΡΤΩΣΗ ΑΡΧΕΙΩΝ & ETL ENGINE (UPLOAD HUB)
+             ========================================================================== -->
+        <div id="tab-upload" class="tab-panel">
+            <div class="glass-box">
+                <div class="box-header">
+                    <div class="box-title">📤 Κέντρο Μεταφόρτωσης Αρχείων Εκκαθάρισης (CSV / PDF / Excel)</div>
+                    <span class="badge badge-success">⚡ Αυτόματη Επεξεργασία & Υπολογισμός Προμηθειών</span>
+                </div>
+
+                <div class="upload-dropzone" style="padding:36px 20px;" onclick="document.getElementById('statement-files-input').click()">
+                    <input type="file" id="statement-files-input" multiple accept=".csv,.pdf,.xlsx,.xls" style="display:none;" onchange="uploadStatementFiles(this)">
+                    <span style="font-size:42px;">📁</span>
+                    <h3 style="font-size:18px; font-weight:800; color:var(--brand-navy); margin-top:8px;">Σύρετε ή Επιλέξτε Αρχεία Εκκαθάρισης ERGO</h3>
+                    <p style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
+                        Υποστηρίζονται: Statements CSV (π.χ. <code>1411-ΠΡΟΜΗΘΕΙΕΣ 02_2026.csv</code>), Αποδεσμεύσεις PDF Λογαριασμού 57 (<code>__57.pdf</code>) και Master Excel.
+                    </p>
+                    <button class="btn-pill btn-primary" style="margin-top:14px;">📂 Επιλογή Αρχείων από τον Υπολογιστή</button>
+                </div>
+
+                <div id="upload-status-box" style="display:none; background:rgba(219, 234, 254, 0.6); padding:16px; border-radius:16px; border:1px solid rgba(59, 130, 246, 0.3);">
+                    <div style="font-weight:700; font-size:13.5px; color:var(--brand-blue);" id="upload-status-text">⏳ Μεταφόρτωση και επεξεργασία...</div>
+                    <div style="width:100%; height:6px; background:#E2E8F0; border-radius:4px; margin-top:8px; overflow:hidden;">
+                        <div id="upload-progress-bar" style="width:100%; height:100%; background:linear-gradient(90deg, #1D4ED8, #3B82F6); animation: progressAnim 1.5s infinite linear;"></div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:10px;">
+                    <div style="background:rgba(255, 255, 255, 0.7); padding:16px; border-radius:18px; border:1px solid var(--glass-border);">
+                        <h4 style="font-size:14px; font-weight:800; color:var(--brand-navy); margin-bottom:6px;">⚙️ Αυτόματος Υπολογισμός (ETL)</h4>
+                        <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+                            Με κάθε νέο αρχείο, το σύστημα εκτελεί αυτόματο καθαρισμό δεδομένων, αναγνωρίζει πελάτες, υπολογίζει τις προμήθειες συνεργατών (25%-29%) και το 20% Agency Overriding.
+                        </p>
+                    </div>
+
+                    <div style="background:rgba(255, 255, 255, 0.7); padding:16px; border-radius:18px; border:1px solid var(--glass-border);">
+                        <h4 style="font-size:14px; font-weight:800; color:var(--brand-navy); margin-bottom:6px;">🛡️ Ασφάλεια & GDPR Audit</h4>
+                        <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+                            Όλες οι ενέργειες μεταφόρτωσης και επεξεργασίας καταγράφονται αυτόματα στο μητρώο ελέγχου GDPR με χρονοσφραγίδα και χρήστη διαχειριστή.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================================
              🏢 OFFICIAL LANCA FOOTER (COMPANY DETAILS)
              ========================================================================== -->
         <footer class="official-footer">
@@ -1773,8 +1837,27 @@
             loadAllData();
         });
 
-        // === 🧭 TAB SWITCHING ===
+        // === 🧭 TAB SWITCHING & DROPDOWN MANAGEMENT ===
+        function toggleNavDropdown(itemId, event) {
+            if (event) event.stopPropagation();
+            const item = document.getElementById(itemId);
+            if (!item) return;
+            const wasOpen = item.classList.contains('open');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('open'));
+            if (!wasOpen) item.classList.add('open');
+        }
+
+        // Close dropdowns when clicking anywhere outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-item')) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('open'));
+            }
+        });
+
         function switchTab(tabId) {
+            // Close any open dropdowns immediately
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('open'));
+
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             
@@ -1784,8 +1867,21 @@
             if (tabId === 'tab-dashboard') document.getElementById('nav-btn-dash')?.classList.add('active');
             else if (tabId === 'tab-reconciliation') document.getElementById('nav-btn-57')?.classList.add('active');
             else if (tabId === 'tab-contracts' || tabId === 'tab-producers-reg') document.getElementById('nav-btn-crm')?.classList.add('active');
-            else if (tabId === 'tab-calculator' || tabId === 'tab-docs') document.getElementById('nav-btn-tools')?.classList.add('active');
+            else if (tabId === 'tab-calculator' || tabId === 'tab-docs' || tabId === 'tab-upload') document.getElementById('nav-btn-tools')?.classList.add('active');
             else document.getElementById('nav-btn-recon')?.classList.add('active');
+
+            // Scroll to top of content smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function userLogout() {
+            if (confirm("Επιβεβαίωση αποσύνδεσης από την πλατφόρμα LANCA Ι.Κ.Ε.;")) {
+                try {
+                    await fetch('/api/auth/logout', { method: 'POST' });
+                } catch(e) {}
+                alert("Έχετε αποσυνδεθεί επιτυχώς.");
+                window.location.reload();
+            }
         }
 
         // === 🎴 EXPANDING CARDS ===
@@ -2428,6 +2524,46 @@
         function exportFilteredDashboard(type) {
             if (type === 'xlsx') exportToExcel('dashboard');
             else exportToPDF('dashboard');
+        }
+
+        // === 📤 UPLOAD STATEMENTS ENGINE ===
+        async function uploadStatementFiles(input) {
+            if (!input.files || input.files.length === 0) return;
+            const statusBox = document.getElementById('upload-status-box');
+            const statusText = document.getElementById('upload-status-text');
+            
+            statusBox.style.display = 'block';
+            statusText.innerText = `⏳ Μεταφόρτωση και αυτόματος υπολογισμός ${input.files.length} αρχείων...`;
+
+            const formData = new FormData();
+            for (let i = 0; i < input.files.length; i++) {
+                formData.append('files', input.files[i]);
+            }
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    statusText.innerText = `✔ ${d.message || 'Τα αρχεία καταχωρήθηκαν και εκκαθαρίστηκαν επιτυχώς!'}`;
+                    statusBox.style.background = 'rgba(209, 250, 229, 0.8)';
+                    statusText.style.color = 'var(--accent-emerald)';
+                    // Reload all system data
+                    setTimeout(() => {
+                        loadAllData();
+                    }, 1000);
+                } else {
+                    statusText.innerText = `❌ Σφάλμα: ${d.error || 'Αποτυχία επεξεργασίας'}`;
+                    statusBox.style.background = 'rgba(254, 226, 226, 0.8)';
+                    statusText.style.color = '#B91C1C';
+                }
+            } catch (e) {
+                statusText.innerText = `❌ Σφάλμα δικτύου κατά τη μεταφόρτωση`;
+                statusBox.style.background = 'rgba(254, 226, 226, 0.8)';
+                statusText.style.color = '#B91C1C';
+            }
         }
     </script>
 </body>

@@ -1880,9 +1880,7 @@ def api_export_excel():
 @app.route("/api/fix_db", methods=["GET"])
 def api_fix_db():
     try:
-        conn = get_pg_connection()
-        if not conn:
-            conn = sqlite3.connect(SQLITE_PATH)
+        conn = sqlite3.connect(SQLITE_PATH)
         cur = conn.cursor()
         
         cur.execute("DELETE FROM producers_catalog WHERE producer_code = '11523' OR full_name LIKE '%ΤΣΑΜΑΔΙΑΣ%'")

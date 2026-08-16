@@ -758,6 +758,29 @@ def run_etl_seeder(force=False):
         except Exception as e:
             print("[PDF Parsing Note]", e)
 
+    # 7. Producers Catalog Table
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS producers_catalog (
+        producer_code TEXT PRIMARY KEY,
+        full_name TEXT NOT NULL,
+        role TEXT,
+        tier TEXT,
+        phone TEXT,
+        email TEXT,
+        status TEXT DEFAULT 'Ενεργός',
+        commission_rate REAL DEFAULT 25.0,
+        notes TEXT
+    );
+    """)
+    cur.execute("SELECT COUNT(*) FROM producers_catalog;")
+    if cur.fetchone()[0] == 0:
+        initial_producers = [
+            ("1411", "Νίκος Αναγνωστόπουλος", "Agency Manager / Συντονιστής", "Κατηγορία Γ (20% - 35%)", "6944 347151", "info@lanca.gr", "Ενεργός", 20.0, "Συντονιστής Agency 1411 ERGO"),
+            ("SYN-101", "Συνεργάτης Δικτύου Α'", "Ασφαλιστικός Πράκτορας", "Κατηγορία Α (25% - 29%)", "26310 51222", "partners@lanca.gr", "Ενεργός", 25.0, "Συνεργάτης Κατηγορίας Α"),
+            ("SYN-102", "Συνεργάτης Δικτύου Β'", "Ασφαλιστικός Πράκτορας", "Κατηγορία Α (25% - 29%)", "26310 51222", "partners@lanca.gr", "Ενεργός", 25.0, "Συνεργάτης Κατηγορίας Α")
+        ]
+        cur.executemany("INSERT INTO producers_catalog (producer_code, full_name, role, tier, phone, email, status, commission_rate, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", initial_producers)
+
     conn.commit()
     conn.close()
 
@@ -1084,39 +1107,45 @@ def api_get_coverages():
 
 @app.route("/api/reconciliation", methods=["GET"])
 def api_get_reconciliation():
-    """Returns full Account 57 reconciliation data dynamically ONLY for active statement months."""
+    """Returns full Account 57 reconciliation data dynamically for active statements and Account 57 records."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     
-    # 1. Query distinct active statement months from financial_movements
+    # Gather all months present in financial_movements OR in monthly_reconciliations
     cur.execute("""
-        SELECT 
-            statement_month,
-            COALESCE(SUM(total_office_revenue), 0.0) as stmt_total,
-            COUNT(*) as stmt_count
-        FROM financial_movements
-        WHERE statement_month IS NOT NULL AND TRIM(statement_month) != ''
-        GROUP BY statement_month
+        SELECT DISTINCT statement_month FROM financial_movements WHERE statement_month IS NOT NULL AND TRIM(statement_month) != ''
+        UNION
+        SELECT DISTINCT statement_month FROM monthly_reconciliations WHERE statement_month IS NOT NULL AND TRIM(statement_month) != ''
         ORDER BY statement_month;
     """)
-    active_months = [dict(r) for r in cur.fetchall()]
+    all_months = [r[0] for r in cur.fetchall() if r[0]]
     
     table_a = []
     tot_stmt = 0.0
     tot_pdf = 0.0
     
-    for row in active_months:
-        st_mth = str(row["statement_month"]).strip()
-        live_stmt_amt = round(float(row["stmt_total"] or 0.0), 2)
-        live_count = int(row["stmt_count"] or 0)
+    for st_mth in all_months:
+        st_mth_clean = str(st_mth).strip()
         
-        # Check if there is an uploaded or configured released amount for this month
+        # Query statement sum
+        cur.execute("""
+            SELECT 
+                COALESCE(SUM(total_office_revenue), 0.0) as stmt_total,
+                COUNT(*) as stmt_count
+            FROM financial_movements 
+            WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;
+        """, (st_mth_clean, st_mth_clean.replace('/', '_')))
+        stat_row = cur.fetchone()
+        live_stmt_amt = round(float(stat_row[0] or 0.0), 2)
+        live_count = int(stat_row[1] or 0)
+        
+        # Query Account 57 released amount
         cur.execute("""
             SELECT account_57_release_month, account_57_released_amount 
             FROM monthly_reconciliations 
             WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;
-        """, (st_mth, st_mth.replace('/', '_')))
+        """, (st_mth_clean, st_mth_clean.replace('/', '_')))
         recon_row = cur.fetchone()
         
         rel_month = recon_row["account_57_release_month"] if recon_row and recon_row["account_57_release_month"] else "-"
@@ -1127,25 +1156,26 @@ def api_get_reconciliation():
         
         if is_matched:
             status_text = "✔ 100% Συμφωνία"
-        elif rel_amt == 0.0:
+        elif rel_amt > 0 and live_count == 0:
+            status_text = "⏳ Αποδέσμευση Τράπεζας (Εκκρεμεί Statement)"
+        elif rel_amt == 0.0 and live_count > 0:
             status_text = "⏳ Εκκρεμεί Αποδέσμευση 57"
         else:
             status_text = f"⚠️ Απόκλιση (€ {variance:+.2f})"
-        
+            
         table_a.append({
-            "statement_month": st_mth,
+            "statement_month": st_mth_clean,
             "statement_total_amount": live_stmt_amt,
             "statement_count": live_count,
             "account_57_release_month": rel_month,
             "account_57_released_amount": rel_amt,
-            "variance_amount": variance if rel_amt > 0 else 0.0,
+            "variance_amount": variance,
             "is_reconciled": 1 if is_matched else 0,
             "status_text": status_text
         })
         tot_stmt += live_stmt_amt
-        if rel_amt > 0:
-            tot_pdf += rel_amt
-    
+        tot_pdf += rel_amt
+        
     cur.execute("SELECT * FROM account_57_transactions WHERE branch_category = 'LIFE_HEALTH_RELEASE' ORDER BY iso_date;")
     table_c = [dict(r) for r in cur.fetchall()]
     
@@ -1153,7 +1183,7 @@ def api_get_reconciliation():
     
     tot_stmt = round(tot_stmt, 2)
     tot_pdf = round(tot_pdf, 2)
-    total_variance = round(tot_stmt - tot_pdf, 2) if tot_pdf > 0 else 0.0
+    total_variance = round(tot_stmt - tot_pdf, 2)
     
     if not table_a:
         overall_status = "📭 Δεν υπάρχουν καταχωρημένα δεδομένα"
@@ -1251,78 +1281,113 @@ def api_upload():
 
 @app.route("/api/upload-57", methods=["POST"])
 def api_upload_account_57():
-    user = get_authenticated_user()
-    uploaded_files = request.files.getlist("files") or ([request.files["file"]] if "file" in request.files else [])
-    if not uploaded_files:
-        return jsonify({"error": "Δεν επιλέχθηκε κανένα αρχείο PDF Λογαριασμού 57"}), 400
+    try:
+        user = get_authenticated_user()
+        uploaded_files = request.files.getlist("files") or ([request.files["file"]] if "file" in request.files else [])
+        if not uploaded_files:
+            return jsonify({"error": "Δεν επιλέχθηκε κανένα αρχείο PDF Λογαριασμού 57"}), 400
 
-    saved_payouts = []
-    conn = sqlite3.connect(SQLITE_PATH)
-    cur = conn.cursor()
+        saved_payouts = []
+        conn = sqlite3.connect(SQLITE_PATH)
+        cur = conn.cursor()
 
-    for f in uploaded_files:
-        if not f.filename:
-            continue
-        docs_dir = os.path.join("theme", "docs")
-        os.makedirs(docs_dir, exist_ok=True)
-        fpath = os.path.join(docs_dir, f.filename)
-        f.save(fpath)
+        for f in uploaded_files:
+            if not f or not f.filename:
+                continue
+            upload_dir = os.path.join(DB_DIR, "uploads_57")
+            os.makedirs(upload_dir, exist_ok=True)
+            fpath = os.path.join(upload_dir, f.filename)
+            f.save(fpath)
 
-        extracted_releases = []
-        try:
+            extracted_releases = []
             pages_text = []
-            if pdfplumber is not None:
-                with pdfplumber.open(fpath) as pdf:
-                    for page in pdf.pages:
-                        pages_text.append(page.extract_text() or "")
-            elif pymupdf is not None:
-                doc = pymupdf.open(fpath)
-                for page in doc:
-                    pages_text.append(page.get_text() or "")
-                doc.close()
+            try:
+                if pymupdf is not None:
+                    doc = pymupdf.open(fpath)
+                    for page in doc:
+                        pages_text.append(page.get_text() or "")
+                    doc.close()
+                elif pdfplumber is not None:
+                    with pdfplumber.open(fpath) as pdf:
+                        for page in pdf.pages:
+                            pages_text.append(page.extract_text() or "")
+            except Exception as pe:
+                print("[PDF 57 Open Error]", pe)
 
             for text in pages_text:
                 for line in text.splitlines():
-                    m_date = re.search(r'(\d{2})\.(\d{2})\.(\d{4})', line)
-                    if m_date and ("57" in line or "ΖΩΗΣ" in line.upper() or "ΥΓΕΙΑΣ" in line.upper() or "LIFE" in line.upper() or "HEALTH" in line.upper() or "ΠΡΟΜΗΘΕΙΩΝ" in line.upper()):
+                    m_date = re.search(r'(\d{2})[./-](\d{2})[./-](\d{4})', line)
+                    if m_date:
                         amounts = re.findall(r'(\d{1,3}(?:\.\d{3})*,\d{2})', line)
                         if amounts:
                             parsed_amt = clean_num(amounts[0])
+                            dep_m = f"{m_date.group(2)}/{m_date.group(3)}"
+                            stmt_m = shift_month_back(dep_m)
                             iso_d = f"{m_date.group(3)}-{m_date.group(2)}-{m_date.group(1)}"
-                            mth = f"{m_date.group(2)}/{m_date.group(3)}"
                             extracted_releases.append({
                                 "date": f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}",
                                 "iso_date": iso_d,
-                                "month": mth,
+                                "release_month": dep_m,
+                                "statement_month": stmt_m,
                                 "amount": parsed_amt,
                                 "line": line.strip()
                             })
-        except Exception as e:
-            print("[PDF 57 Parse Note]", e)
+                            # Update or Insert monthly_reconciliations with the bank released amount
+                            cur.execute("""
+                                INSERT INTO monthly_reconciliations (reconciliation_id, statement_month, account_57_release_date, account_57_release_month, account_57_released_amount)
+                                VALUES (?, ?, ?, ?, ?)
+                                ON CONFLICT(statement_month) DO UPDATE SET
+                                    account_57_release_date = excluded.account_57_release_date,
+                                    account_57_release_month = excluded.account_57_release_month,
+                                    account_57_released_amount = excluded.account_57_released_amount;
+                            """, (f"REC-{stmt_m.replace('/', '-')}", stmt_m, f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}", dep_m, parsed_amt))
+                            
+                            cur.execute("""
+                                INSERT OR REPLACE INTO account_57_transactions
+                                (transaction_code, statement_month, transaction_date, iso_date, branch_category, credit_amount, debit_amount, description)
+                                VALUES (?, ?, ?, ?, ?, ?, 0.0, ?);
+                            """, (f"REL-57-{stmt_m.replace('/', '-')}", stmt_m, f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}", iso_d, 'LIFE_HEALTH_RELEASE', parsed_amt, f"PDF 57: {line.strip()[:60]}"))
 
-        for item in extracted_releases:
-            cur.execute("""
-                INSERT OR REPLACE INTO account_57_transactions
-                (transaction_code, statement_month, transaction_date, iso_date, branch_category, credit_amount, debit_amount, description)
-                VALUES (?, ?, ?, ?, ?, ?, 0.0, ?);
-            """, (f"REL-57-{item['month'].replace('/', '-')}", item['month'], item['date'], item['iso_date'], 'LIFE_HEALTH_RELEASE', item['amount'], f"Εκκαθάριση PDF 57: {item['line'][:60]}"))
+            saved_payouts.append({
+                "filename": f.filename,
+                "extracted_count": len(extracted_releases),
+                "releases": extracted_releases
+            })
+            log_gdpr_audit(user.get("username", "admin"), "UPLOAD_PDF_57", f"Uploaded & parsed PDF 57: {f.filename}")
 
-        saved_payouts.append({
-            "filename": f.filename,
-            "extracted_count": len(extracted_releases),
-            "releases": extracted_releases
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "status": "success",
+            "success": True,
+            "message": f"Το αρχείο PDF Λογαριασμού 57 αναγνώστηκε και οι τραπεζικές κινήσεις καταχωρήθηκαν επιτυχώς στη Συμφωνία!",
+            "payouts": saved_payouts
         })
-        log_gdpr_audit(user.get("username", "admin"), "UPLOAD_PDF_57", f"Uploaded & parsed PDF 57: {f.filename}")
+    except Exception as e:
+        print("[Upload 57 Error]", e)
+        return jsonify({"error": f"Σφάλμα κατά την επεξεργασία του PDF Λογαριασμού 57: {str(e)}"}), 500
 
+@app.route("/api/reconciliation/delete", methods=["POST"])
+def api_delete_reconciliation():
+    user = get_authenticated_user()
+    data = request.get_json(force=True) or {}
+    months = data.get("months", [])
+    if not months:
+        return jsonify({"error": "Δεν επιλέχθηκαν μήνες προς διαγραφή"}), 400
+
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    for m in months:
+        m_clean = str(m).strip()
+        cur.execute("DELETE FROM monthly_reconciliations WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;", (m_clean, m_clean.replace('/', '_')))
+        cur.execute("DELETE FROM account_57_transactions WHERE TRIM(statement_month) = ? OR TRIM(statement_month) = ?;", (m_clean, m_clean.replace('/', '_')))
+        cur.execute("DELETE FROM ergo_company_payouts WHERE TRIM(month_statement) = ? OR TRIM(month_statement) = ?;", (m_clean, m_clean.replace('/', '_')))
     conn.commit()
     conn.close()
-
-    return jsonify({
-        "status": "success",
-        "success": True,
-        "message": f"Το αρχείο PDF Λογαριασμού 57 ελέγχθηκε και καταχωρήθηκε επιτυχώς στη βάση δεδομένων!",
-        "payouts": saved_payouts
-    })
+    
+    log_gdpr_audit(user.get("username", "admin"), "DELETE_RECONCILIATION", f"Deleted Account 57 records for months: {months}")
+    return jsonify({"status": "success", "message": f"Διαγράφηκαν τα δεδομένα Λογαριασμού 57 για {len(months)} μήνες επιτυχώς!"})
 
 @app.route("/api/delete", methods=["POST"])
 def delete_records():
@@ -1562,53 +1627,93 @@ def api_update_client():
 
 @app.route("/api/producers/list", methods=["GET"])
 def api_get_producers_registry():
-    """Returns the managed list of producers/partners with codes."""
+    """Returns the persistent catalog of producers/partners joined with active metrics."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     
     cur.execute("""
         SELECT 
-            m.producer_name,
-            m.producer_code,
+            p.producer_code,
+            p.full_name as producer_name,
+            p.role,
+            p.tier,
+            p.phone,
+            p.email,
+            p.status,
+            p.commission_rate as avg_rate,
+            p.notes,
             COUNT(m.movement_id) as total_policies,
-            SUM(m.net_premium_total) as total_net,
-            SUM(m.producer_commission_amount) as total_commission,
-            AVG(m.producer_commission_rate) as avg_rate,
+            COALESCE(SUM(m.net_premium_total), 0.0) as total_net,
+            COALESCE(SUM(m.producer_commission_amount), 0.0) as total_commission,
             MAX(m.statement_month) as last_month
-        FROM financial_movements m
-        WHERE m.has_producer_role = 1
-        GROUP BY m.producer_name, m.producer_code
-        ORDER BY m.producer_name ASC;
+        FROM producers_catalog p
+        LEFT JOIN financial_movements m ON m.producer_code = p.producer_code OR m.producer_name = p.full_name
+        GROUP BY p.producer_code
+        ORDER BY p.producer_code;
     """)
     rows = [dict(r) for r in cur.fetchall()]
-    
-    # Ensure default producers if list is small
-    if not rows:
-        rows = [
-            {"producer_name": "Συνεργάτης Κατηγορίας Α (Direct)", "producer_code": "PR-1411-01", "total_policies": 12, "total_net": 3706.12, "total_commission": 926.53, "avg_rate": 25.0, "last_month": "07/2026"},
-            {"producer_name": "Συνεργάτης 2 (Unit Manager)", "producer_code": "PR-1411-02", "total_policies": 4, "total_net": 1300.00, "total_commission": 377.00, "avg_rate": 29.0, "last_month": "06/2026"}
-        ]
     conn.close()
     return jsonify({"status": "success", "producers": rows, "count": len(rows)})
 
 @app.route("/api/producers/save", methods=["POST"])
 def api_save_producer():
+    user = get_authenticated_user()
     data = request.get_json(force=True) or {}
-    pname = data.get("producer_name", "").strip()
-    pcode = data.get("producer_code", "").strip()
-    rate = float(data.get("commission_rate", 25.0))
+    pname = str(data.get("producer_name") or data.get("full_name") or "").strip()
+    pcode = str(data.get("producer_code") or "").strip()
+    role = str(data.get("role") or "Ασφαλιστικός Πράκτορας").strip()
+    tier = str(data.get("tier") or "Κατηγορία Α (25% - 29%)").strip()
+    phone = str(data.get("phone") or "26310 51222").strip()
+    email = str(data.get("email") or "partners@lanca.gr").strip()
+    status = str(data.get("status") or "Ενεργός").strip()
+    rate = clean_num(data.get("commission_rate") or data.get("avg_rate") or 25.0)
+    notes = str(data.get("notes") or "").strip()
     
-    if not pname:
-        return jsonify({"error": "Απαιτείται όνομα συνεργάτη"}), 400
+    if not pname or not pcode:
+        return jsonify({"error": "Απαιτείται ονοματεπώνυμο και κωδικός συνεργάτη"}), 400
         
     conn = sqlite3.connect(SQLITE_PATH)
     cur = conn.cursor()
-    if pcode:
-        cur.execute("UPDATE financial_movements SET producer_name = ?, producer_code = ? WHERE producer_code = ? OR producer_name = ?", (pname, pcode, pcode, pname))
+    cur.execute("""
+        INSERT INTO producers_catalog (producer_code, full_name, role, tier, phone, email, status, commission_rate, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(producer_code) DO UPDATE SET
+            full_name = excluded.full_name,
+            role = excluded.role,
+            tier = excluded.tier,
+            phone = excluded.phone,
+            email = excluded.email,
+            status = excluded.status,
+            commission_rate = excluded.commission_rate,
+            notes = excluded.notes;
+    """, (pcode, pname, role, tier, phone, email, status, rate, notes))
+    
+    # Update matching movements
+    cur.execute("UPDATE financial_movements SET producer_name = ? WHERE producer_code = ?;", (pname, pcode))
     conn.commit()
     conn.close()
+    
+    log_gdpr_audit(user.get("username", "admin"), "SAVE_PRODUCER", f"Saved producer {pcode} - {pname}")
     return jsonify({"status": "success", "message": f"Ο συνεργάτης '{pname}' ({pcode}) αποθηκεύτηκε επιτυχώς!"})
+
+@app.route("/api/producers/delete", methods=["POST"])
+def api_delete_producers():
+    user = get_authenticated_user()
+    data = request.get_json(force=True) or {}
+    codes = data.get("producer_codes", [])
+    if not codes:
+        return jsonify({"error": "Δεν επιλέχθηκαν συνεργάτες προς διαγραφή"}), 400
+        
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    for code in codes:
+        cur.execute("DELETE FROM producers_catalog WHERE producer_code = ?;", (str(code).strip(),))
+    conn.commit()
+    conn.close()
+    
+    log_gdpr_audit(user.get("username", "admin"), "DELETE_PRODUCERS", f"Deleted producers: {codes}")
+    return jsonify({"status": "success", "message": f"Διαγράφηκαν {len(codes)} συνεργάτες επιτυχώς!"})
 
 @app.route("/api/contracts/update", methods=["POST"])
 def api_update_contract():

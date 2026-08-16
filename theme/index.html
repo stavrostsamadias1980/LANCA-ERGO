@@ -1503,10 +1503,23 @@
                     </div>
                 </div>
 
+                <div class="table-toolbar">
+                    <div class="toolbar-left">
+                        <label class="col-checkbox-label">
+                            <input type="checkbox" id="recon-select-all" class="custom-checkbox" onchange="toggleSelectAll('recon')">
+                            <span>Επιλογή Όλων</span>
+                        </label>
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn-pill btn-danger" onclick="deleteSelectedReconciliation()">🗑️ Διαγραφή Επιλεγμένων 57</button>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="glass-table" id="table-reconciliation">
                         <thead>
                             <tr>
+                                <th style="width:40px;"></th>
                                 <th>Α/Α</th>
                                 <th>Μήνας Εκκαθάρισης</th>
                                 <th>Ποσό Κατάστασης (€)</th>
@@ -1514,11 +1527,13 @@
                                 <th>Αποδεσμευμένο Ποσό Τραπέζης (€)</th>
                                 <th>Απόκλιση (€)</th>
                                 <th>Κατάσταση Ταύτισης</th>
+                                <th>Ενέργειες</th>
                             </tr>
                         </thead>
                         <tbody id="recon-tbody"></tbody>
                         <tfoot>
                             <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
+                                <td></td>
                                 <td></td>
                                 <td>ΣΥΝΟΛΟ</td>
                                 <td id="recon-tot-stmt">€ 0,00</td>
@@ -1526,6 +1541,7 @@
                                 <td id="recon-tot-rel" style="color:var(--accent-emerald);">€ 0,00</td>
                                 <td id="recon-tot-var">€ 0,00</td>
                                 <td><span id="recon-overall-status" class="badge badge-success">✔ 100% ΑΠΟΛΥΤΗ ΤΑΥΤΙΣΗ</span></td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1596,13 +1612,23 @@
                 </div>
 
                 <div class="table-toolbar">
-                    <input type="text" id="prod-reg-search" class="glass-input" placeholder="🔍 Αναζήτηση με Όνομα ή Κωδικό Συνεργάτη..." oninput="filterProducersRegTable()">
+                    <div class="toolbar-left">
+                        <label class="col-checkbox-label">
+                            <input type="checkbox" id="prod-reg-select-all" class="custom-checkbox" onchange="toggleSelectAll('prod-reg')">
+                            <span>Επιλογή Όλων</span>
+                        </label>
+                        <input type="text" id="prod-reg-search" class="glass-input" placeholder="🔍 Αναζήτηση με Όνομα ή Κωδικό Συνεργάτη..." oninput="filterProducersRegTable()">
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn-pill btn-danger" onclick="deleteSelectedProducers()">🗑️ Διαγραφή Επιλεγμένων Συνεργατών</button>
+                    </div>
                 </div>
 
                 <div class="table-responsive">
                     <table class="glass-table" id="table-producers-reg">
                         <thead>
                             <tr>
+                                <th style="width:40px;"></th>
                                 <th>Α/Α</th>
                                 <th>Κωδικός Συνεργάτη</th>
                                 <th>Ονοματεπώνυμο Συνεργάτη</th>
@@ -1945,6 +1971,74 @@
                 <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(226,232,240,0.8); padding-top:14px; margin-top:6px;">
                     <button type="button" class="btn-pill btn-ghost" onclick="closeEditModal()">✕ Ακύρωση</button>
                     <button type="submit" class="btn-pill btn-primary">💾 Αποθήκευση Αλλαγών</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         🤝 PRODUCER ADD / EDIT MODAL
+         ========================================================================== -->
+    <div id="producerModal" class="modal-overlay" onclick="if(event.target===this) closeProducerModal()">
+        <div class="modal-glass-card" style="max-width:580px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="producer-modal-title">
+                        🤝 Στοιχεία Συνεργάτη
+                    </h3>
+                    <span style="font-size:12px; color:var(--text-secondary);">Διαχείριση στοιχείων και ποσοστού προμήθειας συνεργάτη</span>
+                </div>
+                <button class="btn-pill btn-ghost" onclick="closeProducerModal()">✕</button>
+            </div>
+
+            <form onsubmit="saveProducerModal(event)" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-top:8px;">
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κωδικός Συνεργάτη:</label>
+                    <input type="text" id="prod-form-code" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. SYN-103 ή PR-1411-03" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ονοματεπώνυμο Συνεργάτη:</label>
+                    <input type="text" id="prod-form-name" class="glass-input" style="width:100%; font-weight:700;" placeholder="π.χ. Γεώργιος Παπαδόπουλος" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ρόλος / Θέση:</label>
+                    <input type="text" id="prod-form-role" class="glass-input" style="width:100%;" placeholder="π.χ. Ασφαλιστικός Πράκτορας">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κατηγορία Κλιμακίου:</label>
+                    <input type="text" id="prod-form-tier" class="glass-input" style="width:100%;" placeholder="π.χ. Κατηγορία Α (25% - 29%)">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Τηλέφωνο:</label>
+                    <input type="text" id="prod-form-phone" class="glass-input" style="width:100%;" placeholder="π.χ. 26310 51222">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Email:</label>
+                    <input type="email" id="prod-form-email" class="glass-input" style="width:100%;" placeholder="π.χ. partner@lanca.gr">
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ποσοστό Προμήθειας (%):</label>
+                    <input type="number" step="0.5" id="prod-form-rate" class="glass-input" style="width:100%; font-weight:700; color:var(--accent-gold);" placeholder="25" required>
+                </div>
+
+                <div>
+                    <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Κατάσταση:</label>
+                    <select id="prod-form-status" class="glass-select" style="width:100%;">
+                        <option value="Ενεργός">Ενεργός</option>
+                        <option value="Σε αναστολή">Σε αναστολή</option>
+                        <option value="Ανενεργός">Ανενεργός</option>
+                    </select>
+                </div>
+
+                <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(226,232,240,0.8); padding-top:14px; margin-top:6px;">
+                    <button type="button" class="btn-pill btn-ghost" onclick="closeProducerModal()">✕ Ακύρωση</button>
+                    <button type="submit" class="btn-pill btn-primary">💾 Αποθήκευση Συνεργάτη</button>
                 </div>
             </form>
         </div>
@@ -2798,7 +2892,7 @@
             if (!list || list.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align:center; padding:35px 20px; color:var(--text-muted); font-size:13.5px; font-weight:600;">
+                        <td colspan="9" style="text-align:center; padding:35px 20px; color:var(--text-muted); font-size:13.5px; font-weight:600;">
                             📭 Δεν υπάρχουν καταχωρημένα δεδομένα εκκαθάρισης στη βάση.<br>
                             <span style="font-size:12px; color:var(--text-secondary); font-weight:400; margin-top:4px; display:inline-block;">
                                 Μεταφορτώστε τα αρχεία σας από το μενού <strong>🧮 Εργαλεία ▾</strong> για να ξεκινήσει ο αυτόματος έλεγχος συμφωνίας.
@@ -2834,7 +2928,9 @@
                 
                 let badgeHtml = `<span class="badge badge-success">✔ 100% Συμφωνία</span>`;
                 if (!isMatched) {
-                    if (relAmt === 0) {
+                    if (relAmt > 0 && stmtAmt === 0) {
+                        badgeHtml = `<span class="badge badge-gold" style="background:#FEF3C7; color:#B45309; font-weight:700;">⏳ Αποδέσμευση Τράπεζας (Εκκρεμεί Statement)</span>`;
+                    } else if (relAmt === 0 && stmtAmt > 0) {
                         badgeHtml = `<span class="badge badge-gold" style="background:#FEF3C7; color:#B45309; font-weight:700;">⏳ Εκκρεμεί Αποδέσμευση 57</span>`;
                     } else if (stmtAmt === 0) {
                         badgeHtml = `<span class="badge badge-rose" style="background:#FFE4E6; color:#BE123C; font-weight:700;">❌ Διαγράφηκαν όλα τα συμβόλαια</span>`;
@@ -2844,6 +2940,9 @@
                 }
 
                 tr.innerHTML = `
+                    <td style="text-align:center;">
+                        <input type="checkbox" class="recon-row-check custom-checkbox" value="${r.statement_month}">
+                    </td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
                     <td style="font-weight:700;">${formatEur(stmtAmt)}</td>
@@ -2851,6 +2950,9 @@
                     <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(relAmt)}</td>
                     <td style="font-weight:700; color:${Math.abs(v) < 0.01 ? 'var(--text-secondary)' : 'var(--accent-rose)'};">${formatEur(v)}</td>
                     <td>${badgeHtml}</td>
+                    <td>
+                        <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteSingleReconciliation('${r.statement_month}')" title="Διαγραφή Μήνα 57">🗑️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2878,14 +2980,68 @@
             }
         }
 
+        async function deleteSelectedReconciliation() {
+            const checked = Array.from(document.querySelectorAll('.recon-row-check:checked')).map(c => c.value);
+            if (checked.length === 0) {
+                alert("Παρακαλώ επιλέξτε τουλάχιστον έναν μήνα 57 προς διαγραφή.");
+                return;
+            }
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τα δεδομένα Λογαριασμού 57 για τους επιλεγμένους μήνες (${checked.join(', ')})?`)) return;
+            try {
+                const res = await fetch('/api/reconciliation/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ months: checked })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Τα δεδομένα διαγράφηκαν επιτυχώς!");
+                    loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
+                }
+            } catch (e) {
+                alert("Σφάλμα δικτύου κατά τη διαγραφή!");
+            }
+        }
+
+        async function deleteSingleReconciliation(month) {
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τα δεδομένα Λογαριασμού 57 για τον μήνα '${month}'?`)) return;
+            try {
+                const res = await fetch('/api/reconciliation/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ months: [month] })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Ο μήνας διαγράφηκε!");
+                    loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
+                }
+            } catch (e) {
+                alert("Σφάλμα δικτύου κατά τη διαγραφή!");
+            }
+        }
+
         // === 🤝 PRODUCERS REGISTRY TABLE ===
         function renderProducersRegTable(list) {
             const tbody = document.getElementById('producers-reg-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            
+            if (!list || list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-muted); font-weight:600;">Δεν υπάρχουν καταχωρημένοι συνεργάτες στο μητρώο. Προσθέστε νέο συνεργάτη με το κουμπί ➕ παραπάνω.</td></tr>';
+                return;
+            }
+
             list.forEach((p, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td style="text-align:center;">
+                        <input type="checkbox" class="prod-reg-row-check custom-checkbox" value="${p.producer_code}">
+                    </td>
                     <td>${idx+1}</td>
                     <td><span class="badge badge-purple">${p.producer_code || 'PR-1411-01'}</span></td>
                     <td><strong>${p.producer_name}</strong></td>
@@ -2893,9 +3049,12 @@
                     <td>${formatEur(p.total_net)}</td>
                     <td style="color:var(--accent-gold); font-weight:800;">${formatEur(p.total_commission)}</td>
                     <td><span class="badge badge-gold">${p.avg_rate || 25}%</span></td>
-                    <td>${p.last_month || '07/2026'}</td>
+                    <td>${p.last_month || '-'}</td>
                     <td>
-                        <button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="openEditModal('${p.producer_code}')">✏️ Επεξεργασία</button>
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditProducerModal('${p.producer_code}')" title="Επεξεργασία">✏️</button>
+                            <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2905,9 +3064,119 @@
         function filterProducersRegTable() {
             const q = document.getElementById('prod-reg-search').value.toLowerCase();
             renderProducersRegTable(globalData.producersReg.filter(p => {
-                return !q || p.producer_name.toLowerCase().includes(q) || 
+                return !q || (p.producer_name && p.producer_name.toLowerCase().includes(q)) || 
                              (p.producer_code && p.producer_code.toLowerCase().includes(q));
             }));
+        }
+
+        function openNewProducerModal() {
+            document.getElementById('producer-modal-title').innerText = "➕ Προσθήκη Νέου Συνεργάτη";
+            document.getElementById('prod-form-code').value = "";
+            document.getElementById('prod-form-code').readOnly = false;
+            document.getElementById('prod-form-name').value = "";
+            document.getElementById('prod-form-role').value = "Ασφαλιστικός Πράκτορας";
+            document.getElementById('prod-form-tier').value = "Κατηγορία Α (25% - 29%)";
+            document.getElementById('prod-form-phone').value = "26310 51222";
+            document.getElementById('prod-form-email').value = "partners@lanca.gr";
+            document.getElementById('prod-form-rate').value = 25;
+            document.getElementById('prod-form-status').value = "Ενεργός";
+            document.getElementById('producerModal').classList.add('active');
+        }
+
+        function openEditProducerModal(code) {
+            const p = globalData.producersReg.find(x => x.producer_code === code);
+            if (!p) return;
+            document.getElementById('producer-modal-title').innerText = `✏️ Επεξεργασία Συνεργάτη (${code})`;
+            document.getElementById('prod-form-code').value = p.producer_code;
+            document.getElementById('prod-form-code').readOnly = true;
+            document.getElementById('prod-form-name').value = p.producer_name || "";
+            document.getElementById('prod-form-role').value = p.role || "Ασφαλιστικός Πράκτορας";
+            document.getElementById('prod-form-tier').value = p.tier || "Κατηγορία Α (25% - 29%)";
+            document.getElementById('prod-form-phone').value = p.phone || "26310 51222";
+            document.getElementById('prod-form-email').value = p.email || "partners@lanca.gr";
+            document.getElementById('prod-form-rate').value = p.avg_rate || 25;
+            document.getElementById('prod-form-status').value = p.status || "Ενεργός";
+            document.getElementById('producerModal').classList.add('active');
+        }
+
+        function closeProducerModal() {
+            document.getElementById('producerModal').classList.remove('active');
+        }
+
+        async function saveProducerModal(e) {
+            e.preventDefault();
+            const payload = {
+                producer_code: document.getElementById('prod-form-code').value.trim(),
+                producer_name: document.getElementById('prod-form-name').value.trim(),
+                role: document.getElementById('prod-form-role').value.trim(),
+                tier: document.getElementById('prod-form-tier').value.trim(),
+                phone: document.getElementById('prod-form-phone').value.trim(),
+                email: document.getElementById('prod-form-email').value.trim(),
+                commission_rate: parseFloat(document.getElementById('prod-form-rate').value) || 25.0,
+                status: document.getElementById('prod-form-status').value
+            };
+            try {
+                const res = await fetch('/api/producers/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Ο συνεργάτης αποθηκεύτηκε επιτυχώς!");
+                    closeProducerModal();
+                    loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία αποθήκευσης"));
+                }
+            } catch (err) {
+                alert("Σφάλμα δικτύου κατά την αποθήκευση!");
+            }
+        }
+
+        async function deleteSelectedProducers() {
+            const checked = Array.from(document.querySelectorAll('.prod-reg-row-check:checked')).map(c => c.value);
+            if (checked.length === 0) {
+                alert("Παρακαλώ επιλέξτε τουλάχιστον έναν συνεργάτη προς διαγραφή.");
+                return;
+            }
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τους ${checked.length} επιλεγμένους συνεργάτες;`)) return;
+            try {
+                const res = await fetch('/api/producers/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ producer_codes: checked })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Οι συνεργάτες διαγράφηκαν!");
+                    loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
+                }
+            } catch (e) {
+                alert("Σφάλμα δικτύου κατά τη διαγραφή!");
+            }
+        }
+
+        async function deleteSingleProducer(code, name) {
+            if (!confirm(`Είστε βέβαιοι ότι θέλετε να διαγράψετε τον συνεργάτη '${name || code}' (${code});`)) return;
+            try {
+                const res = await fetch('/api/producers/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ producer_codes: [code] })
+                });
+                const d = await res.json();
+                if (res.ok) {
+                    alert(d.message || "Ο συνεργάτης διαγράφηκε!");
+                    loadAllData();
+                } else {
+                    alert("Σφάλμα: " + (d.error || "Αποτυχία διαγραφής"));
+                }
+            } catch (e) {
+                alert("Σφάλμα δικτύου κατά τη διαγραφή!");
+            }
         }
 
         // === 📖 PDF LIBRARY RENDERING ===

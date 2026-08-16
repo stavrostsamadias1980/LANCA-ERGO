@@ -1181,10 +1181,10 @@ def api_get_agency():
     cur.execute("""
         SELECT 
             m.*,
-            COALESCE(p.full_name, m.producer_name, 'ΣΤΑΥΡΟΣ ΤΣΑΜΑΔΙΑΣ') as producer_name,
-            COALESCE(p.producer_code, m.producer_partner_code, '11523') as producer_partner_code,
-            COALESCE(p.ergo_code, m.producer_ergo_code, '11523') as producer_ergo_code,
-            COALESCE(p.partner_type_label, m.producer_org_team, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
+            COALESCE(p.full_name, m.producer_name, 'Άγνωστος Συνεργάτης') as producer_name,
+            COALESCE(p.producer_code, m.producer_partner_code, '-') as producer_partner_code,
+            COALESCE(p.ergo_code, m.producer_ergo_code, '-') as producer_ergo_code,
+            COALESCE(p.partner_type_label, m.producer_org_team, '🏢 Άγνωστη Ομάδα') as partner_type_label,
             COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m

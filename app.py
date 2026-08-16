@@ -317,12 +317,13 @@ def init_databases():
         transaction_id TEXT PRIMARY KEY,
         transaction_date TEXT NOT NULL,
         iso_date TEXT,
-        description TEXT NOT NULL,
-        branch_category TEXT NOT NULL,
+        statement_month TEXT,
+        matched_statement_month TEXT,
+        description TEXT,
+        branch_category TEXT DEFAULT 'LIFE_HEALTH_RELEASE',
         debit_amount REAL DEFAULT 0.0,
         credit_amount REAL DEFAULT 0.0,
-        running_balance REAL NOT NULL,
-        matched_statement_month TEXT,
+        running_balance REAL DEFAULT 0.0,
         is_reconciled INTEGER DEFAULT 0
     );
 
@@ -379,6 +380,14 @@ def init_databases():
         ip_address TEXT
     );
     """)
+    try:
+        cur.execute("ALTER TABLE account_57_transactions ADD COLUMN statement_month TEXT;")
+    except Exception:
+        pass
+    try:
+        cur.execute("ALTER TABLE account_57_transactions ADD COLUMN matched_statement_month TEXT;")
+    except Exception:
+        pass
     conn.commit()
     conn.close()
 
@@ -1345,9 +1354,9 @@ def api_upload_account_57():
                             
                             cur.execute("""
                                 INSERT OR REPLACE INTO account_57_transactions
-                                (transaction_code, statement_month, transaction_date, iso_date, branch_category, credit_amount, debit_amount, description)
-                                VALUES (?, ?, ?, ?, ?, ?, 0.0, ?);
-                            """, (f"REL-57-{stmt_m.replace('/', '-')}", stmt_m, f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}", iso_d, 'LIFE_HEALTH_RELEASE', parsed_amt, f"PDF 57: {line.strip()[:60]}"))
+                                (transaction_id, transaction_date, iso_date, statement_month, matched_statement_month, description, branch_category, debit_amount, credit_amount, running_balance, is_reconciled)
+                                VALUES (?, ?, ?, ?, ?, ?, 'LIFE_HEALTH_RELEASE', 0.0, ?, 0.0, 1);
+                            """, (f"REL-57-{stmt_m.replace('/', '-')}", f"{m_date.group(1)}.{m_date.group(2)}.{m_date.group(3)}", iso_d, stmt_m, stmt_m, f"PDF 57: {line.strip()[:60]}", parsed_amt))
 
             saved_payouts.append({
                 "filename": f.filename,

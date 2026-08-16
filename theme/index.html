@@ -21,40 +21,40 @@
            Inspired by Apple iOS 17 Pro Max, VisionOS & CodePen NPRPBjd
            ========================================================================== */
         :root {
-            --bg-mesh-1: #E0F2FE;
-            --bg-mesh-2: #EDE9FE;
-            --bg-mesh-3: #FCE7F3;
-            --bg-mesh-4: #FEF3C7;
-            --bg-mesh-5: #F0FDF4;
+            --bg-mesh-1: #F8FAFC;
+            --bg-mesh-2: #F1F5F9;
+            --bg-mesh-3: #E2E8F0;
+            --bg-mesh-4: #F8FAFC;
+            --bg-mesh-5: #F1F5F9;
             
-            --glass-bg-base: rgba(255, 255, 255, 0.65);
-            --glass-bg-card: rgba(255, 255, 255, 0.72);
-            --glass-bg-dropdown: rgba(255, 255, 255, 0.92);
-            --glass-bg-hover: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.85);
-            --glass-border-subtle: rgba(226, 232, 240, 0.6);
-            --glass-shadow: 0 16px 40px -8px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(255, 255, 255, 0.9) inset;
-            --glass-shadow-lg: 0 24px 60px -12px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(255, 255, 255, 0.95) inset;
-            --glass-shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 0 1px 1px rgba(255, 255, 255, 0.8) inset;
+            --glass-bg-base: #FFFFFF;
+            --glass-bg-card: #FFFFFF;
+            --glass-bg-dropdown: #FFFFFF;
+            --glass-bg-hover: #F8FAFC;
+            --glass-border: #CBD5E1;
+            --glass-border-subtle: #E2E8F0;
+            --glass-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+            --glass-shadow-lg: 0 10px 30px -4px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0, 0, 0, 0.05);
+            --glass-shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
             
             --brand-blue: #1D4ED8;
-            --brand-navy: #1E293B;
+            --brand-navy: #0F172A;
             --accent-teal: #0D9488;
-            --accent-purple: #7C3AED;
-            --accent-emerald: #059669;
-            --accent-rose: #E11D48;
-            --accent-gold: #D97706;
+            --accent-purple: #6D28D9;
+            --accent-emerald: #047857;
+            --accent-rose: #BE123C;
+            --accent-gold: #B45309;
             
             --text-primary: #0F172A;
-            --text-secondary: #475569;
-            --text-muted: #94A3B8;
+            --text-secondary: #334155;
+            --text-muted: #64748B;
             
             --radius-pill: 9999px;
-            --radius-card: 20px;
-            --radius-box: 24px;
+            --radius-card: 16px;
+            --radius-box: 20px;
             
-            --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            --transition-fast: all 0.2s ease;
+            --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-fast: all 0.15s ease;
         }
 
         * {
@@ -68,10 +68,7 @@
         body {
             min-height: 100vh;
             color: var(--text-primary);
-            background: linear-gradient(135deg, var(--bg-mesh-1) 0%, var(--bg-mesh-2) 25%, var(--bg-mesh-3) 50%, var(--bg-mesh-4) 75%, var(--bg-mesh-5) 100%);
-            background-attachment: fixed;
-            background-size: 250% 250%;
-            animation: auroraShift 25s ease infinite alternate;
+            background: #F1F5F9;
             padding: 16px;
             overflow-x: hidden;
         }
@@ -1201,14 +1198,14 @@
                 </div>
             </div>
 
-            <!-- 3-Tier Master-Detail Monthly Production Table -->
+            <!-- Monthly Production & Commissions Table -->
             <div class="glass-box">
                 <div class="box-header">
                     <div class="box-title">
-                        📈 Μηνιαία Εκκαθάριση Παραγωγής & Αμοιβών (3-Tier Drill-Down)
+                        📈 Μηνιαία Εκκαθάριση Παραγωγής & Αμοιβών
                     </div>
-                    <span style="font-size:12px; color:var(--text-muted); font-weight:600;">
-                        💡 Κάντε κλικ σε οποιονδήποτε μήνα για ανάπτυξη των συμβολαίων του
+                    <span style="font-size:12.5px; color:var(--text-muted); font-weight:600;">
+                        💡 Κάντε κλικ σε οποιονδήποτε μήνα για προβολή των αναλυτικών συμβολαίων
                     </span>
                 </div>
 
@@ -3083,78 +3080,209 @@
             rows.forEach(r => tbody.appendChild(r));
         }
 
-        // === 📥 EXPORT ENGINE (EXCEL & PDF WITH SELECTIVE EXPORT) ===
+        // === 📥 EXPORT ENGINE (PRECISE SELECTIVE EXCEL & PDF EXPORT) ===
+        function getSelectedExportData(type) {
+            if (type === 'dashboard' || type === 'dash') {
+                const checkedNested = Array.from(document.querySelectorAll('.nested-check:checked'));
+                if (checkedNested.length > 0) {
+                    // Export ONLY specifically checked contracts
+                    return checkedNested.map(c => {
+                        const pol = c.value;
+                        const mth = c.dataset.month;
+                        const match = globalData.contracts.find(x => x.policy_number === pol && (x.statement_month === mth || !mth));
+                        return match || { policy_number: pol, statement_month: mth };
+                    });
+                }
+                const checkedMonths = Array.from(document.querySelectorAll('.dash-month-check:checked'));
+                if (checkedMonths.length > 0) {
+                    const months = checkedMonths.map(m => m.dataset.month);
+                    return globalData.contracts.filter(c => months.includes(c.statement_month));
+                }
+                return globalData.contracts;
+            } else if (type === 'crm') {
+                const checked = Array.from(document.querySelectorAll('.crm-row-check:checked'));
+                if (checked.length > 0) {
+                    const policies = checked.map(c => c.value);
+                    return globalData.contracts.filter(c => policies.includes(c.policy_number));
+                }
+                return globalData.contracts;
+            } else if (type === 'agency') {
+                const checked = Array.from(document.querySelectorAll('.agency-row-check:checked'));
+                if (checked.length > 0) {
+                    const policies = checked.map(c => c.value);
+                    return globalData.agency.filter(c => policies.includes(c.policy_number));
+                }
+                return globalData.agency;
+            } else if (type === 'producers') {
+                const checked = Array.from(document.querySelectorAll('.prod-row-check:checked'));
+                if (checked.length > 0) {
+                    const policies = checked.map(c => c.value);
+                    return globalData.producers.filter(c => policies.includes(c.policy_number));
+                }
+                return globalData.producers;
+            } else if (type === 'reconciliation') {
+                return globalData.reconciliation;
+            }
+            return globalData.contracts;
+        }
+
         function exportToExcel(type) {
             const d = new Date();
-            const dateStr = d.getFullYear() + "_" + String(d.getMonth() + 1).padStart(2, '0');
-            let tableId = "table-dash";
-            let filename = `LANCA_ERGO_Paragogi_Master_${dateStr}.xlsx`;
+            const dateStr = d.getFullYear() + "_" + String(d.getMonth() + 1).padStart(2, '0') + "_" + String(d.getDate()).padStart(2, '0');
+            let filename = `LANCA_Ekatharistiko_${dateStr}.xlsx`;
+            const data = getSelectedExportData(type);
 
-            if (type === 'crm') { tableId = "crm-table"; filename = `LANCA_CRM_Pelatologio_${dateStr}.xlsx`; }
-            else if (type === 'agency') { tableId = "table-agency"; filename = `LANCA_Agency1411_Yperpromitheies_${dateStr}.xlsx`; }
-            else if (type === 'producers') { tableId = "table-producers"; filename = `LANCA_Syntelestes_Promitheies_${dateStr}.xlsx`; }
-            else if (type === 'coverages') { tableId = "table-coverages"; filename = `LANCA_ERGO_UATOP_Kalypseis_${dateStr}.xlsx`; }
-            else if (type === 'reconciliation') { tableId = "table-reconciliation"; filename = `LANCA_ERGO_Symfonia_Logariasmos57_${dateStr}.xlsx`; }
-
-            const table = document.getElementById(tableId);
-            if (!table) return;
-
-            // Check if user selected specific rows
-            const checkedRows = table.querySelectorAll('tbody tr.selected');
-            if (checkedRows.length > 0) {
-                const tempTable = document.createElement('table');
-                tempTable.appendChild(table.querySelector('thead').cloneNode(true));
-                const tempTbody = document.createElement('tbody');
-                checkedRows.forEach(r => tempTbody.appendChild(r.cloneNode(true)));
-                tempTable.appendChild(tempTbody);
-                if (table.querySelector('tfoot')) tempTable.appendChild(table.querySelector('tfoot').cloneNode(true));
-                
-                const wb = XLSX.utils.table_to_book(tempTable, { sheet: "LANCA_Epilegmena" });
-                XLSX.writeFile(wb, filename);
+            let rows = [];
+            if (type === 'reconciliation') {
+                rows = data.map((r, idx) => ({
+                    "Α/Α": idx + 1,
+                    "Μήνας Εκκαθάρισης": r.statement_month,
+                    "Σύνολο Statements (€)": r.statement_total_amount,
+                    "Μήνας Αποδέσμευσης 57": r.account_57_release_month || '-',
+                    "Αποδεσμευθέν Ποσό 57 (€)": r.account_57_released_amount,
+                    "Διαφορά (€)": r.variance_amount || 0,
+                    "Κατάσταση": "✔ 100% Ταύτιση"
+                }));
             } else {
-                const wb = XLSX.utils.table_to_book(table, { sheet: "LANCA_Export" });
-                XLSX.writeFile(wb, filename);
+                rows = data.map((c, idx) => ({
+                    "Α/Α": idx + 1,
+                    "Μήνας": c.statement_month || '-',
+                    "Αρ. Συμβολαίου": c.policy_number,
+                    "Ονοματεπώνυμο Πελάτη": c.client_name || '-',
+                    "ΑΦΜ": c.afm || '-',
+                    "Πρόγραμμα ERGO": c.package_name || 'ERGO Health Care Superior',
+                    "Καθαρά Ασφάλιστρα (€)": c.net_premium_total || 0,
+                    "Προμήθεια Συνεργάτη (€)": c.producer_commission_amount || 0,
+                    "Υπερπρομήθεια Agency 1411 (20%) (€)": c.agency_overriding_amount || 0,
+                    "Συνολική Αμοιβή Γραφείου (€)": c.total_office_revenue || 0
+                }));
+                // Add Totals row
+                const totNet = data.reduce((s, x) => s + (x.net_premium_total || 0), 0);
+                const totSyn = data.reduce((s, x) => s + (x.producer_commission_amount || 0), 0);
+                const totAgn = data.reduce((s, x) => s + (x.agency_overriding_amount || 0), 0);
+                const totOffice = data.reduce((s, x) => s + (x.total_office_revenue || 0), 0);
+                rows.push({
+                    "Α/Α": "ΣΥΝΟΛΟ",
+                    "Μήνας": `${data.length} Εγγραφές`,
+                    "Αρ. Συμβολαίου": "",
+                    "Ονοματεπώνυμο Πελάτη": "",
+                    "ΑΦΜ": "",
+                    "Πρόγραμμα ERGO": "",
+                    "Καθαρά Ασφάλιστρα (€)": totNet,
+                    "Προμήθεια Συνεργάτη (€)": totSyn,
+                    "Υπερπρομήθεια Agency 1411 (20%) (€)": totAgn,
+                    "Συνολική Αμοιβή Γραφείου (€)": totOffice
+                });
             }
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "LANCA_Export");
+            XLSX.writeFile(wb, filename);
         }
 
         function exportToPDF(type) {
             const d = new Date();
-            const dateStr = d.getFullYear() + "_" + String(d.getMonth() + 1).padStart(2, '0');
-            let elementId = "tab-dashboard";
-            let filename = `LANCA_Ekatharistiko_${dateStr}.pdf`;
+            const dateStr = String(d.getDate()).padStart(2, '0') + "/" + String(d.getMonth() + 1).padStart(2, '0') + "/" + d.getFullYear();
+            let filename = `LANCA_Ekatharistiko_${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, '0')}.pdf`;
+            const data = getSelectedExportData(type);
 
-            if (type === 'crm') { elementId = "tab-contracts"; filename = `LANCA_CRM_Pelatologio_${dateStr}.pdf`; }
-            else if (type === 'agency') { elementId = "tab-agency"; filename = `LANCA_Agency1411_${dateStr}.pdf`; }
-            else if (type === 'producers') { elementId = "tab-producers"; filename = `LANCA_Syntelestes_${dateStr}.pdf`; }
-            else if (type === 'reconciliation') { elementId = "tab-reconciliation"; filename = `LANCA_Symfonia57_${dateStr}.pdf`; }
+            const isSelectedOnly = (document.querySelectorAll('.nested-check:checked, .crm-row-check:checked, .agency-row-check:checked, .prod-row-check:checked, .dash-month-check:checked').length > 0);
 
-            const element = document.getElementById(elementId);
-            if (!element) return;
+            const totNet = data.reduce((s, x) => s + (x.net_premium_total || 0), 0);
+            const totSyn = data.reduce((s, x) => s + (x.producer_commission_amount || 0), 0);
+            const totAgn = data.reduce((s, x) => s + (x.agency_overriding_amount || 0), 0);
+            const totOffice = data.reduce((s, x) => s + (x.total_office_revenue || 0), 0);
 
             const printWrapper = document.createElement('div');
-            printWrapper.style.padding = '20px';
+            printWrapper.style.padding = '24px';
             printWrapper.style.background = '#FFFFFF';
-            printWrapper.style.color = '#000000';
+            printWrapper.style.color = '#0F172A';
             printWrapper.style.fontFamily = 'Arial, sans-serif';
 
+            let titleLabel = "Επίσημη Κατάσταση Εκκαθάρισης Παραγωγής & Αμοιβών";
+            if (type === 'agency') titleLabel = "Εκκαθαριστικό Υπερπρομηθειών Agency 1411 (20%)";
+            else if (type === 'producers') titleLabel = "Εκκαθαριστικό Προμηθειών Συνεργατών & Πρακτόρων (Κατηγορία Α)";
+            else if (type === 'crm') titleLabel = "Αναλυτικό Μητρώο Πελατών & Συμβολαίων";
+            else if (type === 'reconciliation') titleLabel = "Συμφωνία Λογαριασμού 57 & Αποδεσμεύσεων Τραπέζης";
+
+            let rowsHtml = '';
+            data.forEach((c, idx) => {
+                rowsHtml += `
+                    <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
+                        <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>
+                        <td style="padding:8px 6px; font-weight:bold;">${c.statement_month || '-'}</td>
+                        <td style="padding:8px 6px; font-family:monospace; font-weight:bold; color:#1D4ED8;">${c.policy_number}</td>
+                        <td style="padding:8px 6px; font-weight:bold; color:#0F172A;">${c.client_name || '-'}</td>
+                        <td style="padding:8px 6px; color:#334155;">${c.package_name || 'ERGO Health Care Superior'}</td>
+                        <td style="padding:8px 6px; text-align:right; font-weight:600;">${formatEur(c.net_premium_total)}</td>
+                        <td style="padding:8px 6px; text-align:right; color:#B45309; font-weight:bold;">${formatEur(c.producer_commission_amount)}</td>
+                        <td style="padding:8px 6px; text-align:right; color:#6D28D9; font-weight:bold;">${formatEur(c.agency_overriding_amount)}</td>
+                        <td style="padding:8px 6px; text-align:right; color:#047857; font-weight:bold;">${formatEur(c.total_office_revenue)}</td>
+                    </tr>
+                `;
+            });
+
             printWrapper.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:12px; margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:12px; margin-bottom:16px;">
                     <div>
-                        <img src="LANCA-logo.png" style="height:44px; object-fit:contain;">
+                        <img src="LANCA-logo.png" style="height:48px; object-fit:contain;">
                     </div>
-                    <div style="text-align:right; font-size:11px; color:#555; line-height:1.4;">
-                        <strong style="font-size:13px; color:#1D4ED8;">LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</strong><br>
-                        Διεύθυνση: Τέρμα Τρικούπη, Μεσολόγγι • ΑΦΜ: 800217829 • ΔΟΥ: Μεσολογγίου<br>
-                        Συντονιστής: Νίκος Αναγνωστόπουλος (Agency 1411 ERGO) • Τηλ: 26310 51222 • Email: info@lanca.gr
+                    <div style="text-align:right; font-size:10.5px; color:#334155; line-height:1.4;">
+                        <strong style="font-size:12.5px; color:#0F172A;">LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</strong><br>
+                        Agency 1411 (ERGO) • Συντονιστής: Νίκος Αναγνωστόπουλος<br>
+                        Τέρμα Τρικούπη, 30200 Μεσολόγγι • ΑΦΜ: 800217829 • ΔΟΥ: Μεσολογγίου • Τηλ: 26310 51222 • Email: info@lanca.gr
                     </div>
                 </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div>
+                        <h2 style="font-size:16px; font-weight:bold; color:#0F172A; margin:0;">${titleLabel}</h2>
+                        <span style="font-size:11.5px; color:#475569; font-weight:600;">${isSelectedOnly ? `Επιλεγμένες Εγγραφές (${data.length})` : `Όλες οι Εγγραφές Περιόδου (${data.length})`}</span>
+                    </div>
+                    <div style="text-align:right; font-size:11px; color:#475569;">
+                        Ημερομηνία Έκδοσης: <strong style="color:#0F172A;">${dateStr}</strong>
+                    </div>
+                </div>
+
+                <table style="width:100%; border-collapse:collapse; text-align:left; font-size:11px; margin-bottom:16px; background:#FFFFFF;">
+                    <thead>
+                        <tr style="background:#F8FAFC; border-top:1px solid #CBD5E1; border-bottom:2px solid #CBD5E1; color:#0F172A; font-weight:bold;">
+                            <th style="padding:8px 6px; text-align:center;">Α/Α</th>
+                            <th style="padding:8px 6px;">Μήνας</th>
+                            <th style="padding:8px 6px;">Αρ. Συμβολαίου</th>
+                            <th style="padding:8px 6px;">Ονοματεπώνυμο Πελάτη</th>
+                            <th style="padding:8px 6px;">Πρόγραμμα ERGO</th>
+                            <th style="padding:8px 6px; text-align:right;">Καθαρά (€)</th>
+                            <th style="padding:8px 6px; text-align:right;">Προμήθεια Συν. (€)</th>
+                            <th style="padding:8px 6px; text-align:right;">Agency 1411 (€)</th>
+                            <th style="padding:8px 6px; text-align:right;">Σύνολο (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:#F1F5F9; border-top:2px solid #CBD5E1; font-weight:bold; font-size:12px; color:#0F172A;">
+                            <td colspan="5" style="padding:10px 8px; text-align:right;">ΣΥΝΟΛΟ (${data.length} Συμβόλαια):</td>
+                            <td style="padding:10px 6px; text-align:right;">${formatEur(totNet)}</td>
+                            <td style="padding:10px 6px; text-align:right; color:#B45309;">${formatEur(totSyn)}</td>
+                            <td style="padding:10px 6px; text-align:right; color:#6D28D9;">${formatEur(totAgn)}</td>
+                            <td style="padding:10px 6px; text-align:right; color:#047857; font-size:13px;">${formatEur(totOffice)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div style="border-top:1px solid #CBD5E1; padding-top:8px; display:flex; justify-content:space-between; font-size:10.5px; color:#64748B;">
+                    <span>LANCA Ι.Κ.Ε. — Σύστημα Εκκαθαρίσεων & Διαχείρισης Προμηθειών</span>
+                    <span>lanca.stavrostsamadias.gr</span>
+                </div>
             `;
-            printWrapper.appendChild(element.cloneNode(true));
 
             html2pdf().set({
-                margin: 8,
+                margin: [8, 8, 8, 8],
                 filename: filename,
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             }).from(printWrapper).save();
         }

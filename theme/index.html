@@ -1884,26 +1884,18 @@
                     <table class="glass-table" id="table-producers-reg">
                         <thead>
                             <tr>
-                                <th style="width:40px;"></th>
-                                <th>Α/Α</th>
-                                <th>Κωδικός Γραφείου</th>
-                                <th>Κωδικός ERGO</th>
+                                <th style="width:38px;"></th>
+                                <th style="width:44px;">Α/Α</th>
+                                <th>Κωδικός<br>Γραφείου</th>
+                                <th>Κωδικός<br>ERGO</th>
                                 <th>Ονοματεπώνυμο / Επωνυμία</th>
                                 <th>Κατηγορία / Τύπος</th>
-                                <th>Ιεραρχία / Ρόλος</th>
-                                <th>Τηλέφωνο</th>
-                                <th>Email</th>
-                                <th>Νομός</th>
-                                <th>Προμήθεια %</th>
-                                <th>Συμβόλαια</th>
-                                <th>Συνολικά Καθαρά (€)</th>
-                                <th>Συν. Προμήθεια (€)</th>
-                                <th>Κατάσταση</th>
-                                <th>Ενέργειες</th>
+                                <th>Ιεραρχία</th>
+                                <th>Στοιχεία Συνεργάτη - Παραγωγού</th>
                             </tr>
                         </thead>
                         <tbody id="producers-reg-tbody">
-                            <tr><td colspan="16" style="text-align:center; padding:30px; color:var(--text-muted);">Φόρτωση μητρώου συνεργατών...</td></tr>
+                            <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">Φόρτωση μητρώου συνεργατών...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2312,19 +2304,28 @@
     </div>
 
     <!-- ==========================================================================
-         🤝 PRODUCER ADD / EDIT MODAL (WITH TEMPORAL CODE ASSIGNMENT)
+         🤝 PRODUCER ADD / EDIT MODAL — TABBED CARD (Στοιχεία + Προμήθειες)
          ========================================================================== -->
     <div id="producerModal" class="modal-overlay" onclick="if(event.target===this) closeProducerModal()">
-        <div class="modal-glass-card" style="max-width:680px;">
-            <div class="modal-header">
-                <div>
+        <div class="modal-glass-card" style="max-width:760px;">
+            <div class="modal-header" style="padding-bottom:0;">
+                <div style="flex:1;">
                     <h3 style="font-family:'Outfit'; font-size:18px; font-weight:800; color:var(--brand-navy);" id="producer-modal-title">
-                        🤝 Στοιχεία Συνεργάτη & Σύνδεση ERGO
+                        🤝 Καρτέλα Συνεργάτη
                     </h3>
-                    <span style="font-size:12px; color:var(--text-secondary);">Διαχείριση στοιχείων, κωδικών γραφείου / ERGO, κατάστασης αποχώρησης & χρονικού ιστορικού</span>
+                    <span style="font-size:12px; color:var(--text-secondary);">Διαχείριση στοιχείων, κωδικών, κατάστασης αποχώρησης & προμηθειών ανά συνεργάτη</span>
                 </div>
                 <button class="btn-pill btn-ghost" onclick="closeProducerModal()">✕</button>
             </div>
+
+            <!-- Tab Bar -->
+            <div style="display:flex; gap:0; border-bottom:2px solid rgba(226,232,240,0.6); margin:10px 0 0 0;">
+                <button id="prod-tab-btn-info" onclick="switchProducerModalTab('info')" style="padding:8px 22px; font-size:13px; font-weight:700; background:none; border:none; border-bottom:3px solid var(--brand-blue); color:var(--brand-blue); cursor:pointer;">📋 Στοιχεία</button>
+                <button id="prod-tab-btn-comm" onclick="switchProducerModalTab('comm')" style="padding:8px 22px; font-size:13px; font-weight:700; background:none; border:none; border-bottom:3px solid transparent; color:var(--text-muted); cursor:pointer;">💰 Προμήθειες</button>
+            </div>
+
+            <!-- TAB: Στοιχεία -->
+            <div id="prod-tab-info">
 
             <form onsubmit="saveProducerModal(event)" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-top:8px;">
                 <div>
@@ -2414,8 +2415,80 @@
                     <button type="submit" class="btn-pill btn-primary">💾 Αποθήκευση Συνεργάτη</button>
                 </div>
             </form>
+            </div><!-- end prod-tab-info -->
+
+            <!-- TAB: Προμήθειες -->
+            <div id="prod-tab-comm" style="display:none; padding-top:14px;">
+                <!-- Quick settings bar -->
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+                    <div style="flex:1; min-width:180px;">
+                        <label style="font-size:11px; font-weight:700; color:var(--text-secondary);">Ποσοστό Απόδοσης Υποκωδικού:</label>
+                        <select id="pcard-split-pct" class="glass-select" style="width:100%; margin-top:4px;" onchange="loadProducerCardComm()">
+                            <option value="50">50% (Υποκωδικός 50/50)</option>
+                            <option value="60">60%</option>
+                            <option value="70">70%</option>
+                            <option value="80">80%</option>
+                            <option value="100">100% (Ανεξάρτητος)</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; min-width:160px;">
+                        <label style="font-size:11px; font-weight:700; color:var(--text-secondary);">Έτος / Μήνας:</label>
+                        <input type="text" id="pcard-period" class="glass-input" placeholder="π.χ. 2025 ή 2025/06" style="width:100%; margin-top:4px;" onchange="loadProducerCardComm()">
+                    </div>
+                    <button class="btn-pill btn-primary" style="margin-top:18px;" onclick="loadProducerCardComm()">🔄 Ανανέωση</button>
+                </div>
+
+                <!-- 4 KPI Cards -->
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px;">
+                    <div style="background:rgba(219,234,254,0.5); padding:12px; border-radius:14px; border:1px solid rgba(59,130,246,0.3); text-align:center;">
+                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΚΑΘΑΡΑ ΑΣΦΑΛΙΣΤΡΑ</div>
+                        <div id="pcard-kpi-net" style="font-size:18px; font-weight:800; color:var(--brand-blue); margin-top:4px;">€ —</div>
+                    </div>
+                    <div style="background:rgba(254,243,199,0.5); padding:12px; border-radius:14px; border:1px solid rgba(245,158,11,0.3); text-align:center;">
+                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΠΡΟΜΗΘΕΙΑ ERGO (100%)</div>
+                        <div id="pcard-kpi-ergo" style="font-size:18px; font-weight:800; color:var(--accent-gold); margin-top:4px;">€ —</div>
+                    </div>
+                    <div style="background:rgba(209,250,229,0.5); padding:12px; border-radius:14px; border:1px solid rgba(16,185,129,0.3); text-align:center;">
+                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΠΛΗΡΩΤΕΟ ΥΠΟΚΩΔΙΚΟΥ</div>
+                        <div id="pcard-kpi-payout" style="font-size:18px; font-weight:800; color:var(--accent-emerald); margin-top:4px;">€ —</div>
+                    </div>
+                    <div style="background:rgba(237,233,254,0.5); padding:12px; border-radius:14px; border:1px solid rgba(139,92,246,0.3); text-align:center;">
+                        <div style="font-size:10px; font-weight:700; color:var(--text-muted);">ΚΡΑΤΗΣΗ ΓΡΑΦΕΙΟΥ</div>
+                        <div id="pcard-kpi-office" style="font-size:18px; font-weight:800; color:var(--accent-purple); margin-top:4px;">€ —</div>
+                    </div>
+                </div>
+
+                <!-- Breakdown Table -->
+                <div class="table-responsive" style="max-height:280px; overflow-y:auto;">
+                    <table class="glass-table" style="font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th>Αρ. Συμβολαίου</th>
+                                <th>Πρόγραμμα</th>
+                                <th>Μήνας</th>
+                                <th>Καθαρά (€)</th>
+                                <th>Προμ. ERGO (€)</th>
+                                <th>Απόδοση (€)</th>
+                                <th>Κράτηση Γρ. (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pcard-comm-tbody">
+                            <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:20px;">Επιλέξτε ποσοστό και πατήστε Ανανέωση</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer Actions -->
+                <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px; padding-top:10px; border-top:1px solid rgba(226,232,240,0.8);">
+                    <button class="btn-pill btn-ghost" onclick="openProducerHistoryModal(document.getElementById('prod-form-code').value)">📜 360° Ιστορικό</button>
+                    <button class="btn-pill btn-primary" onclick="printProducerCardPDF()">🖨️ Εκτύπωση Κατάστασης</button>
+                    <button class="btn-pill btn-ghost" onclick="closeProducerModal()">✕ Κλείσιμο</button>
+                </div>
+            </div><!-- end prod-tab-comm -->
+
         </div>
     </div>
+
 
     <!-- ==========================================================================
          📜 360° PRODUCER PRODUCTION & CODE HISTORY MODAL
@@ -3965,53 +4038,82 @@
             if (elMgr) elMgr.innerText = mgr;
 
             if (!list || list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:30px; color:var(--text-muted); font-weight:600;">Δεν βρέθηκαν συνεργάτες με τα επιλεγμένα κριτήρια.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted); font-weight:600;">Δεν βρέθηκαν συνεργάτες με τα επιλεγμένα κριτήρια.</td></tr>';
                 return;
             }
 
             list.forEach((p, idx) => {
                 const tr = document.createElement('tr');
-                
-                // Badge color based on type
+
+                // Type badge
                 let typeBadge = '<span class="badge badge-gold">🏢 Οργανωτική Ομάδα</span>';
                 if (p.partner_type === 'AGENCY_MANAGER') {
-                    typeBadge = '<span class="badge badge-success">👑 Agency Manager (40071 / 1411)</span>';
+                    typeBadge = '<span class="badge badge-success">👑 Agency Manager</span>';
                 } else if (p.partner_type === 'SUBCODE_1411') {
-                    typeBadge = '<span class="badge badge-blue">🔹 Υποκωδικός (Μέσω 1411)</span>';
+                    typeBadge = '<span class="badge badge-blue">🔹 Υποκωδικός (1411)</span>';
                 }
 
-                // Status badge
-                let statusBadge = `<span class="badge badge-purple">${p.status || 'Ενεργός'}</span>`;
-                if ((p.status || '').toUpperCase().includes('FULL TIME')) {
-                    statusBadge = `<span class="badge badge-success">✔ FULL TIME</span>`;
-                } else if ((p.status || '').toUpperCase().includes('PART TIME')) {
-                    statusBadge = `<span class="badge badge-blue">PART TIME</span>`;
-                } else if ((p.status || '').toUpperCase().includes('ΝΕΟΣ')) {
-                    statusBadge = `<span class="badge badge-gold">✨ ΝΕΟΣ</span>`;
-                }
+                // Status badge (compact)
+                let statusColor = 'badge-purple';
+                let statusIcon  = '🔵';
+                const st = (p.status || '').toUpperCase();
+                if (st.includes('FULL TIME'))            { statusColor = 'badge-success'; statusIcon = '✅'; }
+                else if (st.includes('PART TIME'))       { statusColor = 'badge-blue';    statusIcon = '🔹'; }
+                else if (st.includes('ΑΠΟΧΩΡ'))          { statusColor = 'badge-danger';  statusIcon = '🔴'; }
+                else if (st.includes('ΑΝΑΣΤΟΛ'))         { statusColor = 'badge-ghost';   statusIcon = '⏸'; }
+                else if (st.includes('ΝΕΟΣ') || st.includes('NEW')) { statusColor = 'badge-gold'; statusIcon = '✨'; }
+                const statusBadge = `<span class="badge ${statusColor}">${statusIcon} ${p.status || 'Ενεργός'}</span>`;
+
+                // Compact info card for the last column
+                const phone  = p.phone && p.phone !== '-' ? `<span title="Τηλέφωνο">📞 ${p.phone}</span>` : '';
+                const email  = p.email && p.email !== '-' ? `<span title="Email">📧 <a href="mailto:${p.email}" style="color:var(--brand-blue);">${p.email}</a></span>` : '';
+                const nomos  = p.nomos && p.nomos !== '-' ? `<span title="Νομός">📍 ${p.nomos}</span>` : '';
+                const rate   = `<span title="Κατηγορία Προμήθειας">💰 ${p.avg_rate || 25}%</span>`;
+                const pols   = `<span title="Συμβόλαια">📄 ${p.total_policies || 0} συμβόλαια</span>`;
+                const net    = `<span title="Σύνολο Καθαρών">€ ${Number(p.total_net||0).toLocaleString('el-GR',{minimumFractionDigits:2})}</span>`;
+                const comm   = `<span title="Σύνολο Προμήθειας" style="color:var(--accent-gold);font-weight:700;">Προμ: € ${Number(p.total_commission||0).toLocaleString('el-GR',{minimumFractionDigits:2})}</span>`;
+
+                const infoLines = [phone, email, nomos, rate, pols, net, comm].filter(Boolean);
+                const infoHtml  = infoLines.map(ln => `<div style="margin-bottom:2px;">${ln}</div>`).join('');
 
                 tr.innerHTML = `
                     <td style="text-align:center;">
                         <input type="checkbox" class="prod-reg-row-check custom-checkbox" value="${p.producer_code}">
                     </td>
-                    <td>${idx+1}</td>
-                    <td><strong style="color:var(--brand-navy); font-size:13px;"><span class="badge badge-purple">${p.producer_code}</span></strong></td>
-                    <td><span class="badge badge-ghost" style="font-weight:700;">${p.ergo_code || '-'}</span></td>
-                    <td><strong>${p.producer_name}</strong></td>
-                    <td>${typeBadge}</td>
-                    <td style="font-size:12px; color:var(--text-secondary);">${p.role || p.hierarchy || 'Πράκτορας'}</td>
-                    <td style="font-size:12px;">${p.phone || '-'}</td>
-                    <td style="font-size:12px; color:var(--brand-blue);">${p.email || '-'}</td>
-                    <td style="font-size:12px;">${p.nomos || '-'}</td>
-                    <td><span class="badge badge-gold">${p.avg_rate || 25}%</span></td>
-                    <td><span class="badge badge-blue">${p.total_policies || 0}</span></td>
-                    <td>${formatEur(p.total_net)}</td>
-                    <td style="color:var(--accent-gold); font-weight:800;">${formatEur(p.total_commission)}</td>
-                    <td>${statusBadge}</td>
+                    <td style="text-align:center; color:var(--text-muted); font-size:12px;">${idx+1}</td>
+
+                    <!-- Κωδικός Γραφείου — κουμπί που ανοίγει την καρτέλα συνεργάτη -->
+                    <td style="text-align:center;">
+                        <button
+                            class="btn-pill btn-primary"
+                            style="padding:5px 14px; font-size:13px; font-weight:800; letter-spacing:.5px; min-width:56px;"
+                            onclick="openProducerCard('${p.producer_code}')"
+                            title="Άνοιγμα καρτέλας συνεργάτη ${p.producer_code} — επεξεργασία & προμήθειες"
+                        >${p.producer_code}</button>
+                    </td>
+
+                    <!-- Κωδικός ERGO -->
+                    <td style="text-align:center;">
+                        <span class="badge badge-ghost" style="font-weight:700; font-size:12px;">${p.ergo_code || '-'}</span>
+                    </td>
+
+                    <!-- Ονοματεπώνυμο -->
+                    <td><strong style="font-size:13px;">${p.producer_name}</strong></td>
+
+                    <!-- Κατηγορία / Τύπος -->
+                    <td>${typeBadge}<br><div style="margin-top:4px;">${statusBadge}</div></td>
+
+                    <!-- Ιεραρχία -->
+                    <td style="font-size:12px; color:var(--text-secondary); max-width:130px;">${p.role || p.hierarchy || 'Πράκτορας'}</td>
+
+                    <!-- Στοιχεία Συνεργάτη-Παραγωγού (compact info + actions) -->
                     <td>
-                        <div style="display:flex; gap:4px;">
-                            <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό Παραγωγής & Κωδικού">📜</button>
-                            <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditProducerModal('${p.producer_code}')" title="Επεξεργασία">✏️</button>
+                        <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.7; display:flex; flex-direction:column; gap:1px;">
+                            ${infoHtml}
+                        </div>
+                        <div style="display:flex; gap:4px; margin-top:6px; flex-wrap:wrap;">
+                            <button class="btn-pill btn-primary" style="padding:3px 10px; font-size:11px;" onclick="openProducerCard('${p.producer_code}')" title="Καρτέλα & Επεξεργασία">✏️ Καρτέλα</button>
+                            <button class="btn-pill btn-ghost" style="padding:3px 10px; font-size:11px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό">📜 Ιστορικό</button>
                             <button class="btn-pill btn-danger" style="padding:3px 8px; font-size:11px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>
                         </div>
                     </td>
@@ -4084,6 +4186,145 @@
 
         function closeProducerModal() {
             document.getElementById('producerModal').classList.remove('open');
+        }
+
+        // === 🤝 openProducerCard — κουμπί κωδικός γραφείου → ανοίγει καρτέλα (στοιχεία + προμήθειες) ===
+        function openProducerCard(code, startTab) {
+            // Φορτώνει στοιχεία συνεργάτη και ανοίγει στο tab 'info' ή 'comm'
+            openEditProducerModal(code);
+            // Αν δεν βρεθεί τοπικά, φόρτωσε από API
+            switchProducerModalTab(startTab || 'info');
+        }
+
+        function switchProducerModalTab(tab) {
+            const infoDiv  = document.getElementById('prod-tab-info');
+            const commDiv  = document.getElementById('prod-tab-comm');
+            const btnInfo  = document.getElementById('prod-tab-btn-info');
+            const btnComm  = document.getElementById('prod-tab-btn-comm');
+            if (!infoDiv || !commDiv) return;
+
+            const blue = 'var(--brand-blue)';
+            const mute = 'var(--text-muted)';
+
+            if (tab === 'comm') {
+                infoDiv.style.display = 'none';
+                commDiv.style.display = 'block';
+                if (btnInfo) { btnInfo.style.borderBottomColor = 'transparent'; btnInfo.style.color = mute; }
+                if (btnComm) { btnComm.style.borderBottomColor = blue; btnComm.style.color = blue; }
+                loadProducerCardComm();
+            } else {
+                infoDiv.style.display = '';
+                commDiv.style.display = 'none';
+                if (btnInfo) { btnInfo.style.borderBottomColor = blue; btnInfo.style.color = blue; }
+                if (btnComm) { btnComm.style.borderBottomColor = 'transparent'; btnComm.style.color = mute; }
+            }
+        }
+
+        async function loadProducerCardComm() {
+            const code    = document.getElementById('prod-form-code')?.value?.trim();
+            const split   = document.getElementById('pcard-split-pct')?.value || '50';
+            const period  = document.getElementById('pcard-period')?.value?.trim() || '';
+            const tbody   = document.getElementById('pcard-comm-tbody');
+            if (!code || !tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">⏳ Φόρτωση...</td></tr>';
+            try {
+                let url = `/api/subcodes/payout-statement?producer_code=${encodeURIComponent(code)}&split_pct=${split}`;
+                if (period) url += `&period=${encodeURIComponent(period)}`;
+                const res  = await fetch(url);
+                const data = await res.json();
+
+                if (!res.ok || data.status !== 'success') {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:20px;">Σφάλμα: ${data.error || 'Αδύνατη φόρτωση'}</td></tr>`;
+                    return;
+                }
+
+                const t = data.totals || {};
+                // Update KPI cards
+                document.getElementById('pcard-kpi-net').innerText    = formatEur(t.total_net);
+                document.getElementById('pcard-kpi-ergo').innerText   = formatEur(t.total_ergo_comm);
+                document.getElementById('pcard-kpi-payout').innerText = formatEur(t.total_subcode_payout);
+                document.getElementById('pcard-kpi-office').innerText = formatEur(t.total_office_retention);
+
+                // Render rows
+                if (!data.items || data.items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:20px;">Δεν βρέθηκαν εγγραφές για αυτόν τον συνεργάτη.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.items.map(r => `
+                    <tr>
+                        <td><span class="badge badge-ghost" style="font-size:11px;">${r.policy_number}</span></td>
+                        <td style="font-size:11px; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${r.package_name || ''}">${r.package_name || '-'}</td>
+                        <td style="font-size:11px;">${r.statement_month || '-'}</td>
+                        <td style="font-weight:700;">${formatEur(r.net_premium)}</td>
+                        <td style="color:var(--accent-gold);">${formatEur(r.ergo_commission)}</td>
+                        <td style="color:var(--accent-emerald); font-weight:700;">${formatEur(r.subcode_payout)}</td>
+                        <td style="color:var(--accent-purple);">${formatEur(r.office_retention)}</td>
+                    </tr>
+                `).join('');
+
+            } catch(err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:20px;">Σφάλμα σύνδεσης: ${err.message}</td></tr>`;
+            }
+        }
+
+        function printProducerCardPDF() {
+            const code    = document.getElementById('prod-form-code')?.value || '';
+            const name    = document.getElementById('prod-form-name')?.value || '';
+            const split   = document.getElementById('pcard-split-pct')?.value || '50';
+            const period  = document.getElementById('pcard-period')?.value || new Date().getFullYear();
+            const netKpi  = document.getElementById('pcard-kpi-net')?.innerText  || '€ —';
+            const ergoKpi = document.getElementById('pcard-kpi-ergo')?.innerText || '€ —';
+            const payKpi  = document.getElementById('pcard-kpi-payout')?.innerText || '€ —';
+            const offKpi  = document.getElementById('pcard-kpi-office')?.innerText || '€ —';
+            const tbody   = document.getElementById('pcard-comm-tbody');
+
+            const html = `<!DOCTYPE html>
+<html lang="el"><head><meta charset="UTF-8">
+<title>Κατάσταση Προμηθειών — ${name}</title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 13px; margin: 20px; color: #1e293b; }
+h2 { color: #1e3a5f; border-bottom: 2px solid #3b82f6; padding-bottom: 6px; }
+.meta { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:14px 0; background:#f0f9ff; padding:12px; border-radius:8px; }
+.meta b { font-size:10px; color:#64748b; display:block; }
+.meta span { font-size:14px; font-weight:700; }
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:12px 0; }
+.kpi { text-align:center; padding:10px; border-radius:8px; border:1px solid #e2e8f0; }
+.kpi .lbl { font-size:9px; font-weight:700; color:#64748b; }
+.kpi .val { font-size:16px; font-weight:800; margin-top:3px; }
+table { width:100%; border-collapse:collapse; margin-top:12px; }
+th { background:#1e3a5f; color:#fff; padding:7px; font-size:11px; text-align:left; }
+td { border-bottom:1px solid #e2e8f0; padding:6px 7px; font-size:12px; }
+tr:nth-child(even) td { background:#f8fafc; }
+.footer { margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:40px; }
+.sig { border-top:1px solid #000; padding-top:4px; font-size:11px; color:#64748b; text-align:center; }
+</style></head><body>
+<h2>📄 LANCA Ι.Κ.Ε. — Κατάσταση Προμηθειών Συνεργάτη</h2>
+<div class="meta">
+<div><b>ΣΥΝΕΡΓΑΤΗΣ</b><span>${name}</span></div>
+<div><b>ΚΩΔΙΚΟΣ ΓΡΑΦΕΙΟΥ</b><span>${code}</span></div>
+<div><b>ΠΕΡΙΟΔΟΣ / ΠΟΣΟΣΤΟ</b><span>${period} / ${split}%</span></div>
+</div>
+<div class="kpis">
+<div class="kpi"><div class="lbl">ΚΑΘΑΡΑ ΑΣΦΑΛΙΣΤΡΑ</div><div class="val" style="color:#1d4ed8;">${netKpi}</div></div>
+<div class="kpi"><div class="lbl">ΠΡΟΜΗΘΕΙΑ ERGO (100%)</div><div class="val" style="color:#92400e;">${ergoKpi}</div></div>
+<div class="kpi"><div class="lbl">ΠΛΗΡΩΤΕΟ ΣΥΝΕΡΓΑΤΗ</div><div class="val" style="color:#065f46;">${payKpi}</div></div>
+<div class="kpi"><div class="lbl">ΚΡΑΤΗΣΗ ΓΡΑΦΕΙΟΥ</div><div class="val" style="color:#5b21b6;">${offKpi}</div></div>
+</div>
+<table><thead><tr><th>Αρ. Συμβολαίου</th><th>Πρόγραμμα</th><th>Μήνας</th><th>Καθαρά (€)</th><th>Προμ. ERGO</th><th>Απόδοση</th><th>Κράτηση Γρ.</th></tr></thead>
+<tbody>${tbody ? tbody.innerHTML : ''}</tbody></table>
+<div class="footer">
+<div class="sig">LANCA Ι.Κ.Ε.</div>
+<div class="sig">Ο/Η Συνεργάτης: ${name}</div>
+</div>
+<p style="margin-top:30px; font-size:10px; color:#94a3b8;">Εκτυπώθηκε: ${new Date().toLocaleString('el-GR')} | LANCA Ι.Κ.Ε. — Διαχείριση Συνεργατών</p>
+</body></html>`;
+
+            const win = window.open('', '_blank');
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            setTimeout(() => win.print(), 600);
         }
 
         async function saveProducerModal(e) {

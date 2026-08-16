@@ -1860,7 +1860,7 @@ def api_get_producers_registry():
                 COALESCE(SUM(m.producer_commission_amount), 0.0) as total_commission,
                 MAX(m.statement_month) as last_month
             FROM producers_catalog p
-            LEFT JOIN financial_movements m ON m.producer_code = p.producer_code OR m.producer_name = p.full_name
+            LEFT JOIN financial_movements m ON m.producer_partner_code = p.producer_code OR m.producer_partner_code = p.ergo_code
             GROUP BY p.producer_code
             ORDER BY 
                 CASE 

@@ -1342,9 +1342,10 @@
                                 <th onclick="sortGenericTable('table-agency', 6)">Παραγωγός Συνεργάτης</th>
                                 <th onclick="sortGenericTable('table-agency', 7)">Οργανωτική Ομάδα / Τύπος</th>
                                 <th onclick="sortGenericTable('table-agency', 8)">Καθαρά (€)</th>
-                                <th onclick="sortGenericTable('table-agency', 9)">Προμήθεια Συν. (€)</th>
-                                <th onclick="sortGenericTable('table-agency', 10)">Agency 3375Α (20%) (€)</th>
-                                <th>Σύνολο (€)</th>
+                                <th onclick="sortGenericTable('table-agency', 9)">Υπερπρομήθεια Agency 3375Α (20%) (€)</th>
+                                <th onclick="sortGenericTable('table-agency', 10)">Ποσοστό %</th>
+                                <th onclick="sortGenericTable('table-agency', 11)">Είδος Κίνησης</th>
+                                <th>Ενέργειες</th>
                             </tr>
                         </thead>
                         <tbody id="agency-tbody">
@@ -1356,9 +1357,9 @@
                                 <td>ΣΥΝΟΛΟ</td>
                                 <td colspan="6" id="agency-footer-label">Συνολικό Overriding Agency 3375Α (20%):</td>
                                 <td id="agency-tot-net" style="font-weight:800;">€ 0,00</td>
-                                <td id="agency-tot-syn" style="color:var(--accent-gold); font-weight:800;">€ 0,00</td>
                                 <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px; font-weight:800;">€ 0,00</td>
-                                <td id="agency-tot-rev" style="color:var(--accent-emerald); font-weight:800;">€ 0,00</td>
+                                <td id="agency-tot-pct" style="color:var(--brand-blue); font-weight:800;">-</td>
+                                <td colspan="2"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -3382,17 +3383,15 @@
             const tbody = document.getElementById('agency-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            let totNet = 0, totSyn = 0, totAgency = 0, totRev = 0;
+            let totNet = 0, totAgency = 0;
             list.forEach((r, idx) => {
                 const net = (r.net_premium_total || 0);
-                const syn = (r.producer_commission_amount || 0);
                 const agn = (r.agency_overriding_amount || 0);
-                const rev = (r.total_office_revenue || syn + agn);
+                const pct = (net !== 0 && agn !== 0) ? (Math.abs(agn / net) * 100).toFixed(2) + '%' : (r.agency_overriding_rate ? (r.agency_overriding_rate * 100).toFixed(2) + '%' : '20.00%');
+                const movType = r.movement_type || 'Νέα Παραγωγή';
 
                 totNet += net;
-                totSyn += syn;
                 totAgency += agn;
-                totRev += rev;
 
                 const pName = (r.producer_name && r.producer_name !== '0') ? r.producer_name : 'ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)';
                 const pNameColor = pName.includes('ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ') ? 'color:var(--accent-red);' : '';
@@ -3422,9 +3421,9 @@
                         <span class="badge badge-blue" style="font-size:11px;">${pTeam}</span>
                     </td>
                     <td>${formatEur(net)}</td>
-                    <td style="color:var(--accent-gold); font-weight:700;">${formatEur(syn)}</td>
-                    <td style="color:var(--accent-purple); font-weight:800; font-size:13px;">${formatEur(agn)}</td>
-                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(rev)}</td>
+                    <td style="color:var(--accent-purple); font-weight:800; font-size:13.5px;">${formatEur(agn)}</td>
+                    <td><span class="badge badge-purple" style="font-size:11px;">${pct}</span></td>
+                    <td><span style="font-size:12px; color:var(--text-secondary);">${movType}</span></td>
                     <td>
                         <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')" title="Επεξεργασία & Ανάθεση">✏️</button>
                     </td>
@@ -3432,12 +3431,13 @@
                 tbody.appendChild(tr);
             });
 
+            totNet = Math.round(totNet * 100) / 100;
+            totAgency = Math.round(totAgency * 100) / 100;
+
             // Update Agency Table Footers
             const fNet = document.getElementById('agency-tot-net'); if (fNet) fNet.innerText = formatEur(totNet);
-            const fSyn = document.getElementById('agency-tot-syn'); if (fSyn) fSyn.innerText = formatEur(totSyn);
             const fAgn = document.getElementById('agency-total-val'); if (fAgn) fAgn.innerText = formatEur(totAgency);
-            const fRev = document.getElementById('agency-tot-rev'); if (fRev) fRev.innerText = formatEur(totRev);
-            const fLbl = document.getElementById('agency-footer-label'); if (fLbl) fLbl.innerText = `Συνολικό Overriding Agency 3375Α (${list.length} Συμβόλαια):`;
+            const fLbl = document.getElementById('agency-footer-label'); if (fLbl) fLbl.innerText = `Συνολικό Overriding Agency 3375Α (${list.length} Εγγραφές):`;
         }
 
         function filterAgencyTable() {
@@ -4995,6 +4995,40 @@
                     "Διαφορά (€)": r.variance_amount || 0,
                     "Κατάσταση": "✔ 100% Ταύτιση"
                 }));
+            } else if (type === 'agency') {
+                rows = data.map((c, idx) => {
+                    const pct = (c.net_premium_total !== 0 && c.agency_overriding_amount !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%';
+                    return {
+                        "Α/Α": idx + 1,
+                        "Μήνας": c.statement_month || '-',
+                        "Αρ. Συμβολαίου": c.policy_number,
+                        "Ονοματεπώνυμο Πελάτη": c.client_name || '-',
+                        "ΑΦΜ": c.afm || '-',
+                        "Πρόγραμμα ERGO": c.package_name || 'ERGO Health Care Superior',
+                        "Παραγωγός Συνεργάτης": c.producer_name || '-',
+                        "Οργανωτική Ομάδα": c.partner_type_label || c.producer_org_team || '-',
+                        "Καθαρά Ασφάλιστρα (€)": c.net_premium_total || 0,
+                        "Υπερπρομήθεια Agency 3375Α (20%) (€)": c.agency_overriding_amount || 0,
+                        "Ποσοστό %": pct,
+                        "Είδος Κίνησης": c.movement_type || 'Νέα Παραγωγή'
+                    };
+                });
+                const totNet = data.reduce((s, x) => s + (x.net_premium_total || 0), 0);
+                const totAgn = data.reduce((s, x) => s + (x.agency_overriding_amount || 0), 0);
+                rows.push({
+                    "Α/Α": "ΣΥΝΟΛΟ",
+                    "Μήνας": `${data.length} Εγγραφές`,
+                    "Αρ. Συμβολαίου": "",
+                    "Ονοματεπώνυμο Πελάτη": "",
+                    "ΑΦΜ": "",
+                    "Πρόγραμμα ERGO": "",
+                    "Παραγωγός Συνεργάτης": "",
+                    "Οργανωτική Ομάδα": "",
+                    "Καθαρά Ασφάλιστρα (€)": totNet,
+                    "Υπερπρομήθεια Agency 3375Α (20%) (€)": totAgn,
+                    "Ποσοστό %": "",
+                    "Είδος Κίνησης": ""
+                });
             } else {
                 rows = data.map((c, idx) => ({
                     "Α/Α": idx + 1,
@@ -5059,21 +5093,88 @@
             else if (type === 'reconciliation') titleLabel = "Συμφωνία Λογαριασμού 57 & Αποδεσμεύσεων Τραπέζης";
 
             let rowsHtml = '';
-            data.forEach((c, idx) => {
-                rowsHtml += `
-                    <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
-                        <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>
-                        <td style="padding:8px 6px; font-weight:bold;">${c.statement_month || '-'}</td>
-                        <td style="padding:8px 6px; font-family:monospace; font-weight:bold; color:#1D4ED8;">${c.policy_number}</td>
-                        <td style="padding:8px 6px; font-weight:bold; color:#0F172A;">${c.client_name || '-'}</td>
-                        <td style="padding:8px 6px; color:#334155;">${c.package_name || 'ERGO Health Care Superior'}</td>
-                        <td style="padding:8px 6px; text-align:right; font-weight:600;">${formatEur(c.net_premium_total)}</td>
-                        <td style="padding:8px 6px; text-align:right; color:#B45309; font-weight:bold;">${formatEur(c.producer_commission_amount)}</td>
-                        <td style="padding:8px 6px; text-align:right; color:#6D28D9; font-weight:bold;">${formatEur(c.agency_overriding_amount)}</td>
-                        <td style="padding:8px 6px; text-align:right; color:#047857; font-weight:bold;">${formatEur(c.total_office_revenue)}</td>
+            let theadHtml = '';
+            let tfootHtml = '';
+
+            if (type === 'agency') {
+                theadHtml = `
+                    <tr style="background:#F8FAFC; border-top:1px solid #CBD5E1; border-bottom:2px solid #CBD5E1; color:#0F172A; font-weight:bold;">
+                        <th style="padding:8px 6px; text-align:center;">Α/Α</th>
+                        <th style="padding:8px 6px;">Μήνας</th>
+                        <th style="padding:8px 6px;">Αρ. Συμβολαίου</th>
+                        <th style="padding:8px 6px;">Ονοματεπώνυμο Πελάτη</th>
+                        <th style="padding:8px 6px;">Πρόγραμμα ERGO</th>
+                        <th style="padding:8px 6px;">Παραγωγός Συνεργάτης</th>
+                        <th style="padding:8px 6px; text-align:right;">Καθαρά (€)</th>
+                        <th style="padding:8px 6px; text-align:right;">Υπερπρομήθεια Agency 3375Α (€)</th>
+                        <th style="padding:8px 6px; text-align:center;">%</th>
+                        <th style="padding:8px 6px;">Είδος Κίνησης</th>
                     </tr>
                 `;
-            });
+                data.forEach((c, idx) => {
+                    const pct = (c.net_premium_total !== 0 && c.agency_overriding_amount !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%';
+                    rowsHtml += `
+                        <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
+                            <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>
+                            <td style="padding:8px 6px; font-weight:bold;">${c.statement_month || '-'}</td>
+                            <td style="padding:8px 6px; font-family:monospace; font-weight:bold; color:#1D4ED8;">${c.policy_number}</td>
+                            <td style="padding:8px 6px; font-weight:bold; color:#0F172A;">${c.client_name || '-'}</td>
+                            <td style="padding:8px 6px; color:#334155;">${c.package_name || 'ERGO Health Care'}</td>
+                            <td style="padding:8px 6px; color:#1E293B;">${c.producer_name || '-'}</td>
+                            <td style="padding:8px 6px; text-align:right; font-weight:600;">${formatEur(c.net_premium_total)}</td>
+                            <td style="padding:8px 6px; text-align:right; color:#6D28D9; font-weight:bold;">${formatEur(c.agency_overriding_amount)}</td>
+                            <td style="padding:8px 6px; text-align:center;">${pct}</td>
+                            <td style="padding:8px 6px; color:#475569; font-size:10px;">${c.movement_type || '-'}</td>
+                        </tr>
+                    `;
+                });
+                tfootHtml = `
+                    <tr style="background:#F1F5F9; border-top:2px solid #CBD5E1; font-weight:bold; font-size:12px; color:#0F172A;">
+                        <td colspan="6" style="padding:10px 8px; text-align:right;">ΣΥΝΟΛΙΚΟ OVERRIDING AGENCY 3375Α (${data.length} Εγγραφές):</td>
+                        <td style="padding:10px 6px; text-align:right;">${formatEur(totNet)}</td>
+                        <td style="padding:10px 6px; text-align:right; color:#6D28D9; font-size:13px;">${formatEur(totAgn)}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                `;
+            } else {
+                theadHtml = `
+                    <tr style="background:#F8FAFC; border-top:1px solid #CBD5E1; border-bottom:2px solid #CBD5E1; color:#0F172A; font-weight:bold;">
+                        <th style="padding:8px 6px; text-align:center;">Α/Α</th>
+                        <th style="padding:8px 6px;">Μήνας</th>
+                        <th style="padding:8px 6px;">Αρ. Συμβολαίου</th>
+                        <th style="padding:8px 6px;">Ονοματεπώνυμο Πελάτη</th>
+                        <th style="padding:8px 6px;">Πρόγραμμα ERGO</th>
+                        <th style="padding:8px 6px; text-align:right;">Καθαρά (€)</th>
+                        <th style="padding:8px 6px; text-align:right;">Προμήθεια Συν. (€)</th>
+                        <th style="padding:8px 6px; text-align:right;">Agency 3375Α (€)</th>
+                        <th style="padding:8px 6px; text-align:right;">Σύνολο (€)</th>
+                    </tr>
+                `;
+                data.forEach((c, idx) => {
+                    rowsHtml += `
+                        <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
+                            <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>
+                            <td style="padding:8px 6px; font-weight:bold;">${c.statement_month || '-'}</td>
+                            <td style="padding:8px 6px; font-family:monospace; font-weight:bold; color:#1D4ED8;">${c.policy_number}</td>
+                            <td style="padding:8px 6px; font-weight:bold; color:#0F172A;">${c.client_name || '-'}</td>
+                            <td style="padding:8px 6px; color:#334155;">${c.package_name || 'ERGO Health Care Superior'}</td>
+                            <td style="padding:8px 6px; text-align:right; font-weight:600;">${formatEur(c.net_premium_total)}</td>
+                            <td style="padding:8px 6px; text-align:right; color:#B45309; font-weight:bold;">${formatEur(c.producer_commission_amount)}</td>
+                            <td style="padding:8px 6px; text-align:right; color:#6D28D9; font-weight:bold;">${formatEur(c.agency_overriding_amount)}</td>
+                            <td style="padding:8px 6px; text-align:right; color:#047857; font-weight:bold;">${formatEur(c.total_office_revenue)}</td>
+                        </tr>
+                    `;
+                });
+                tfootHtml = `
+                    <tr style="background:#F1F5F9; border-top:2px solid #CBD5E1; font-weight:bold; font-size:12px; color:#0F172A;">
+                        <td colspan="5" style="padding:10px 8px; text-align:right;">ΣΥΝΟΛΟ (${data.length} Συμβόλαια):</td>
+                        <td style="padding:10px 6px; text-align:right;">${formatEur(totNet)}</td>
+                        <td style="padding:10px 6px; text-align:right; color:#B45309;">${formatEur(totSyn)}</td>
+                        <td style="padding:10px 6px; text-align:right; color:#6D28D9;">${formatEur(totAgn)}</td>
+                        <td style="padding:10px 6px; text-align:right; color:#047857; font-size:13px;">${formatEur(totOffice)}</td>
+                    </tr>
+                `;
+            }
 
             printWrapper.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:12px; margin-bottom:16px;">
@@ -5099,29 +5200,13 @@
 
                 <table style="width:100%; border-collapse:collapse; text-align:left; font-size:11px; margin-bottom:16px; background:#FFFFFF;">
                     <thead>
-                        <tr style="background:#F8FAFC; border-top:1px solid #CBD5E1; border-bottom:2px solid #CBD5E1; color:#0F172A; font-weight:bold;">
-                            <th style="padding:8px 6px; text-align:center;">Α/Α</th>
-                            <th style="padding:8px 6px;">Μήνας</th>
-                            <th style="padding:8px 6px;">Αρ. Συμβολαίου</th>
-                            <th style="padding:8px 6px;">Ονοματεπώνυμο Πελάτη</th>
-                            <th style="padding:8px 6px;">Πρόγραμμα ERGO</th>
-                            <th style="padding:8px 6px; text-align:right;">Καθαρά (€)</th>
-                            <th style="padding:8px 6px; text-align:right;">Προμήθεια Συν. (€)</th>
-                            <th style="padding:8px 6px; text-align:right;">Agency 3375Α (€)</th>
-                            <th style="padding:8px 6px; text-align:right;">Σύνολο (€)</th>
-                        </tr>
+                        ${theadHtml}
                     </thead>
                     <tbody>
                         ${rowsHtml}
                     </tbody>
                     <tfoot>
-                        <tr style="background:#F1F5F9; border-top:2px solid #CBD5E1; font-weight:bold; font-size:12px; color:#0F172A;">
-                            <td colspan="5" style="padding:10px 8px; text-align:right;">ΣΥΝΟΛΟ (${data.length} Συμβόλαια):</td>
-                            <td style="padding:10px 6px; text-align:right;">${formatEur(totNet)}</td>
-                            <td style="padding:10px 6px; text-align:right; color:#B45309;">${formatEur(totSyn)}</td>
-                            <td style="padding:10px 6px; text-align:right; color:#6D28D9;">${formatEur(totAgn)}</td>
-                            <td style="padding:10px 6px; text-align:right; color:#047857; font-size:13px;">${formatEur(totOffice)}</td>
-                        </tr>
+                        ${tfootHtml}
                     </tfoot>
                 </table>
 

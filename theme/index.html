@@ -4088,8 +4088,18 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            // 3. Update Table Footer (Always update before/regardless of row count)
+            const fPartner = document.getElementById('subcode-foot-partner-lbl');
+            if (fPartner) fPartner.innerText = `Εκκαθαριστικό: ${partner.full_name || partner.producer_code || '-'} (Κωδ. ${partner.producer_code || '-'}) - ${items.length} Συμβόλαια`;
+            
+            document.getElementById('subcode-foot-net').innerText = formatEur(totals.total_net || 0);
+            document.getElementById('subcode-foot-ergo').innerText = formatEur(totals.total_ergo_commission || 0);
+            document.getElementById('subcode-foot-payout').innerText = formatEur(totals.total_subcode_payout || 0);
+            document.getElementById('subcode-foot-retention').innerText = formatEur(totals.total_office_retention || 0);
+            reapplyColumnVisibility('subcode-statement-table');
+
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">Δεν βρέθηκαν συμβόλαια για τον συνεργάτη ${partner.full_name || ''} στην επιλεγμένη περίοδο.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν καταχωρημένα συμβόλαια για τον συνεργάτη <strong>${partner.full_name || partner.producer_code} (Κωδ. ${partner.producer_code})</strong> στην επιλεγμένη περίοδο.</td></tr>`;
                 return;
             }
 
@@ -4111,16 +4121,6 @@
                 `;
                 tbody.appendChild(tr);
             });
-
-            // 3. Update Table Footer
-            const fPartner = document.getElementById('subcode-foot-partner-lbl');
-            if (fPartner) fPartner.innerText = `Εκκαθαριστικό: ${partner.full_name} (Κωδ. ${partner.producer_code}) - ${items.length} Συμβόλαια`;
-            
-            document.getElementById('subcode-foot-net').innerText = formatEur(totals.total_net);
-            document.getElementById('subcode-foot-ergo').innerText = formatEur(totals.total_ergo_commission);
-            document.getElementById('subcode-foot-payout').innerText = formatEur(totals.total_subcode_payout);
-            document.getElementById('subcode-foot-retention').innerText = formatEur(totals.total_office_retention);
-            reapplyColumnVisibility('subcode-statement-table');
         }
 
         function printSubcodeStatementPDF() {

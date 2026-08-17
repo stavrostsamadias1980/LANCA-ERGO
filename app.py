@@ -13,6 +13,7 @@ import re
 import datetime
 import time
 import base64
+import traceback
 try:
     import jwt
 except ImportError:
@@ -1525,7 +1526,9 @@ def api_get_subcode_payout_statement():
         "partner_type_label": "🔹 Έμμεσος Υποκωδικός (Μέσω 1411)",
         "commission_rate": split_pct
     }
-    
+    ergo_code = partner.get("ergo_code") or producer_code
+    full_name = partner.get("full_name") or ""
+
     query = """
         SELECT 
             m.*,
@@ -1535,9 +1538,15 @@ def api_get_subcode_payout_statement():
         LEFT JOIN clients c ON c.full_name = m.client_name
         LEFT JOIN policies pol ON pol.policy_number = m.policy_number
         WHERE m.has_producer_role = 1 
-          AND (m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ? OR ? = 'ALL_PRODUCERS')
+          AND (
+              m.producer_partner_code = ? 
+              OR m.producer_partner_code = ? 
+              OR m.producer_ergo_code = ?
+              OR m.producer_name = ? 
+              OR ? = 'ALL_PRODUCERS'
+          )
     """
-    params = [producer_code, partner.get("ergo_code", ""), producer_code, partner.get("full_name", ""), producer_code]
+    params = [producer_code, ergo_code, ergo_code, full_name, producer_code]
     
     if month and month != "all":
         query += " AND (m.statement_month = ? OR m.statement_month = ?)"
@@ -1547,20 +1556,6 @@ def api_get_subcode_payout_statement():
     
     cur.execute(query, params)
     raw_contracts = [dict(r) for r in cur.fetchall()]
-    
-    if not raw_contracts:
-        cur.execute("""
-            SELECT 
-                m.*,
-                c.afm, c.phone_mobile, c.email, c.city,
-                pol.issue_date
-            FROM financial_movements m
-            LEFT JOIN clients c ON c.full_name = m.client_name
-            LEFT JOIN policies pol ON pol.policy_number = m.policy_number
-            WHERE m.has_producer_role = 1
-            ORDER BY m.iso_date DESC LIMIT 20;
-        """)
-        raw_contracts = [dict(r) for r in cur.fetchall()]
         
     # Load Partner Commission Matrix
     cur.execute("SELECT * FROM partner_commission_matrix WHERE producer_code = ?", (producer_code,))

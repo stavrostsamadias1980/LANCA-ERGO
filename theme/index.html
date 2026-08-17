@@ -3111,6 +3111,18 @@
             let tgross=0, tnet=0, tsyn=0, tagn=0, trev=0, tcnt=0;
             const contractsSource = filteredContractsList || globalData.contracts || [];
 
+            if (!monthlyList || monthlyList.length === 0 || contractsSource.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν εκκαθαρίσεις ή συμβόλαια για τον επιλεγμένο συνεργάτη / περίοδο.</td></tr>`;
+                document.getElementById('tot-m-count').innerText = 0;
+                document.getElementById('exp-count').innerText = 0;
+                document.getElementById('tot-m-gross').innerText = formatEur(0);
+                document.getElementById('tot-m-net').innerText = formatEur(0);
+                document.getElementById('tot-m-syn').innerText = formatEur(0);
+                document.getElementById('tot-m-agn').innerText = formatEur(0);
+                document.getElementById('tot-m-rev').innerText = formatEur(0);
+                return;
+            }
+
             monthlyList.forEach((m, idx) => {
                 tcnt += m.count; tgross += m.gross; tnet += m.net; tsyn += m.comm_syn; tagn += m.comm_agn; trev += m.total_rev;
 
@@ -3819,6 +3831,17 @@
             tbody.innerHTML = '';
             let totGross = 0, totNet = 0, totComm = 0, totAgn = 0, totTot = 0;
 
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν πελάτες / συμβόλαια για τον επιλεγμένο συνεργάτη / περίοδο.</td></tr>`;
+                const fLbl = document.getElementById('crm-foot-lbl'); if (fLbl) fLbl.innerText = `0 Συμβόλαια`;
+                const fGross = document.getElementById('crm-foot-gross'); if (fGross) fGross.innerText = formatEur(0);
+                const fNet = document.getElementById('crm-foot-net'); if (fNet) fNet.innerText = formatEur(0);
+                const fComm = document.getElementById('crm-foot-comm'); if (fComm) fComm.innerText = formatEur(0);
+                const fAgn = document.getElementById('crm-foot-agn'); if (fAgn) fAgn.innerText = formatEur(0);
+                const fTot = document.getElementById('crm-foot-tot'); if (fTot) fTot.innerText = formatEur(0);
+                return;
+            }
+
             list.forEach((r, idx) => {
                 const gross = (r.gross_premium || r.net_premium_total || 0);
                 const net = (r.net_premium_total || 0);
@@ -3903,6 +3926,14 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             let totNet = 0, totAgency = 0;
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν εγγραφές υπερπρομήθειας Agency 3375Α για τον επιλεγμένο συνεργάτη / περίοδο.</td></tr>`;
+                const fNet = document.getElementById('agency-tot-net'); if (fNet) fNet.innerText = formatEur(0);
+                const fAgn = document.getElementById('agency-total-val'); if (fAgn) fAgn.innerText = formatEur(0);
+                const fLbl = document.getElementById('agency-footer-label'); if (fLbl) fLbl.innerText = `0 Εγγραφές`;
+                return;
+            }
             list.forEach((r, idx) => {
                 const net = (r.net_premium_total || 0);
                 const agn = (r.agency_overriding_amount || 0);
@@ -4325,6 +4356,21 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             let totNet = 0, totErgo = 0, totPayout = 0, totRetention = 0;
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν συμβόλαια προμηθειών για τον επιλεγμένο συνεργάτη / περίοδο.</td></tr>`;
+                const kNet = document.getElementById('prod-kpi-net'); if (kNet) kNet.innerText = formatEur(0);
+                const kErgo = document.getElementById('prod-kpi-ergo'); if (kErgo) kErgo.innerText = formatEur(0);
+                const kPay = document.getElementById('prod-kpi-payout'); if (kPay) kPay.innerText = formatEur(0);
+                const kRet = document.getElementById('prod-kpi-retention'); if (kRet) kRet.innerText = formatEur(0);
+                const kCnt = document.getElementById('prod-kpi-count'); if (kCnt) kCnt.innerText = `0 Συμβόλαια`;
+                const fLbl = document.getElementById('prod-footer-label'); if (fLbl) fLbl.innerText = `0 Συμβόλαια`;
+                const fNet = document.getElementById('prod-foot-net'); if (fNet) fNet.innerText = formatEur(0);
+                const fErgo = document.getElementById('prod-foot-ergo'); if (fErgo) fErgo.innerText = formatEur(0);
+                const fVal = document.getElementById('producers-total-val'); if (fVal) fVal.innerText = formatEur(0);
+                const fRet = document.getElementById('prod-foot-retention'); if (fRet) fRet.innerText = formatEur(0);
+                return;
+            }
 
             list.forEach((r, idx) => {
                 const net = (r.net_premium_total || 0);

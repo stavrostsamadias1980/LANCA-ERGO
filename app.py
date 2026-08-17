@@ -1247,15 +1247,32 @@ def api_get_producers():
     for r in rows:
         net = float(r.get("net_premium_total") or 0.0)
         ergo_comm = float(r.get("producer_commission_amount") or 0.0)
-        split_rate = float(r.get("subcode_split_rate") or 70.0)
+        p_type = r.get("partner_type") or "SUBCODE_1411"
+        p_code = str(r.get("producer_partner_code") or "").strip().upper()
         ergo_rate = round((abs(ergo_comm) / abs(net) * 100), 2) if net != 0 else (r.get("producer_commission_rate") or 25.0)
-        partner_payout = round(ergo_comm * (split_rate / 100.0), 2)
-        office_retention = round(ergo_comm - partner_payout, 2)
+        
+        # When Agency Manager / Direct Agency: gets 100% of ERGO commission (does NOT act as subcode!)
+        is_agency_direct = (p_type in ["AGENCY_MANAGER", "DIRECT_AGENT"] or p_code in ["3375A", "3375Α", "LANCA", "1", "1411"])
+        
+        if is_agency_direct:
+            split_rate = 100.0
+            partner_payout = ergo_comm
+            office_retention = 0.0
+        elif p_code == "0":
+            split_rate = 0.0
+            partner_payout = 0.0
+            office_retention = ergo_comm
+        else:
+            split_rate = float(r.get("subcode_split_rate") or 70.0)
+            partner_payout = round(ergo_comm * (split_rate / 100.0), 2)
+            office_retention = round(ergo_comm - partner_payout, 2)
         
         r["ergo_commission_rate_pct"] = ergo_rate
+        r["subcode_split_rate"] = split_rate
         r["partner_payout_amount"] = partner_payout
         r["office_retention_amount"] = office_retention
         r["office_retention_pct"] = round(100.0 - split_rate, 2)
+        r["is_agency_direct"] = is_agency_direct
 
     return jsonify({
         "tier": "Κατηγορία Α (Παραγωγός)",

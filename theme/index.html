@@ -3347,36 +3347,40 @@
         function onEditAgencySearchInput(val) {
             if (!val) return;
             const term = val.split('|')[0].trim().toUpperCase();
-            if (term === '0' || val.trim() === '0') {
+            const fullTerm = val.toUpperCase().trim();
+
+            if (term === '0' || fullTerm === '0') {
                 setEditAgencyZero();
                 return;
             }
 
-            // Check if pure numbers without letters
-            if (/^\d+$/.test(term)) {
-                alert("⚠️ Οι απλοί υποκωδικοί (π.χ. " + term + ") δεν λαμβάνουν υπερπρομήθειες Agency. Επιτρέπονται μόνο κωδικοί Agency με γράμμα (π.χ. 3375Α, 4Α) ή 0.");
-                setEditAgencyZero();
-                return;
-            }
-
-            if (term.includes('3375')) {
+            // If 3375 or LANCA
+            if (term.includes('3375') || term.includes('LANCA')) {
                 document.getElementById('edit-agency-code').value = "3375Α";
-                document.getElementById('edit-agency-name').value = "LANCA Ι.Κ.Ε. - AGENCY";
+                document.getElementById('edit-agency-name').value = "LANCA Ι.Κ.Ε. - AGENCY (20%)";
                 const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
                 document.getElementById('edit-agency-comm').value = Number((net * 0.20).toFixed(2));
                 return;
             }
 
+            // Match from producers registry (e.g. 4Α, 1Α, 1411Α, etc.)
             const p = (globalData.producersReg || []).find(x => 
                 x.producer_code.toUpperCase() === term ||
-                x.producer_name.toUpperCase().includes(term)
+                (x.ergo_code && x.ergo_code.toUpperCase() === term) ||
+                x.producer_name.toUpperCase().includes(term) ||
+                x.producer_name.toUpperCase().includes(fullTerm) ||
+                x.producer_code.toUpperCase() === fullTerm
             );
 
             if (p) {
                 document.getElementById('edit-agency-code').value = p.producer_code;
                 document.getElementById('edit-agency-name').value = p.producer_name;
                 const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
+                // Agency overriding is exactly what ERGO gives to the agency (20% of net premium, 100% to agency)
                 document.getElementById('edit-agency-comm').value = Number((net * 0.20).toFixed(2));
+            } else {
+                // Let user type custom code smoothly
+                document.getElementById('edit-agency-code').value = term;
             }
         }
 
@@ -4081,10 +4085,32 @@
             list.forEach((r, idx) => {
                 const net = (r.net_premium_total || 0);
                 const ergoComm = (r.producer_commission_amount || 0);
-                const splitRate = r.subcode_split_rate !== undefined ? r.subcode_split_rate : (r.commission_rate || 70);
+                const pCode = String(r.producer_partner_code || r.producer_code || '0').trim().toUpperCase();
+                const pType = r.partner_type || 'SUBCODE_1411';
+                const isAgencyDirect = (pType === 'AGENCY_MANAGER' || pType === 'DIRECT_AGENT' || pCode === '3375Α' || pCode === '3375A' || pCode === '1' || pCode === '1411');
+
+                let splitRate, payout, retention, splitBadge, retentionBadge;
+                if (isAgencyDirect) {
+                    splitRate = 100.0;
+                    payout = ergoComm;
+                    retention = 0.0;
+                    splitBadge = `<span class="badge badge-success" style="padding:1px 6px; font-size:9.5px;">👑 Agency Direct (100%)</span>`;
+                    retentionBadge = `<span style="font-size:10px; color:var(--accent-emerald); font-weight:700;">Απευθείας ERGO</span>`;
+                } else if (pCode === '0') {
+                    splitRate = 0.0;
+                    payout = 0.0;
+                    retention = ergoComm;
+                    splitBadge = `<span class="badge badge-danger" style="padding:1px 6px; font-size:9.5px;">⚠️ Εκκρεμεί Ανάθεση (0%)</span>`;
+                    retentionBadge = `<span style="font-size:10px; color:#DC2626; font-weight:700;">100% Παρακράτηση</span>`;
+                } else {
+                    splitRate = r.subcode_split_rate !== undefined ? r.subcode_split_rate : (r.commission_rate || 70);
+                    payout = r.partner_payout_amount !== undefined ? r.partner_payout_amount : Math.round(ergoComm * (splitRate / 100.0) * 100) / 100;
+                    retention = r.office_retention_amount !== undefined ? r.office_retention_amount : Math.round((ergoComm - payout) * 100) / 100;
+                    splitBadge = `<span class="badge badge-purple" style="padding:1px 5px; font-size:9.5px;">Απόδοση: ${splitRate}%</span>`;
+                    retentionBadge = `<span style="font-size:10px; color:var(--text-secondary);">${(100 - splitRate).toFixed(1)}% Γραφείο</span>`;
+                }
+
                 const ergoRate = (net !== 0) ? (Math.abs(ergoComm / net) * 100).toFixed(2) + '%' : (r.producer_commission_rate ? r.producer_commission_rate + '%' : '25.00%');
-                const payout = r.partner_payout_amount !== undefined ? r.partner_payout_amount : Math.round(ergoComm * (splitRate / 100.0) * 100) / 100;
-                const retention = r.office_retention_amount !== undefined ? r.office_retention_amount : Math.round((ergoComm - payout) * 100) / 100;
 
                 totNet += net;
                 totErgo += ergoComm;
@@ -4092,7 +4118,6 @@
                 totRetention += retention;
 
                 const pName = (r.producer_name && r.producer_name !== '0') ? r.producer_name : 'ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)';
-                const pCode = r.producer_partner_code || r.producer_code || '0';
                 const pErgo = r.producer_ergo_code || '1';
 
                 const tr = document.createElement('tr');
@@ -4120,13 +4145,13 @@
                     <td>
                         <strong style="color:var(--accent-emerald); font-size:13.5px;">${formatEur(payout)}</strong>
                         <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">
-                            <span class="badge badge-purple" style="padding:1px 5px; font-size:9.5px;">Απόδοση: ${splitRate}%</span>
+                            ${splitBadge}
                         </div>
                     </td>
                     <td>
                         <strong style="color:var(--accent-purple); font-size:13px;">${formatEur(retention)}</strong>
-                        <div style="font-size:10px; color:var(--text-secondary); margin-top:1px;">
-                            ${(100 - splitRate).toFixed(1)}% Γραφείο
+                        <div style="margin-top:1px;">
+                            ${retentionBadge}
                         </div>
                     </td>
                     <td>

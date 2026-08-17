@@ -2296,32 +2296,62 @@
                     <input type="text" id="edit-client-name" class="glass-input" style="width:100%; font-weight:700;" required>
                 </div>
 
-                <!-- 👥 Searchable Producer & Team Assignment -->
-                <div style="grid-column: 1 / -1; background:rgba(219, 234, 254, 0.45); padding:12px; border-radius:14px; border:1px solid rgba(59, 130, 246, 0.3);">
-                    <label style="font-size:12px; font-weight:800; color:var(--brand-blue); display:block; margin-bottom:4px;">
-                        🤝 Συνεργάτης Παραγωγής (Αναζήτηση με Αριθμό Γραφείου, ERGO ή Όνομα):
-                    </label>
-                    <input type="text" id="edit-producer-search" class="glass-input" list="producers-datalist" placeholder="🔍 Πληκτρολογήστε κωδικό γραφείου (π.χ. 1, 4Α, 11523) ή όνομα συνεργάτη..." oninput="onEditProducerSearchInput(this.value)" style="width:100%; font-weight:700; background:#FFFFFF;">
+                <!-- 👥 Searchable Producer Section (All Subcodes & 0) -->
+                <div style="grid-column: 1 / -1; background:rgba(219, 234, 254, 0.45); padding:14px; border-radius:14px; border:1px solid rgba(59, 130, 246, 0.3);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label style="font-size:12px; font-weight:800; color:var(--brand-blue);">
+                            🤝 Συνεργάτης Παραγωγής (Προμήθεια Συνεργάτη):
+                        </label>
+                        <button type="button" class="btn-pill btn-ghost" style="padding:2px 8px; font-size:11px; color:#DC2626;" onclick="setEditProducerZero()">
+                            ❌ Ορισμός ως 0 (Χωρίς Συνεργάτη)
+                        </button>
+                    </div>
+                    <input type="text" id="edit-producer-search" class="glass-input" list="producers-datalist" placeholder="🔍 Πληκτρολογήστε 0, κωδικό γραφείου ή όνομα συνεργάτη..." oninput="onEditProducerSearchInput(this.value)" style="width:100%; font-weight:700; background:#FFFFFF;">
                     <datalist id="producers-datalist"></datalist>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-top:8px;">
                         <div>
                             <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Κωδικός Γραφείου:</span>
-                            <input type="text" id="edit-producer-code" class="glass-input" style="width:100%; font-size:12px; padding:6px 10px;" readonly>
+                            <input type="text" id="edit-producer-code" class="glass-input" style="width:100%; font-size:12px; padding:6px 10px;" oninput="onEditProducerCodeDirect(this.value)">
                         </div>
                         <div>
                             <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Κωδικός ERGO:</span>
-                            <input type="text" id="edit-producer-ergo-code" class="glass-input" style="width:100%; font-size:12px; padding:6px 10px;" readonly>
+                            <input type="text" id="edit-producer-ergo-code" class="glass-input" style="width:100%; font-size:12px; padding:6px 10px;">
                         </div>
                         <div style="grid-column: span 2;">
                             <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Ονοματεπώνυμο Παραγωγού:</span>
-                            <input type="text" id="edit-producer-name" class="glass-input" style="width:100%; font-size:12px; font-weight:700; padding:6px 10px;" readonly>
+                            <input type="text" id="edit-producer-name" class="glass-input" style="width:100%; font-size:12px; font-weight:700; padding:6px 10px;">
                         </div>
                     </div>
                     <div style="margin-top:6px; font-size:11px; color:var(--text-secondary);" id="edit-producer-team-label">
                         🏢 Ομάδα: <strong>Οργανωτική Ομάδα 40071</strong>
                     </div>
                     <input type="hidden" id="edit-org-team">
+                </div>
+
+                <!-- 🏢 Agency Overriding Section (ONLY Codes with Letter e.g. 3375Α, 4Α OR 0) -->
+                <div style="grid-column: 1 / -1; background:rgba(237, 233, 254, 0.45); padding:14px; border-radius:14px; border:1px solid rgba(124, 58, 237, 0.3);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label style="font-size:12px; font-weight:800; color:var(--accent-purple);">
+                            🏢 Agency / Υπερπρομήθεια 20% (Μόνο Κωδικοί με Γράμμα π.χ. 3375Α, 4Α ή 0):
+                        </label>
+                        <button type="button" class="btn-pill btn-ghost" style="padding:2px 8px; font-size:11px; color:#6D28D9;" onclick="setEditAgencyZero()">
+                            ❌ Ορισμός ως 0 (Χωρίς Agency - 0€)
+                        </button>
+                    </div>
+                    <input type="text" id="edit-agency-search" class="glass-input" list="agency-datalist" placeholder="🔍 Πληκτρολογήστε 0 ή κωδικό agency με γράμμα (π.χ. 3375Α, 4Α)..." oninput="onEditAgencySearchInput(this.value)" style="width:100%; font-weight:700; background:#FFFFFF;">
+                    <datalist id="agency-datalist"></datalist>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-top:8px;">
+                        <div>
+                            <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Κωδικός Agency:</span>
+                            <input type="text" id="edit-agency-code" class="glass-input" style="width:100%; font-size:12px; padding:6px 10px;" value="3375Α" oninput="onEditAgencyCodeDirect(this.value)">
+                        </div>
+                        <div style="grid-column: span 3;">
+                            <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Ονομασία Agency / Συντονιστή:</span>
+                            <input type="text" id="edit-agency-name" class="glass-input" style="width:100%; font-size:12px; font-weight:700; padding:6px 10px;" value="LANCA Ι.Κ.Ε. - AGENCY">
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -3172,21 +3202,61 @@
             }
         }
 
-        // === 👥 POPULATE PRODUCER DATALISTS & SEARCH SUGGESTIONS ===
+        // === 👥 POPULATE PRODUCER & AGENCY DATALISTS ===
+        function isAgencyCodeWithLetter(code) {
+            if (!code) return false;
+            const c = String(code).trim().toUpperCase();
+            if (c === '0') return true;
+            // Check if contains letters (Greek or Latin)
+            return /[A-Z\u0370-\u03FF]/.test(c);
+        }
+
         function populateProducersDatalists() {
             const dl = document.getElementById('producers-datalist');
+            const agencyDl = document.getElementById('agency-datalist');
             const subDl = document.getElementById('subcode-partners-datalist');
             if (dl) dl.innerHTML = '';
+            if (agencyDl) agencyDl.innerHTML = '';
             if (subDl) subDl.innerHTML = '';
 
             const list = globalData.producersReg || [];
+
+            // 1. Always ensure 0 is top option for both
+            if (dl) {
+                const optZero = document.createElement('option');
+                optZero.value = "0 | ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0) - Εκκρεμεί Ανάθεση";
+                dl.appendChild(optZero);
+            }
+            if (agencyDl) {
+                const optZeroAgn = document.createElement('option');
+                optZeroAgn.value = "0 | ΧΩΡΙΣ AGENCY / ΑΠΕΥΘΕΙΑΣ ΓΡΑΦΕΙΟ (0) - 0€ Overriding";
+                agencyDl.appendChild(optZeroAgn);
+
+                const opt3375A = document.createElement('option');
+                opt3375A.value = "3375Α | LANCA Ι.Κ.Ε. - AGENCY (20% Overriding)";
+                agencyDl.appendChild(opt3375A);
+            }
+
             list.forEach(p => {
+                const code = String(p.producer_code || '').trim();
                 const optVal = `${p.producer_code} | ${p.producer_name} (ERGO: ${p.ergo_code || '-'})`;
-                if (dl) {
+
+                // All partners in producers datalist
+                if (dl && code !== '0') {
                     const opt = document.createElement('option');
                     opt.value = optVal;
                     dl.appendChild(opt);
                 }
+
+                // ONLY codes with letter (or Agency Manager) in agency datalist (NO pure numeric subcodes)
+                if (agencyDl && code !== '0' && code !== '3375Α') {
+                    if (isAgencyCodeWithLetter(code) || p.partner_type === 'AGENCY_MANAGER') {
+                        const optAgn = document.createElement('option');
+                        optAgn.value = `${code} | ${p.producer_name} (Agency Overriding)`;
+                        agencyDl.appendChild(optAgn);
+                    }
+                }
+
                 if (subDl) {
                     const opt2 = document.createElement('option');
                     opt2.value = optVal;
@@ -3202,11 +3272,37 @@
             }
         }
 
+        // --- 🤝 PRODUCER INPUT ACTIONS ---
+        function setEditProducerZero() {
+            document.getElementById('edit-producer-search').value = "0 | ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)";
+            document.getElementById('edit-producer-code').value = "0";
+            document.getElementById('edit-producer-ergo-code').value = "0";
+            document.getElementById('edit-producer-name').value = "ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)";
+            document.getElementById('edit-org-team').value = "⚠️ Εκκρεμεί Ανάθεση Συνεργάτη";
+            document.getElementById('edit-prod-comm').value = 0;
+
+            const lbl = document.getElementById('edit-producer-team-label');
+            if (lbl) lbl.innerHTML = `🏢 Ομάδα: <strong style="color:#DC2626;">⚠️ Εκκρεμεί Ανάθεση Συνεργάτη</strong> • Κλίμακα: <strong>0%</strong>`;
+
+            const unassignedAlert = document.getElementById('edit-unassigned-alert');
+            if (unassignedAlert) unassignedAlert.style.display = 'flex';
+        }
+
+        function onEditProducerCodeDirect(val) {
+            if (val.trim() === '0') {
+                setEditProducerZero();
+            }
+        }
+
         function onEditProducerSearchInput(val) {
             if (!val) return;
             const term = val.split('|')[0].trim().toLowerCase();
-            const fullTerm = val.toLowerCase().trim();
+            if (term === '0' || val.trim() === '0') {
+                setEditProducerZero();
+                return;
+            }
 
+            const fullTerm = val.toLowerCase().trim();
             const p = (globalData.producersReg || []).find(x => 
                 x.producer_code.toLowerCase() === term ||
                 (x.ergo_code && x.ergo_code.toLowerCase() === term) ||
@@ -3226,20 +3322,83 @@
                     lbl.innerHTML = `🏢 Ομάδα: <strong>${p.partner_type_label || 'Οργανωτική Ομάδα 40071'}</strong> • Κλίμακα: <strong>${p.avg_rate || 25}%</strong>`;
                 }
 
+                const unassignedAlert = document.getElementById('edit-unassigned-alert');
+                if (unassignedAlert) unassignedAlert.style.display = 'none';
+
                 // Recalc comm
                 recalcEditModalComms(p.avg_rate || 25);
             }
         }
 
+        // --- 🏢 AGENCY INPUT ACTIONS (STRICTLY LETTER CODES OR 0) ---
+        function setEditAgencyZero() {
+            document.getElementById('edit-agency-search').value = "0 | ΧΩΡΙΣ AGENCY / ΑΠΕΥΘΕΙΑΣ ΓΡΑΦΕΙΟ (0)";
+            document.getElementById('edit-agency-code').value = "0";
+            document.getElementById('edit-agency-name').value = "ΧΩΡΙΣ AGENCY (0)";
+            document.getElementById('edit-agency-comm').value = 0;
+        }
+
+        function onEditAgencyCodeDirect(val) {
+            if (val.trim() === '0') {
+                setEditAgencyZero();
+            }
+        }
+
+        function onEditAgencySearchInput(val) {
+            if (!val) return;
+            const term = val.split('|')[0].trim().toUpperCase();
+            if (term === '0' || val.trim() === '0') {
+                setEditAgencyZero();
+                return;
+            }
+
+            // Check if pure numbers without letters
+            if (/^\d+$/.test(term)) {
+                alert("⚠️ Οι απλοί υποκωδικοί (π.χ. " + term + ") δεν λαμβάνουν υπερπρομήθειες Agency. Επιτρέπονται μόνο κωδικοί Agency με γράμμα (π.χ. 3375Α, 4Α) ή 0.");
+                setEditAgencyZero();
+                return;
+            }
+
+            if (term.includes('3375')) {
+                document.getElementById('edit-agency-code').value = "3375Α";
+                document.getElementById('edit-agency-name').value = "LANCA Ι.Κ.Ε. - AGENCY";
+                const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
+                document.getElementById('edit-agency-comm').value = Number((net * 0.20).toFixed(2));
+                return;
+            }
+
+            const p = (globalData.producersReg || []).find(x => 
+                x.producer_code.toUpperCase() === term ||
+                x.producer_name.toUpperCase().includes(term)
+            );
+
+            if (p) {
+                document.getElementById('edit-agency-code').value = p.producer_code;
+                document.getElementById('edit-agency-name').value = p.producer_name;
+                const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
+                document.getElementById('edit-agency-comm').value = Number((net * 0.20).toFixed(2));
+            }
+        }
+
         function recalcEditModalComms(customRate) {
             const net = parseFloat(document.getElementById('edit-net-premium').value) || 0;
-            const rate = customRate !== undefined ? customRate : (parseFloat(document.getElementById('edit-producer-code')?.dataset?.rate) || 25.0);
-            
-            const pcomm = Number((net * (rate / 100)).toFixed(2));
-            const acomm = Number((net * 0.20).toFixed(2));
-            
-            document.getElementById('edit-prod-comm').value = pcomm;
-            document.getElementById('edit-agency-comm').value = acomm;
+            const pcode = (document.getElementById('edit-producer-code')?.value || '').trim();
+            const acode = (document.getElementById('edit-agency-code')?.value || '').trim();
+
+            if (pcode === '0') {
+                document.getElementById('edit-prod-comm').value = 0;
+            } else {
+                const rate = customRate !== undefined ? customRate : (parseFloat(document.getElementById('edit-producer-code')?.dataset?.rate) || 25.0);
+                const pcomm = Number((net * (rate / 100)).toFixed(2));
+                document.getElementById('edit-prod-comm').value = pcomm;
+            }
+
+            if (acode === '0') {
+                document.getElementById('edit-agency-comm').value = 0;
+            } else {
+                const acomm = Number((net * 0.20).toFixed(2));
+                document.getElementById('edit-agency-comm').value = acomm;
+            }
         }
 
         // === ✏️ UNIVERSAL RECORD EDIT MODAL & ENGINE ===
@@ -3273,7 +3432,14 @@
             document.getElementById('edit-producer-ergo-code').value = pergo;
             document.getElementById('edit-producer-name').value = pname;
             document.getElementById('edit-org-team').value = pteam;
-            document.getElementById('edit-producer-search').value = `${pcode} | ${pname}`;
+            document.getElementById('edit-producer-search').value = (pcode === '0') ? '0 | ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)' : `${pcode} | ${pname}`;
+
+            // Populate Agency fields
+            const agnCode = (c.agency_overriding_amount > 0) ? '3375Α' : '0';
+            const agnName = (c.agency_overriding_amount > 0) ? 'LANCA Ι.Κ.Ε. - AGENCY (20%)' : 'ΧΩΡΙΣ AGENCY (0)';
+            if (document.getElementById('edit-agency-code')) document.getElementById('edit-agency-code').value = agnCode;
+            if (document.getElementById('edit-agency-name')) document.getElementById('edit-agency-name').value = agnName;
+            if (document.getElementById('edit-agency-search')) document.getElementById('edit-agency-search').value = `${agnCode} | ${agnName}`;
             
             const lbl = document.getElementById('edit-producer-team-label');
             if (lbl) lbl.innerHTML = `🏢 Ομάδα: <strong>${pteam}</strong>`;

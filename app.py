@@ -2737,16 +2737,16 @@ def api_update_contract():
     net = float(data.get("net_premium_total", 0.0))
     pcomm = float(data.get("producer_commission_amount", 0.0))
     acomm = float(data.get("agency_overriding_amount", 0.0))
-    pcode = str(data.get("producer_code", "")).strip()
-    ergo_code = str(data.get("producer_ergo_code", "") or data.get("ergo_code", "")).strip()
-    pname = str(data.get("producer_name", "")).strip()
+    pcode = str(data.get("producer_code", "")).strip() or "0"
+    ergo_code = str(data.get("producer_ergo_code", "") or data.get("ergo_code", "")).strip() or "0"
+    pname = str(data.get("producer_name", "")).strip() or ("ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)" if pcode == "0" else "")
     pkg = str(data.get("package_name", "")).strip()
     org_team = str(data.get("org_team", "")).strip()
 
     conn = sqlite3.connect(SQLITE_PATH)
     cur = conn.cursor()
     
-    if pcode and (not pname or not ergo_code):
+    if pcode and pcode != "0" and (not pname or not ergo_code or ergo_code == "0"):
         cur.execute("SELECT full_name, ergo_code, partner_type_label FROM producers_catalog WHERE producer_code = ? OR ergo_code = ? LIMIT 1;", (pcode, pcode))
         p_row = cur.fetchone()
         if p_row:
@@ -2757,16 +2757,16 @@ def api_update_contract():
     cur.execute("""
         UPDATE financial_movements 
         SET client_name = COALESCE(NULLIF(?, ''), client_name),
-            net_premium_total = CASE WHEN ? > 0 THEN ? ELSE net_premium_total END,
-            producer_commission_amount = CASE WHEN ? > 0 THEN ? ELSE producer_commission_amount END,
-            agency_overriding_amount = CASE WHEN ? > 0 THEN ? ELSE agency_overriding_amount END,
-            producer_partner_code = COALESCE(NULLIF(?, ''), producer_partner_code),
-            producer_ergo_code = COALESCE(NULLIF(?, ''), producer_ergo_code),
-            producer_name = COALESCE(NULLIF(?, ''), producer_name),
-            producer_org_team = COALESCE(NULLIF(?, ''), producer_org_team),
+            net_premium_total = ?,
+            producer_commission_amount = ?,
+            agency_overriding_amount = ?,
+            producer_partner_code = ?,
+            producer_ergo_code = ?,
+            producer_name = ?,
+            producer_org_team = ?,
             package_name = COALESCE(NULLIF(?, ''), package_name)
         WHERE TRIM(policy_number) = ?
-    """, (cname, net, net, pcomm, pcomm, acomm, acomm, pcode, ergo_code, pname, org_team, pkg, pol))
+    """, (cname, net, pcomm, acomm, pcode, ergo_code, pname, org_team, pkg, pol))
     
     cur.execute("""
         UPDATE clients
@@ -2779,16 +2779,16 @@ def api_update_contract():
     
     cur.execute("""
         UPDATE policies 
-        SET producer_partner_code = COALESCE(NULLIF(?, ''), producer_partner_code),
-            producer_ergo_code = COALESCE(NULLIF(?, ''), producer_ergo_code),
-            producer_name = COALESCE(NULLIF(?, ''), producer_name)
+        SET producer_partner_code = ?,
+            producer_ergo_code = ?,
+            producer_name = ?
         WHERE TRIM(policy_number) = ?
     """, (pcode, ergo_code, pname, pol))
     
     conn.commit()
     conn.close()
     
-    log_gdpr_audit(user.get("username", "admin"), "UPDATE_CONTRACT", f"Updated contract {pol} for client {cname} (Producer: {pname} / {pcode})")
+    log_gdpr_audit(user.get("username", "admin"), "UPDATE_CONTRACT", f"Updated contract {pol} for client {cname} (Producer: {pname} / {pcode}, Comm: €{pcomm}, Agency: €{acomm})")
     return jsonify({"status": "success", "message": f"Το συμβόλαιο {pol} ενημερώθηκε επιτυχώς!"})
 
 @app.route("/api/docs/list", methods=["GET"])

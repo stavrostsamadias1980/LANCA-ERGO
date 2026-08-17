@@ -4207,7 +4207,7 @@
             }
         }
 
-                        async function printSubcodeStatementPDF() {
+                                async function printSubcodeStatementPDF() {
             if (!currentSubcodeStatementData || !currentSubcodeStatementData.items || currentSubcodeStatementData.items.length === 0) {
                 alert("Παρακαλώ επιλέξτε συνεργάτη με συμβόλαια για την έκδοση εκκαθαριστικού.");
                 return;
@@ -4241,19 +4241,6 @@
                 net_payable: netPay
             };
 
-            const pdfContainer = document.createElement('div');
-            pdfContainer.id = 'pdf-render-container';
-            pdfContainer.style.position = 'absolute';
-            pdfContainer.style.left = '0px';
-            pdfContainer.style.top = '0px';
-            pdfContainer.style.width = '1100px';
-            pdfContainer.style.padding = '30px';
-            pdfContainer.style.backgroundColor = '#ffffff';
-            pdfContainer.style.color = '#0f172a';
-            pdfContainer.style.fontFamily = 'Arial, Helvetica, sans-serif';
-            pdfContainer.style.zIndex = '9999999';
-            pdfContainer.style.boxSizing = 'border-box';
-
             let itemsRows = '';
             activeItems.forEach((it, i) => {
                 const netVal = Number(it.net_premium || 0).toFixed(2);
@@ -4285,116 +4272,110 @@
             else if (toVal !== 'all') periodLabel = `Έως ${toVal}`;
             else if (yearVal !== 'all') periodLabel = `Έτος ${yearVal}`;
 
-            pdfContainer.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:14px; margin-bottom:18px;">
-                    <div>
-                        <h2 style="color:#1E3A8A; margin:0; font-size:20px; font-weight:800;">LANCA Ι.Κ.Ε. - AGENCY 1411 (ERGO)</h2>
-                        <div style="font-size:12px; color:#64748B; margin-top:2px;">Συντονισμός & Διαχείριση Ασφαλιστικών Εργασιών • Υπεύθυνος: Νίκος Αναγνωστόπουλος</div>
+            const htmlContent = `
+                <div style="padding: 24px; font-family: Arial, Helvetica, sans-serif; color: #0f172a; background: #ffffff; width: 1020px; box-sizing: border-box;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:14px; margin-bottom:18px;">
+                        <div>
+                            <h2 style="color:#1E3A8A; margin:0; font-size:20px; font-weight:800;">LANCA Ι.Κ.Ε. - AGENCY 1411 (ERGO)</h2>
+                            <div style="font-size:12px; color:#64748B; margin-top:2px;">Συντονισμός & Διαχείριση Ασφαλιστικών Εργασιών • Υπεύθυνος: Νίκος Αναγνωστόπουλος</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:14px; font-weight:bold; color:#1D4ED8;">ΕΠΙΣΗΜΟ ΕΚΚΑΘΑΡΙΣΤΗΡΙΟ ΥΠΟΚΩΔΙΚΟΥ</div>
+                            <div style="font-size:11px; color:#64748B;">Ημερομηνία Έκδοσης: ${new Date().toLocaleDateString('el-GR')}</div>
+                        </div>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:14px; font-weight:bold; color:#1D4ED8;">ΕΠΙΣΗΜΟ ΕΚΚΑΘΑΡΙΣΤΗΡΙΟ ΥΠΟΚΩΔΙΚΟΥ</div>
-                        <div style="font-size:11px; color:#64748B;">Ημερομηνία Έκδοσης: ${new Date().toLocaleDateString('el-GR')}</div>
-                    </div>
-                </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#F8FAFC; padding:14px; border-radius:10px; margin-bottom:18px; font-size:12px; border:1px solid #E2E8F0;">
-                    <div>
-                        <div><strong>Ονοματεπώνυμο Συνεργάτη:</strong> ${partner.full_name || partner.producer_name || '-'}</div>
-                        <div><strong>Κωδικός Γραφείου:</strong> ${partner.producer_code || '-'} | <strong>Κωδικός ERGO:</strong> ${partner.ergo_code || '-'}</div>
-                        <div><strong>Ιεραρχία / Κατηγορία:</strong> ${partner.partner_type_label || partner.partner_type || 'Υποκωδικός'}</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#F8FAFC; padding:14px; border-radius:10px; margin-bottom:18px; font-size:12px; border:1px solid #E2E8F0;">
+                        <div>
+                            <div><strong>Ονοματεπώνυμο Συνεργάτη:</strong> ${partner.full_name || partner.producer_name || '-'}</div>
+                            <div><strong>Κωδικός Γραφείου:</strong> ${partner.producer_code || '-'} | <strong>Κωδικός ERGO:</strong> ${partner.ergo_code || '-'}</div>
+                            <div><strong>Ιεραρχία / Κατηγορία:</strong> ${partner.partner_type_label || partner.partner_type || 'Υποκωδικός'}</div>
+                        </div>
+                        <div>
+                            <div><strong>Περίοδος Εκκαθάρισης:</strong> ${periodLabel}</div>
+                            <div><strong>Συμφωνία Επιμερισμού:</strong> ${data.split_pct}% επί προμήθειας ERGO</div>
+                            <div><strong>Συνολικά Συμβόλαια:</strong> ${activeItems.length}</div>
+                        </div>
                     </div>
-                    <div>
-                        <div><strong>Περίοδος Εκκαθάρισης:</strong> ${periodLabel}</div>
-                        <div><strong>Συμφωνία Επιμερισμού:</strong> ${data.split_pct}% επί προμήθειας ERGO</div>
-                        <div><strong>Συνολικά Συμβόλαια:</strong> ${activeItems.length}</div>
-                    </div>
-                </div>
 
-                <table style="width:100%; border-collapse:collapse; margin-bottom:18px; background:#ffffff;">
-                    <thead>
-                        <tr style="background:#1E3A8A; color:#FFFFFF; font-size:11px; text-align:left;">
-                            <th style="padding:8px; text-align:center;">Α/Α</th>
-                            <th style="padding:8px; text-align:center;">Μήνας</th>
-                            <th style="padding:8px;">Αρ. Συμβολαίου</th>
-                            <th style="padding:8px;">Πελάτης</th>
-                            <th style="padding:8px;">Πρόγραμμα</th>
-                            <th style="padding:8px; text-align:right;">Καθαρά (€)</th>
-                            <th style="padding:8px; text-align:right;">ERGO (€)</th>
-                            <th style="padding:8px; text-align:center;">Ποσοστό</th>
-                            <th style="padding:8px; text-align:right;">Απόδοση (€)</th>
-                            <th style="padding:8px; text-align:right;">Γραφείο (€)</th>
-                        </tr>
-                    </thead>
-                    <tbody>${itemsRows}</tbody>
-                </table>
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:18px; background:#ffffff;">
+                        <thead>
+                            <tr style="background:#1E3A8A; color:#FFFFFF; font-size:11px; text-align:left;">
+                                <th style="padding:8px; text-align:center;">Α/Α</th>
+                                <th style="padding:8px; text-align:center;">Μήνας</th>
+                                <th style="padding:8px;">Αρ. Συμβολαίου</th>
+                                <th style="padding:8px;">Πελάτης</th>
+                                <th style="padding:8px;">Πρόγραμμα</th>
+                                <th style="padding:8px; text-align:right;">Καθαρά (€)</th>
+                                <th style="padding:8px; text-align:right;">ERGO (€)</th>
+                                <th style="padding:8px; text-align:center;">Ποσοστό</th>
+                                <th style="padding:8px; text-align:right;">Απόδοση (€)</th>
+                                <th style="padding:8px; text-align:right;">Γραφείο (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsRows}</tbody>
+                    </table>
 
-                <div style="page-break-inside: avoid; break-inside: avoid; display:flex; justify-content:flex-end; margin-bottom:24px;">
-                    <div style="background:#F1F5F9; padding:16px; border-radius:10px; width:340px; font-size:12.5px; border:1px solid #CBD5E1;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span>Σύνολο Καθαρών Ασφαλίστρων:</span>
-                            <strong>€ ${totals.total_net.toFixed(2)}</strong>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span>Συνολική Προμήθεια ERGO (100%):</span>
-                            <strong style="color:#92400E;">€ ${totals.total_ergo_commission.toFixed(2)}</strong>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-top:1px solid #CBD5E1; padding-top:6px;">
-                            <span><strong>Μικτή Αμοιβή Συνεργάτη (${data.split_pct}%):</strong></span>
-                            <strong style="color:#065F46; font-size:14px;">€ ${totals.total_subcode_payout.toFixed(2)}</strong>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#64748B; font-size:11.5px;">
-                            <span>Παρακράτηση Φόρου 20%:</span>
-                            <span>€ ${totals.tax_deduction.toFixed(2)}</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:2px solid #1E3A8A; padding-top:6px; font-size:14px;">
-                            <span><strong>ΚΑΘΑΡΟ ΠΛΗΡΩΤΕΟ ΣΥΝΕΡΓΑΤΗ:</strong></span>
-                            <strong style="color:#1D4ED8;">€ ${totals.net_payable.toFixed(2)}</strong>
+                    <div style="page-break-inside: avoid; break-inside: avoid; display:flex; justify-content:flex-end; margin-bottom:24px;">
+                        <div style="background:#F1F5F9; padding:16px; border-radius:10px; width:340px; font-size:12.5px; border:1px solid #CBD5E1;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>Σύνολο Καθαρών Ασφαλίστρων:</span>
+                                <strong>€ ${totals.total_net.toFixed(2)}</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>Συνολική Προμήθεια ERGO (100%):</span>
+                                <strong style="color:#92400E;">€ ${totals.total_ergo_commission.toFixed(2)}</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-top:1px solid #CBD5E1; padding-top:6px;">
+                                <span><strong>Μικτή Αμοιβή Συνεργάτη (${data.split_pct}%):</strong></span>
+                                <strong style="color:#065F46; font-size:14px;">€ ${totals.total_subcode_payout.toFixed(2)}</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#64748B; font-size:11.5px;">
+                                <span>Παρακράτηση Φόρου 20%:</span>
+                                <span>€ ${totals.tax_deduction.toFixed(2)}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:2px solid #1E3A8A; padding-top:6px; font-size:14px;">
+                                <span><strong>ΚΑΘΑΡΟ ΠΛΗΡΩΤΕΟ ΣΥΝΕΡΓΑΤΗ:</strong></span>
+                                <strong style="color:#1D4ED8;">€ ${totals.net_payable.toFixed(2)}</strong>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div style="page-break-inside: avoid; break-inside: avoid; display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #E2E8F0; font-size:12px; text-align:center;">
-                    <div style="width:200px;">
-                        <div>Ο Συνεργάτης</div>
-                        <div style="margin-top:40px;">_______________________</div>
-                        <div style="font-size:11px; color:#64748B; margin-top:4px;">${partner.full_name || partner.producer_name || ''}</div>
-                    </div>
-                    <div style="width:200px;">
-                        <div>Για την LANCA Ι.Κ.Ε. (Agency 3375Α)</div>
-                        <div style="margin-top:40px;">_______________________</div>
-                        <div style="font-size:11px; color:#64748B; margin-top:4px;">Νίκος Αναγνωστόπουλος</div>
+                    <div style="page-break-inside: avoid; break-inside: avoid; display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #E2E8F0; font-size:12px; text-align:center;">
+                        <div style="width:200px;">
+                            <div>Ο Συνεργάτης</div>
+                            <div style="margin-top:40px;">_______________________</div>
+                            <div style="font-size:11px; color:#64748B; margin-top:4px;">${partner.full_name || partner.producer_name || ''}</div>
+                        </div>
+                        <div style="width:200px;">
+                            <div>Για την LANCA Ι.Κ.Ε. (Agency 3375Α)</div>
+                            <div style="margin-top:40px;">_______________________</div>
+                            <div style="font-size:11px; color:#64748B; margin-top:4px;">Νίκος Αναγνωστόπουλος</div>
+                        </div>
                     </div>
                 </div>
             `;
 
-            document.body.appendChild(pdfContainer);
-
             const filename = `LANCA_Ekatharistirio_${partner.producer_code || 'Partner'}_${new Date().getTime()}.pdf`;
             
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: [8, 8, 8, 8],
                 filename: filename,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
                     scale: 2, 
                     useCORS: true,
-                    scrollY: 0,
-                    scrollX: 0,
-                    windowWidth: 1200
+                    letterRendering: true
                 },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
 
             try {
-                await html2pdf().set(opt).from(pdfContainer).save();
+                html2pdf().from(htmlContent).set(opt).save();
             } catch (err) {
                 console.error("PDF generation error:", err);
                 alert("Σφάλμα κατά την παραγωγή PDF: " + err.message);
-            } finally {
-                if (pdfContainer && pdfContainer.parentNode) {
-                    pdfContainer.parentNode.removeChild(pdfContainer);
-                }
             }
         }
 
@@ -6445,68 +6426,60 @@
                 `;
             }
 
-            printWrapper.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:12px; margin-bottom:16px;">
-                    <div>
-                        <img src="LANCA-logo.png" style="height:48px; object-fit:contain;">
+                        const htmlDoc = `
+                <div style="padding: 24px; font-family: Arial, Helvetica, sans-serif; color: #0f172a; background: #ffffff; width: 1020px; box-sizing: border-box;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:12px; margin-bottom:16px;">
+                        <div>
+                            <h2 style="color:#1E3A8A; margin:0; font-size:20px; font-weight:800;">LANCA Ι.Κ.Ε. - AGENCY 1411 (ERGO)</h2>
+                            <div style="font-size:11.5px; color:#475569; margin-top:2px;">Συντονισμός & Διαχείριση Ασφαλιστικών Εργασιών • Υπεύθυνος: Νίκος Αναγνωστόπουλος</div>
+                        </div>
+                        <div style="text-align:right; font-size:10.5px; color:#334155; line-height:1.4;">
+                            <strong style="font-size:12px; color:#0F172A;">LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</strong><br>
+                            Τέρμα Τρικούπη, 30200 Μεσολόγγι • ΑΦΜ: 800217829 • Τηλ: 26310 51222
+                        </div>
                     </div>
-                    <div style="text-align:right; font-size:10.5px; color:#334155; line-height:1.4;">
-                        <strong style="font-size:12.5px; color:#0F172A;">LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</strong><br>
-                        Agency 3375Α (ERGO) • Συντονιστής: Νίκος Αναγνωστόπουλος<br>
-                        Τέρμα Τρικούπη, 30200 Μεσολόγγι • ΑΦΜ: 800217829 • ΔΟΥ: Μεσολογγίου • Τηλ: 26310 51222 • Email: info@lanca.gr
-                    </div>
-                </div>
 
-                <!-- Partner & Period Information Box -->
-                <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:8px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
-                    <div>
-                        <strong>👤 Συνεργάτης:</strong> <span style="color:#1D4ED8; font-weight:bold; font-size:12.5px;">${partnerLabel}</span>
+                    <!-- Partner & Period Information Box -->
+                    <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:8px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
+                        <div>
+                            <strong>👤 Συνεργάτης:</strong> <span style="color:#1D4ED8; font-weight:bold; font-size:12.5px;">${partnerLabel}</span>
+                        </div>
+                        <div>
+                            <strong>📅 Περίοδος:</strong> <span style="color:#0F172A; font-weight:bold;">${monthLabel}</span>
+                        </div>
+                        <div>
+                            <strong>📋 Εγγραφές:</strong> <span style="color:#047857; font-weight:bold;">${data.length} Συμβόλαια</span>
+                        </div>
                     </div>
-                    <div>
-                        <strong>📅 Περίοδος:</strong> <span style="color:#0F172A; font-weight:bold;">${monthLabel}</span>
-                    </div>
-                    <div>
-                        <strong>📋 Εγγραφές:</strong> <span style="color:#047857; font-weight:bold;">${data.length} Συμβόλαια</span>
-                    </div>
-                </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <div>
-                        <h2 style="font-size:16px; font-weight:bold; color:#0F172A; margin:0;">${titleLabel}</h2>
-                        <span style="font-size:11.5px; color:#475569; font-weight:600;">${isSelectedOnly ? `Επιλεγμένες Εγγραφές (${data.length})` : `Όλες οι Εγγραφές Περιόδου (${data.length})`}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div>
+                            <h3 style="font-size:15px; font-weight:bold; color:#0F172A; margin:0;">${titleLabel}</h3>
+                            <span style="font-size:11px; color:#475569;">${isSelectedOnly ? `Επιλεγμένες Εγγραφές (${data.length})` : `Όλες οι Εγγραφές Περιόδου (${data.length})`}</span>
+                        </div>
+                        <div style="text-align:right; font-size:11px; color:#475569;">
+                            Ημερομηνία Έκδοσης: <strong style="color:#0F172A;">${dateStr}</strong>
+                        </div>
                     </div>
-                    <div style="text-align:right; font-size:11px; color:#475569;">
-                        Ημερομηνία Έκδοσης: <strong style="color:#0F172A;">${dateStr}</strong>
+
+                    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:11px; margin-bottom:16px; background:#FFFFFF;">
+                        <thead>
+                            ${theadHtml}
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                        <tfoot>
+                            ${tfootHtml}
+                        </tfoot>
+                    </table>
+
+                    <div style="border-top:1px solid #CBD5E1; padding-top:8px; display:flex; justify-content:space-between; font-size:10.5px; color:#64748B;">
+                        <span>LANCA Ι.Κ.Ε. — Σύστημα Εκκαθαρίσεων & Διαχείρισης Προμηθειών</span>
+                        <span>lanca.stavrostsamadias.gr</span>
                     </div>
-                </div>
-
-                <table style="width:100%; border-collapse:collapse; text-align:left; font-size:11px; margin-bottom:16px; background:#FFFFFF;">
-                    <thead>
-                        ${theadHtml}
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                    <tfoot>
-                        ${tfootHtml}
-                    </tfoot>
-                </table>
-
-                <div style="border-top:1px solid #CBD5E1; padding-top:8px; display:flex; justify-content:space-between; font-size:10.5px; color:#64748B;">
-                    <span>LANCA Ι.Κ.Ε. — Σύστημα Εκκαθαρίσεων & Διαχείρισης Προμηθειών</span>
-                    <span>lanca.stavrostsamadias.gr</span>
                 </div>
             `;
-
-                        printWrapper.id = 'pdf-export-wrapper';
-            printWrapper.style.position = 'absolute';
-            printWrapper.style.left = '0px';
-            printWrapper.style.top = '0px';
-            printWrapper.style.width = '1120px';
-            printWrapper.style.backgroundColor = '#ffffff';
-            printWrapper.style.zIndex = '9999999';
-
-            document.body.appendChild(printWrapper);
 
             const opt = {
                 margin: [8, 8, 8, 8],
@@ -6515,23 +6488,17 @@
                 html2canvas: { 
                     scale: 2, 
                     useCORS: true,
-                    scrollY: 0,
-                    scrollX: 0,
-                    windowWidth: 1200
+                    letterRendering: true
                 },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
 
             try {
-                await html2pdf().set(opt).from(printWrapper).save();
+                html2pdf().from(htmlDoc).set(opt).save();
             } catch (err) {
                 console.error("PDF generation error:", err);
                 alert("Σφάλμα κατά την παραγωγή PDF: " + err.message);
-            } finally {
-                if (printWrapper && printWrapper.parentNode) {
-                    printWrapper.parentNode.removeChild(printWrapper);
-                }
             }
         }
 

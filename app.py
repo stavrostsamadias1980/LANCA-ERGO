@@ -768,6 +768,9 @@ def run_etl_seeder(force=False):
         net_final = round(m["net_tot"], 2)
         syn_final = round(m["producer_prom_tot"], 2)
         agn_final = round(m["agency_prom_tot"], 2)
+        if agn_final == 0.0 and syn_final != 0.0:
+            agn_final = round(syn_final * 0.20, 2)
+            
         tot_rev = round(syn_final + agn_final, 2)
         
         is_zero = 1 if (abs(net_final) < 0.01 and abs(tot_rev) < 0.01) else 0

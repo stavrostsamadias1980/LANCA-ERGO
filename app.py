@@ -478,6 +478,22 @@ def init_databases():
 
     # Backfill default producer details in financial movements if null
     cur.execute("""
+        UPDATE financial_movements
+        SET producer_name = '0',
+            producer_partner_code = '0',
+            producer_ergo_code = '0'
+        WHERE producer_name IS NULL OR producer_partner_code IS NULL OR producer_partner_code = '11523';
+    """)
+    
+    # Auto-migrate Agency 3375A 20% overriding for any zero rows
+    cur.execute("""
+        UPDATE financial_movements
+        SET agency_overriding_amount = ROUND(producer_commission_amount * 0.20, 2),
+            total_office_revenue = ROUND(producer_commission_amount * 1.20, 2)
+        WHERE agency_overriding_amount = 0.0 AND producer_commission_amount > 0;
+    """)
+
+    cur.execute("""
         UPDATE financial_movements 
         SET producer_name = '0',
             producer_partner_code = '0',

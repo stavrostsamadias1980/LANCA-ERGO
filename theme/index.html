@@ -2433,11 +2433,51 @@
             </form>
             </div><!-- end prod-tab-info -->
 
-            <!-- TAB: Προμήθειες — 2 sections: Κλίμακα + Εκκαθαριστήριο -->
+            <!-- TAB: Προμήθειες — 2 sections: Βασική Απόδοση + Κλίμακα Πακέτων -->
             <div id="prod-tab-comm" style="display:none; flex:1; display:flex; flex-direction:column; overflow:hidden; padding-top:10px; gap:14px;">
 
                 <!-- ═══════════════════════════════════════════════════
-                     SECTION 1: ΚΛΙΜΑΚΑ ΠΡΟΜΗΘΕΙΩΝ ΑΝΑ ΠΑΚΕΤΟ
+                     SECTION 1: ΒΑΣΙΚΗ ΑΠΟΔΟΣΗ ΥΠΟΚΩΔΙΚΟΥ (% ΕΠΙ ΠΡΟΜΗΘΕΙΑΣ ΓΡΑΦΕΙΟΥ)
+                     ═══════════════════════════════════════════════════ -->
+                <div style="background:linear-gradient(135deg, rgba(30,58,95,0.06), rgba(59,130,246,0.12)); border:1px solid rgba(59,130,246,0.35); border-radius:16px; padding:14px 18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div style="flex:1; min-width:260px;">
+                            <div style="font-size:13.5px; font-weight:800; color:var(--brand-navy); display:flex; align-items:center; gap:6px;">
+                                <span>⚙️</span> Βασική Απόδοση Υποκωδικού επί της Προμήθειας Γραφείου
+                            </div>
+                            <div style="font-size:11.5px; color:var(--text-secondary); margin-top:3px; line-height:1.4;">
+                                Ορίστε το ποσοστό (<strong>%</strong>) που αποδίδεται στον συγκεκριμένο συνεργάτη από το σύνολο της προμήθειας που εισπράττει το γραφείο από την ERGO (π.χ. 70%, 80%, 85%, 90%).
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.9); padding:6px 14px; border-radius:12px; border:1px solid rgba(59,130,246,0.3); box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                            <span style="font-size:12px; font-weight:700; color:var(--brand-navy);">Απόδοση Συνεργάτη:</span>
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <input type="number" id="prod-base-split-rate" class="glass-input" 
+                                    value="70" min="0" max="100" step="0.5" 
+                                    style="width:72px; text-align:center; font-weight:800; font-size:16px; color:var(--accent-purple); padding:4px 8px;"
+                                    oninput="syncBaseSplitRate(this.value)">
+                                <span style="font-weight:800; color:var(--accent-purple); font-size:15px;">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Selection Buttons -->
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
+                        <span style="font-size:11px; font-weight:700; color:var(--text-muted);">Γρήγορες Επιλογές:</span>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(50)">50%</button>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(60)">60%</button>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(70)">70%</button>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(75)">75%</button>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(80)">80%</button>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(85)">85%</button>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(90)">90%</button>
+                        <button type="button" class="btn-pill btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="setBaseSplitRate(100)">100%</button>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════
+                     SECTION 2: ΚΛΙΜΑΚΑ ΠΡΟΜΗΘΕΙΩΝ ΑΝΑ ΠΑΚΕΤΟ & ΕΤΟΣ
                      ═══════════════════════════════════════════════════ -->
                 <div style="background:rgba(219,234,254,0.25); border:1px solid rgba(59,130,246,0.2); border-radius:16px; padding:14px 16px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
@@ -2447,7 +2487,7 @@
                         </div>
                         <div style="display:flex; gap:6px;">
                             <button class="btn-pill btn-ghost" style="font-size:11px; padding:4px 12px;" onclick="resetProducerMatrix()">↺ Επαναφορά Defaults</button>
-                            <button class="btn-pill btn-primary" style="font-size:12px; padding:5px 16px;" onclick="saveProducerMatrix()">💾 Αποθήκευση Κλίμακας</button>
+                            <button class="btn-pill btn-primary" style="font-size:12px; padding:5px 16px;" onclick="saveProducerMatrix()">💾 Αποθήκευση Προμηθειών & Κλίμακας</button>
                         </div>
                     </div>
 
@@ -4058,6 +4098,18 @@
 
         let _producerMatrix = []; // cached loaded matrix
 
+        function setBaseSplitRate(val) {
+            const input = document.getElementById('prod-base-split-rate');
+            const formRate = document.getElementById('prod-form-rate');
+            if (input) input.value = val;
+            if (formRate) formRate.value = val;
+        }
+
+        function syncBaseSplitRate(val) {
+            const formRate = document.getElementById('prod-form-rate');
+            if (formRate) formRate.value = val;
+        }
+
         async function loadProducerMatrix() {
             const code = document.getElementById('prod-form-code')?.value?.trim();
             const tbody = document.getElementById('pcard-matrix-tbody');
@@ -4067,8 +4119,16 @@
                 const res  = await fetch(`/api/producers/${encodeURIComponent(code)}/commission-matrix`);
                 const data = await res.json();
                 if (data.status === 'success') {
-                    _producerMatrix = data.matrix;
-                    renderProducerMatrix(_producerMatrix);
+                    if (data.commission_rate !== undefined) {
+                        const splitEl = document.getElementById('prod-base-split-rate');
+                        if (splitEl) splitEl.value = data.commission_rate;
+                    }
+                    if (data.matrix) {
+                        _producerMatrix = data.matrix;
+                        renderProducerMatrix(_producerMatrix);
+                    } else {
+                        renderProducerMatrix(PRODUCT_DEFAULTS);
+                    }
                 } else {
                     renderProducerMatrix(PRODUCT_DEFAULTS);
                 }
@@ -4170,6 +4230,7 @@
             const code = document.getElementById('prod-form-code')?.value?.trim();
             if (!code) return;
             const msgEl = document.getElementById('pcard-matrix-save-msg');
+            const baseSplitRate = parseFloat(document.getElementById('prod-base-split-rate')?.value) || 70;
 
             const matrix = _producerMatrix.map((row, idx) => ({
                 product_name:        row.product_name,
@@ -4187,7 +4248,7 @@
                 const res = await fetch(`/api/producers/${encodeURIComponent(code)}/commission-matrix`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ matrix })
+                    body: JSON.stringify({ commission_rate: baseSplitRate, matrix })
                 });
                 const d = await res.json();
                 if (msgEl) {
@@ -4398,37 +4459,6 @@
             // Αν δεν βρεθεί τοπικά, φόρτωσε από API
             switchProducerModalTab(startTab || 'info');
         }
-
-        function switchProducerModalTab(tab) {
-            const infoDiv  = document.getElementById('prod-tab-info');
-            const commDiv  = document.getElementById('prod-tab-comm');
-            const btnInfo  = document.getElementById('prod-tab-btn-info');
-            const btnComm  = document.getElementById('prod-tab-btn-comm');
-            if (!infoDiv || !commDiv) return;
-
-            const blue = 'var(--brand-blue)';
-            const mute = 'var(--text-muted)';
-
-            if (tab === 'comm') {
-                infoDiv.style.display = 'none';
-                commDiv.style.display = 'flex';
-                commDiv.style.flexDirection = 'column';
-                commDiv.style.overflow = 'hidden';
-                commDiv.style.flex = '1';
-                if (btnInfo) { btnInfo.style.borderBottomColor = 'transparent'; btnInfo.style.color = mute; }
-                if (btnComm) { btnComm.style.borderBottomColor = blue; btnComm.style.color = blue; }
-                loadProducerCardComm();
-            } else {
-                infoDiv.style.display = '';
-                infoDiv.style.overflowY = 'auto';
-                infoDiv.style.flex = '1';
-                commDiv.style.display = 'none';
-                if (btnInfo) { btnInfo.style.borderBottomColor = blue; btnInfo.style.color = blue; }
-                if (btnComm) { btnComm.style.borderBottomColor = 'transparent'; btnComm.style.color = mute; }
-            }
-        }
-
-        // (Removed loadProducerCardComm and printProducerCardPDF as requested)
 
         async function saveProducerModal(e) {
             if (e) e.preventDefault();

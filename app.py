@@ -1445,7 +1445,7 @@ def api_get_subcode_payout_statement():
         
     producer_code = str(data.get("producer_code", "1411")).strip()
     month = str(data.get("month", "all")).strip()
-    split_pct = float(data.get("split_pct", 50.0))
+    calc_mode = str(data.get("calc_mode", "SPLIT_COMMISSION")).strip()
     
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
@@ -1453,6 +1453,14 @@ def api_get_subcode_payout_statement():
     
     cur.execute("SELECT * FROM producers_catalog WHERE producer_code = ? OR ergo_code = ? LIMIT 1;", (producer_code, producer_code))
     p_row = cur.fetchone()
+    
+    if "split_pct" in data and str(data.get("split_pct")).strip() != "":
+        split_pct = float(data.get("split_pct"))
+    elif p_row and p_row["commission_rate"] is not None:
+        split_pct = float(p_row["commission_rate"])
+    else:
+        split_pct = 70.0
+
     partner = dict(p_row) if p_row else {
         "producer_code": producer_code,
         "ergo_code": producer_code,
@@ -1565,10 +1573,13 @@ def api_get_subcode_payout_statement():
             # No product rule matched, fallback to the dropdown split %
             applicable_rate = split_pct
             
-        sub_payout = round(net * (applicable_rate / 100.0), 2)
-        # Never payout more than we receive (unless office decides to subsidize, but ERGO doesn't pay more)
-        # In this implementation, the sub_payout is directly based on the net premium and the chosen rate.
-        
+        # Payout calculation: either percentage of total office commission or product matrix % of net
+        if calc_mode == "SPLIT_COMMISSION":
+            applicable_rate = split_pct
+            sub_payout = round(ergo_total_comm * (split_pct / 100.0), 2)
+        else:
+            sub_payout = round(net * (applicable_rate / 100.0), 2)
+            
         office_retention = round(ergo_total_comm - sub_payout, 2)
         
         tot_net += net
@@ -1657,6 +1668,20 @@ def api_partner_commission_matrix(producer_code):
 
     if request.method == "POST":
         data = request.get_json(force=True) or {}
+        
+        # 1. Update Base Commission Split Rate in producers_catalog
+        if "commission_rate" in data:
+            try:
+                crate = float(data["commission_rate"])
+                cur.execute("""
+                    UPDATE producers_catalog 
+                    SET commission_rate = ? 
+                    WHERE producer_code = ? OR ergo_code = ?;
+                """, (crate, producer_code, producer_code))
+            except Exception as e:
+                pass
+                
+        # 2. Update Product Matrix rows
         rows = data.get("matrix", [])
         for row in rows:
             cur.execute("""
@@ -1688,9 +1713,14 @@ def api_partner_commission_matrix(producer_code):
             ))
         conn.commit()
         conn.close()
-        return jsonify({"status": "success", "message": f"Κλίμακα αποθηκεύτηκε για {producer_code}"})
+        return jsonify({"status": "success", "message": f"Οι προμήθειες και η κλίμακα αποθηκεύτηκαν για τον συνεργάτη {producer_code}"})
 
-    # GET — load saved matrix, fill gaps with defaults
+    # GET — load saved matrix + producer base rate, fill gaps with defaults
+    cur.execute("SELECT * FROM producers_catalog WHERE producer_code = ? OR ergo_code = ? LIMIT 1;", (producer_code, producer_code))
+    prod_row = cur.fetchone()
+    base_rate = float(prod_row["commission_rate"]) if prod_row and prod_row["commission_rate"] is not None else 70.0
+    prod_name = prod_row["full_name"] if prod_row else producer_code
+
     cur.execute("""
         SELECT * FROM partner_commission_matrix WHERE producer_code = ? ORDER BY product_name;
     """, (producer_code,))
@@ -1707,7 +1737,13 @@ def api_partner_commission_matrix(producer_code):
             row = {**prod, "producer_code": producer_code, "is_fixed_lifetime": 0, "fixed_lifetime_rate": 0.0, "notes": ""}
         result.append(row)
 
-    return jsonify({"status": "success", "producer_code": producer_code, "matrix": result})
+    return jsonify({
+        "status": "success", 
+        "producer_code": producer_code, 
+        "producer_name": prod_name,
+        "commission_rate": base_rate,
+        "matrix": result
+    })
 
 
 @app.route("/api/commission-schemes/defaults", methods=["GET"])

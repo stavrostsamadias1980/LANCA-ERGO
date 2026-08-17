@@ -1212,14 +1212,12 @@ def api_get_agency():
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     for r in rows:
+        net = float(r.get("net_premium_total") or 0.0)
         agn = float(r.get("agency_overriding_amount") or 0.0)
-        raw_rate = float(r.get("agency_overriding_rate") or 0.0)
         if abs(agn) < 0.001:
             rate_pct = 0.0
-        elif 0 < raw_rate <= 1.0:
-            rate_pct = round(raw_rate * 100, 2)
-        elif raw_rate > 1.0:
-            rate_pct = round(raw_rate, 2)
+        elif net != 0:
+            rate_pct = round(abs(agn / net) * 100, 2)
         else:
             rate_pct = 20.0
         r["agency_overriding_rate_pct"] = rate_pct

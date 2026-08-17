@@ -3857,6 +3857,7 @@
                 margin: 10,
                 filename: `LANCA_Kartela_Symvolaiou_${new Date().getTime()}.pdf`,
                 html2canvas: { scale: 2 },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             }).from(card).save();
         }
@@ -4260,7 +4261,7 @@
                 const payVal = Number(it.subcode_payout_amount || 0).toFixed(2);
                 const retVal = Number(it.office_retention_amount || 0).toFixed(2);
                 itemsRows += `
-                    <tr style="border-bottom: 1px solid #cbd5e1; font-size: 11px; color: #0f172a;">
+                    <tr style="border-bottom: 1px solid #cbd5e1; font-size: 11px; color: #0f172a; page-break-inside: avoid; break-inside: avoid;">
                         <td style="padding: 6px 8px; text-align: center;">${i+1}</td>
                         <td style="padding: 6px 8px; text-align: center;">${it.statement_month || '-'}</td>
                         <td style="padding: 6px 8px; font-weight: bold; color: #1d4ed8;">${it.policy_number}</td>
@@ -4327,7 +4328,7 @@
                     <tbody>${itemsRows}</tbody>
                 </table>
 
-                <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
+                <div style="page-break-inside: avoid; break-inside: avoid; display:flex; justify-content:flex-end; margin-bottom:24px;">
                     <div style="background:#F1F5F9; padding:16px; border-radius:10px; width:340px; font-size:12.5px; border:1px solid #CBD5E1;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                             <span>Σύνολο Καθαρών Ασφαλίστρων:</span>
@@ -4352,7 +4353,7 @@
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #E2E8F0; font-size:12px; text-align:center;">
+                <div style="page-break-inside: avoid; break-inside: avoid; display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #E2E8F0; font-size:12px; text-align:center;">
                     <div style="width:200px;">
                         <div>Ο Συνεργάτης</div>
                         <div style="margin-top:40px;">_______________________</div>
@@ -4381,6 +4382,7 @@
                     scrollX: 0,
                     windowWidth: 1200
                 },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
 
@@ -6517,6 +6519,7 @@
                     scrollX: 0,
                     windowWidth: 1200
                 },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
 

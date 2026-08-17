@@ -2695,10 +2695,16 @@ def api_delete_producers():
         if not codes:
             return jsonify({"error": "Δεν επιλέχθηκαν συνεργάτες προς διαγραφή"}), 400
             
+        # Protected system codes that CANNOT be deleted
+        PROTECTED_CODES = {'0', 'SYSTEM', '00'}
+        to_delete = [str(c).strip() for c in codes if str(c).strip() not in PROTECTED_CODES]
+        if not to_delete:
+            return jsonify({"error": "Ο συστημικός κωδικός '0' (ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ) είναι προστατευμένος και δεν επιτρέπεται η διαγραφή του."}), 400
+
         conn = sqlite3.connect(SQLITE_PATH)
         cur = conn.cursor()
-        for code in codes:
-            cur.execute("DELETE FROM producers_catalog WHERE producer_code = ?;", (str(code).strip(),))
+        for code in to_delete:
+            cur.execute("DELETE FROM producers_catalog WHERE producer_code = ?;", (code,))
         conn.commit()
         conn.close()
         

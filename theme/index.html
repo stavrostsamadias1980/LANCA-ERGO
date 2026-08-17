@@ -2276,6 +2276,13 @@
                 <button class="btn-pill btn-ghost" onclick="closeEditModal()">✕</button>
             </div>
 
+            <div id="edit-unassigned-alert" style="display:none; background:#FEE2E2; border:1px solid #F87171; border-radius:12px; padding:10px 14px; margin-top:10px; font-size:12px; color:#991B1B; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <span style="font-size:16px;">⚠️</span>
+                <div>
+                    <strong>ΠΡΟΣΟΧΗ — ΕΚΚΡΕΜΕΙ ΑΝΑΘΕΣΗ:</strong> Αυτό το συμβόλαιο έχει κωδικό 0 (Χωρίς Συνεργάτη). Παρακαλώ επιλέξτε τον σωστό συνεργάτη παρακάτω για να ολοκληρωθεί η ανάθεση.
+                </div>
+            </div>
+
             <form onsubmit="saveEditModal(event)" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-top:8px;">
                 <input type="hidden" id="edit-policy-original">
 
@@ -3270,6 +3277,22 @@
             
             const lbl = document.getElementById('edit-producer-team-label');
             if (lbl) lbl.innerHTML = `🏢 Ομάδα: <strong>${pteam}</strong>`;
+
+            const unassignedAlert = document.getElementById('edit-unassigned-alert');
+            const searchInput = document.getElementById('edit-producer-search');
+            if (pcode === '0' || pname.includes('ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ')) {
+                if (unassignedAlert) unassignedAlert.style.display = 'flex';
+                if (searchInput) {
+                    searchInput.style.borderColor = '#EF4444';
+                    searchInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.2)';
+                }
+            } else {
+                if (unassignedAlert) unassignedAlert.style.display = 'none';
+                if (searchInput) {
+                    searchInput.style.borderColor = '';
+                    searchInput.style.boxShadow = '';
+                }
+            }
 
             document.getElementById('universalEditModal').classList.add('open');
         }
@@ -4469,11 +4492,15 @@
             }
 
             list.forEach((p, idx) => {
+                const isSystemZero = (p.producer_code === '0');
                 const tr = document.createElement('tr');
+                if (isSystemZero) tr.style.background = 'rgba(239, 68, 68, 0.05)';
 
                 // Type badge
                 let typeBadge = '<span class="badge badge-gold">🏢 Οργανωτική Ομάδα</span>';
-                if (p.partner_type === 'AGENCY_MANAGER') {
+                if (isSystemZero) {
+                    typeBadge = '<span class="badge badge-danger" style="background:#FEE2E2; color:#DC2626; border:1px solid #F87171;">⚠️ Εκκρεμεί Ανάθεση (0)</span>';
+                } else if (p.partner_type === 'AGENCY_MANAGER') {
                     typeBadge = '<span class="badge badge-success">👑 Agency Manager</span>';
                 } else if (p.partner_type === 'SUBCODE_1411') {
                     typeBadge = '<span class="badge badge-blue">🔹 Υποκωδικός (1411)</span>';
@@ -4483,29 +4510,28 @@
                 let statusColor = 'badge-purple';
                 let statusIcon  = '🔵';
                 const st = (p.status || '').toUpperCase();
-                if (st.includes('FULL TIME'))            { statusColor = 'badge-success'; statusIcon = '✅'; }
-                else if (st.includes('PART TIME'))       { statusColor = 'badge-blue';    statusIcon = '🔹'; }
-                else if (st.includes('ΑΠΟΧΩΡ'))          { statusColor = 'badge-danger';  statusIcon = '🔴'; }
-                else if (st.includes('ΑΝΑΣΤΟΛ'))         { statusColor = 'badge-ghost';   statusIcon = '⏸'; }
-                else if (st.includes('ΝΕΟΣ') || st.includes('NEW')) { statusColor = 'badge-gold'; statusIcon = '✨'; }
-                const statusBadge = `<span class="badge ${statusColor}">${statusIcon} ${p.status || 'Ενεργός'}</span>`;
-
-
+                if (isSystemZero)                                     { statusColor = 'badge-danger';  statusIcon = '⚠️'; }
+                else if (st.includes('FULL TIME'))                    { statusColor = 'badge-success'; statusIcon = '✅'; }
+                else if (st.includes('PART TIME'))                    { statusColor = 'badge-blue';    statusIcon = '🔹'; }
+                else if (st.includes('ΑΠΟΧΩΡ'))                       { statusColor = 'badge-danger';  statusIcon = '🔴'; }
+                else if (st.includes('ΑΝΑΣΤΟΛ'))                      { statusColor = 'badge-ghost';   statusIcon = '⏸'; }
+                else if (st.includes('ΝΕΟΣ') || st.includes('NEW'))   { statusColor = 'badge-gold';    statusIcon = '✨'; }
+                const statusBadge = `<span class="badge ${statusColor}">${statusIcon} ${isSystemZero ? 'ΕΚΚΡΕΜΕΙ ΑΝΑΘΕΣΗ' : (p.status || 'Ενεργός')}</span>`;
 
                 tr.innerHTML = `
                     <td style="text-align:center;">
-                        <input type="checkbox" class="prod-reg-row-check custom-checkbox" value="${p.producer_code}">
+                        <input type="checkbox" class="prod-reg-row-check custom-checkbox" value="${p.producer_code}" ${isSystemZero ? 'disabled title="Ο συστημικός κωδικός 0 δεν μπορεί να διαγραφεί"' : ''}>
                     </td>
                     <td style="text-align:center; color:var(--text-muted); font-size:12px;">${idx+1}</td>
 
                     <!-- Κωδικός Γραφείου — κουμπί που ανοίγει την καρτέλα συνεργάτη -->
                     <td style="text-align:center;">
                         <button
-                            class="btn-pill btn-primary"
-                            style="padding:5px 14px; font-size:13px; font-weight:800; letter-spacing:.5px; min-width:56px;"
+                            class="btn-pill ${isSystemZero ? 'btn-danger' : 'btn-primary'}"
+                            style="padding:5px 14px; font-size:13px; font-weight:800; letter-spacing:.5px; min-width:56px; ${isSystemZero ? 'background:#FEE2E2; color:#DC2626; border:1px solid #F87171;' : ''}"
                             onclick="openProducerCard('${p.producer_code}', 'info')"
                             title="Άνοιγμα καρτέλας συνεργάτη ${p.producer_code} — Στοιχεία & Προμήθειες"
-                        >${p.producer_code}</button>
+                        >${isSystemZero ? '🔒 0' : p.producer_code}</button>
                     </td>
 
                     <!-- Κωδικός ERGO -->
@@ -4514,13 +4540,16 @@
                     </td>
 
                     <!-- Ονοματεπώνυμο -->
-                    <td><strong style="font-size:13px;">${p.producer_name}</strong></td>
+                    <td>
+                        <strong style="font-size:13px; ${isSystemZero ? 'color:#DC2626;' : ''}">${p.producer_name}</strong>
+                        ${isSystemZero ? '<div style="font-size:11px; color:#DC2626; font-weight:600; margin-top:2px;">🔒 Προστατευμένο Συστήματος — Χρειάζεται ανάθεση σε πραγματικό συνεργάτη</div>' : ''}
+                    </td>
 
                     <!-- Κατηγορία / Τύπος -->
                     <td>${typeBadge}<br><div style="margin-top:4px;">${statusBadge}</div></td>
 
                     <!-- Ιεραρχία -->
-                    <td style="font-size:12px; color:var(--text-secondary); max-width:130px;">${p.role || p.hierarchy || 'Πράκτορας'}</td>
+                    <td style="font-size:12px; color:var(--text-secondary); max-width:130px;">${isSystemZero ? 'Προστατευμένο' : (p.role || p.hierarchy || 'Πράκτορας')}</td>
 
                     <!-- Ενέργειες Συνεργάτη — μόνο κουμπιά, τα στοιχεία εμφανίζονται στην καρτέλα -->
                     <td style="white-space:nowrap;">
@@ -4528,7 +4557,10 @@
                             <button class="btn-pill btn-primary" style="padding:4px 12px; font-size:12px;" onclick="openProducerCard('${p.producer_code}', 'info')" title="Στοιχεία & Επεξεργασία">✏️ Στοιχεία</button>
                             <button class="btn-pill btn-gold" style="padding:4px 12px; font-size:12px;" onclick="openProducerCard('${p.producer_code}', 'comm')" title="Προμήθειες Συνεργάτη">💰 Προμήθειες</button>
                             <button class="btn-pill btn-ghost" style="padding:4px 10px; font-size:12px;" onclick="openProducerHistoryModal('${p.producer_code}')" title="360° Ιστορικό Παραγωγής & Κωδικού">📜</button>
-                            <button class="btn-pill btn-danger" style="padding:4px 9px; font-size:12px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>
+                            ${isSystemZero ? 
+                                `<span class="btn-pill btn-ghost" style="padding:4px 10px; font-size:12px; color:var(--text-muted); cursor:not-allowed;" title="🔒 Προστατευμένος συστημικός κωδικός (Δεν επιτρέπεται η διαγραφή)">🔒</span>` :
+                                `<button class="btn-pill btn-danger" style="padding:4px 9px; font-size:12px;" onclick="deleteSingleProducer('${p.producer_code}', '${p.producer_name}')" title="Διαγραφή">🗑️</button>`
+                            }
                         </div>
                     </td>
                 `;

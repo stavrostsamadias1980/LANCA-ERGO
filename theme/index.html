@@ -1237,7 +1237,7 @@
                 </div>
 
                 <div class="table-toolbar">
-                    <div class="toolbar-left">
+                    <div class="toolbar-left" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
                         <label class="col-checkbox-label">
                             <input type="checkbox" id="dash-select-all" class="custom-checkbox" onchange="toggleSelectAll('dash')">
                             <span>Επιλογή Όλων</span>
@@ -1255,19 +1255,23 @@
                                 <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 8, this.checked)"> Συνολική Αμοιβή (€)</label>
                             </div>
                         </div>
-                        <select id="dash-month-filter" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterDashTable()">
-                            <option value="all">📅 Όλοι οι Μήνες</option>
-                            <option value="02/2026">02/2026</option>
-                            <option value="03/2026">03/2026</option>
-                            <option value="04/2026">04/2026</option>
-                            <option value="05/2026">05/2026</option>
-                            <option value="06/2026">06/2026</option>
-                            <option value="07/2026">07/2026</option>
-                        </select>
-                        <select id="dash-partner-filter" class="glass-select" style="font-size:12px; font-weight:700; max-width:200px;" onchange="filterDashTable()">
+                        <select id="dash-partner-filter" class="glass-select" style="font-size:12px; font-weight:700; max-width:210px;" onchange="filterDashTable()">
                             <option value="all">👤 Όλοι οι Συνεργάτες</option>
                         </select>
-                        <input type="text" id="dash-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Συνεργάτη, Μήνα..." oninput="filterDashTable()" style="min-width:220px;">
+                        <select id="dash-year-filter" class="glass-select" style="font-size:12px; font-weight:700; width:115px;" onchange="filterDashTable()">
+                            <option value="all">📅 Όλα τα Έτη</option>
+                        </select>
+                        <div style="display:flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; color:var(--text-secondary);">
+                            <span>Από:</span>
+                            <select id="dash-month-from" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterDashTable()">
+                                <option value="all">Όλοι</option>
+                            </select>
+                            <span>Έως:</span>
+                            <select id="dash-month-to" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterDashTable()">
+                                <option value="all">Όλοι</option>
+                            </select>
+                        </div>
+                        <input type="text" id="dash-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Συνεργάτη..." oninput="filterDashTable()" style="min-width:200px;">
                     </div>
                     <div class="toolbar-right">
                         <button class="btn-pill btn-excel" onclick="exportToExcel('dashboard')">📥 Excel</button>
@@ -1440,7 +1444,7 @@
                 </div>
 
                 <!-- Subcode Selector & Parameters Card -->
-                <div style="background:rgba(255,255,255,0.75); padding:18px; border-radius:18px; border:1px solid var(--glass-border); display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; align-items:flex-end;">
+                <div style="background:rgba(255,255,255,0.75); padding:18px; border-radius:18px; border:1px solid var(--glass-border); display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:14px; align-items:flex-end;">
                     <div>
                         <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">👤 Επιλογή Συνεργάτη / Υποκωδικού:</label>
                         <select id="subcode-partner-select" class="glass-select" style="width:100%; font-weight:700; font-size:13px; color:var(--brand-navy);" onchange="onSubcodePartnerSelectChanged(this.value)">
@@ -1449,16 +1453,23 @@
                     </div>
 
                     <div>
-                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📅 Περίοδος / Μήνας Εκκαθάρισης:</label>
-                        <select id="subcode-month-select" class="glass-select" style="width:100%;" onchange="loadSubcodePayoutStatement()">
-                            <option value="all">Όλοι οι Μήνες (Συγκεντρωτικό)</option>
-                            <option value="02/2026">02/2026</option>
-                            <option value="03/2026">03/2026</option>
-                            <option value="04/2026">04/2026</option>
-                            <option value="05/2026">05/2026</option>
-                            <option value="06/2026">06/2026</option>
-                            <option value="07/2026">07/2026</option>
+                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📅 Επιλογή Έτους:</label>
+                        <select id="subcode-year-filter" class="glass-select" style="width:100%; font-weight:700;" onchange="loadSubcodePayoutStatement()">
+                            <option value="all">📅 Όλα τα Έτη</option>
                         </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📅 Εύρος Μηνών (Από ➔ Έως):</label>
+                        <div style="display:flex; gap:4px; align-items:center;">
+                            <select id="subcode-month-from" class="glass-select" style="flex:1; font-weight:700; font-size:12px;" onchange="loadSubcodePayoutStatement()">
+                                <option value="all">Από: Όλοι</option>
+                            </select>
+                            <span style="font-size:12px; font-weight:700; color:var(--text-secondary);">➔</span>
+                            <select id="subcode-month-to" class="glass-select" style="flex:1; font-weight:700; font-size:12px;" onchange="loadSubcodePayoutStatement()">
+                                <option value="all">Έως: Όλοι</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div>
@@ -3907,11 +3918,13 @@
 
         function filterCRMTable() {
             const q = (document.getElementById('crm-search')?.value || '').toLowerCase().trim();
-            const mth = document.getElementById('crm-month-filter')?.value || 'all';
             const partner = document.getElementById('crm-partner-filter')?.value || 'all';
+            const year = document.getElementById('crm-year-filter')?.value || 'all';
+            const fromMth = document.getElementById('crm-month-from')?.value || 'all';
+            const toMth = document.getElementById('crm-month-to')?.value || 'all';
 
             const filtered = (globalData.contracts || []).filter(r => {
-                const matchMth = (mth === 'all' || r.statement_month === mth);
+                const matchDate = isMonthInSelectedRange(r.statement_month, year, fromMth, toMth);
                 const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
                 const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                 const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
@@ -3919,7 +3932,7 @@
                                          (r.afm && r.afm.includes(q)) ||
                                          (r.phone_mobile && r.phone_mobile.includes(q)) ||
                                          (r.producer_name && r.producer_name.toLowerCase().includes(q));
-                return matchMth && matchPartner && matchQuery;
+                return matchDate && matchPartner && matchQuery;
             });
 
             renderCRMTable(filtered);
@@ -4026,11 +4039,13 @@
 
         function filterAgencyTable() {
             const q = (document.getElementById('agency-search')?.value || '').toLowerCase().trim();
-            const mth = document.getElementById('agency-month-filter')?.value || 'all';
             const partner = document.getElementById('agency-partner-filter')?.value || 'all';
+            const year = document.getElementById('agency-year-filter')?.value || 'all';
+            const fromMth = document.getElementById('agency-month-from')?.value || 'all';
+            const toMth = document.getElementById('agency-month-to')?.value || 'all';
 
             const filtered = (globalData.agency || []).filter(r => {
-                const matchMth = (mth === 'all' || r.statement_month === mth);
+                const matchDate = isMonthInSelectedRange(r.statement_month, year, fromMth, toMth);
                 const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
                 const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                 const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
@@ -4039,7 +4054,7 @@
                                          (pCode && pCode.toLowerCase().includes(q)) ||
                                          (r.producer_ergo_code && r.producer_ergo_code.toLowerCase().includes(q)) ||
                                          (r.partner_type_label && r.partner_type_label.toLowerCase().includes(q));
-                return matchMth && matchPartner && matchQuery;
+                return matchDate && matchPartner && matchQuery;
             });
 
             renderAgencyTable(filtered);
@@ -4064,7 +4079,9 @@
                 const pInput = document.getElementById('subcode-partner-search')?.value || '';
                 pCode = pInput.split('|')[0].trim() || '1';
             }
-            const month = document.getElementById('subcode-month-select')?.value || 'all';
+            const year = document.getElementById('subcode-year-filter')?.value || 'all';
+            const fromMth = document.getElementById('subcode-month-from')?.value || 'all';
+            const toMth = document.getElementById('subcode-month-to')?.value || 'all';
 
             // Lookup partner's saved rate from producers catalog
             const pInfo = (globalData.producersReg || []).find(x => 
@@ -4082,7 +4099,7 @@
             const splitPct = splitInput && splitInput.value ? parseFloat(splitInput.value) : (pInfo ? (pInfo.commission_rate || 70.0) : 70.0);
 
             try {
-                const res = await fetch(`/api/subcodes/payout-statement?producer_code=${encodeURIComponent(pCode)}&month=${encodeURIComponent(month)}&split_pct=${splitPct}`);
+                const res = await fetch(`/api/subcodes/payout-statement?producer_code=${encodeURIComponent(pCode)}&year=${encodeURIComponent(year)}&month_from=${encodeURIComponent(fromMth)}&month_to=${encodeURIComponent(toMth)}&split_pct=${splitPct}`);
                 const data = await res.json();
                 if (data.status === 'success') {
                     currentSubcodeStatementData = data;
@@ -4563,18 +4580,20 @@
 
         function filterProducersTable() {
             const q = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
-            const mth = document.getElementById('prod-month-filter')?.value || 'all';
             const partner = document.getElementById('prod-partner-filter')?.value || 'all';
+            const year = document.getElementById('prod-year-filter')?.value || 'all';
+            const fromMth = document.getElementById('prod-month-from')?.value || 'all';
+            const toMth = document.getElementById('prod-month-to')?.value || 'all';
 
             const filtered = (globalData.producers || []).filter(r => {
-                const matchMth = (mth === 'all' || r.statement_month === mth);
+                const matchDate = isMonthInSelectedRange(r.statement_month, year, fromMth, toMth);
                 const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
                 const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                 const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
                                          (r.policy_number && r.policy_number.includes(q)) ||
                                          (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
                                          (pCode && pCode.toLowerCase().includes(q));
-                return matchMth && matchPartner && matchQuery;
+                return matchDate && matchPartner && matchQuery;
             });
 
             renderProducersTable(filtered);
@@ -5636,14 +5655,16 @@
 
         function filterDashTable() {
             const q = (document.getElementById('dash-search')?.value || '').toLowerCase().trim();
-            const mth = document.getElementById('dash-month-filter')?.value || 'all';
             const partner = document.getElementById('dash-partner-filter')?.value || 'all';
+            const year = document.getElementById('dash-year-filter')?.value || 'all';
+            const fromMth = document.getElementById('dash-month-from')?.value || 'all';
+            const toMth = document.getElementById('dash-month-to')?.value || 'all';
 
             if (!globalData.summary || !globalData.summary.monthly_summary) return;
 
             // Filter contracts first
             const matchedContracts = (globalData.contracts || []).filter(c => {
-                const matchMth = (mth === 'all' || c.statement_month === mth);
+                const matchDate = isMonthInSelectedRange(c.statement_month, year, fromMth, toMth);
                 const pCode = String(c.producer_partner_code || c.producer_code || '0').trim();
                 const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                 const matchQuery = !q || (c.client_name && c.client_name.toLowerCase().includes(q)) ||
@@ -5651,7 +5672,7 @@
                                          (c.producer_name && c.producer_name.toLowerCase().includes(q)) ||
                                          (c.statement_month && c.statement_month.toLowerCase().includes(q)) ||
                                          (c.afm && c.afm.includes(q));
-                return matchMth && matchPartner && matchQuery;
+                return matchDate && matchPartner && matchQuery;
             });
 
             // Group matched contracts by month
@@ -5717,7 +5738,49 @@
             });
         }
 
+                function parseMonthYearVal(str) {
+            if (!str || str === 'all') return null;
+            const parts = str.trim().split('/');
+            if (parts.length === 2) {
+                const m = parseInt(parts[0], 10) || 0;
+                const y = parseInt(parts[1], 10) || 0;
+                return y * 12 + m;
+            } else if (parts.length === 1 && parts[0].length === 4) {
+                const y = parseInt(parts[0], 10) || 0;
+                return y * 12 + 1;
+            }
+            return null;
+        }
+
+        function isMonthInSelectedRange(mthStr, yearVal, fromVal, toVal) {
+            if (!mthStr) return true;
+            const cleanMth = mthStr.trim();
+            
+            // 1. Check Year filter
+            if (yearVal && yearVal !== 'all') {
+                if (!cleanMth.includes(yearVal)) return false;
+            }
+            
+            const curVal = parseMonthYearVal(cleanMth);
+            if (!curVal) return true;
+            
+            // 2. Check From Month filter
+            if (fromVal && fromVal !== 'all') {
+                const fVal = parseMonthYearVal(fromVal);
+                if (fVal && curVal < fVal) return false;
+            }
+            
+            // 3. Check To Month filter
+            if (toVal && toVal !== 'all') {
+                const tVal = parseMonthYearVal(toVal);
+                if (tVal && curVal > tVal) return false;
+            }
+            
+            return true;
+        }
+
         function populateAllFilterDropdowns() {
+            // 1. Populate Partner dropdowns across all tables
             const list = globalData.producersReg || [];
             const partnerOptionsHtml = ['<option value="all">👤 Όλοι οι Συνεργάτες</option>'];
             list.forEach(p => {
@@ -5727,17 +5790,68 @@
             });
             partnerOptionsHtml.push('<option value="0">🔒 0 | ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)</option>');
 
-            const dFilter = document.getElementById('dash-partner-filter');
-            if (dFilter) dFilter.innerHTML = partnerOptionsHtml.join('');
+            ['dash-partner-filter', 'prod-partner-filter', 'agency-partner-filter', 'crm-partner-filter'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = partnerOptionsHtml.join('');
+            });
 
-            const pFilter = document.getElementById('prod-partner-filter');
-            if (pFilter) pFilter.innerHTML = partnerOptionsHtml.join('');
+            // Also populate subcode partner select dropdown
+            populateProducersDatalists();
 
-            const aFilter = document.getElementById('agency-partner-filter');
-            if (aFilter) aFilter.innerHTML = partnerOptionsHtml.join('');
+            // 2. Extract all unique Months and Years
+            const monthsSet = new Set();
+            const yearsSet = new Set();
+            (globalData.summary?.monthly_summary || []).forEach(m => {
+                if (m.statement_month) {
+                    const clean = m.statement_month.trim();
+                    monthsSet.add(clean);
+                    const yr = clean.split('/')[1] || clean.substring(0, 4);
+                    if (yr && yr.length === 4) yearsSet.add(yr);
+                }
+            });
+            (globalData.contracts || []).forEach(c => {
+                if (c.statement_month) {
+                    const clean = c.statement_month.trim();
+                    monthsSet.add(clean);
+                    const yr = clean.split('/')[1] || clean.substring(0, 4);
+                    if (yr && yr.length === 4) yearsSet.add(yr);
+                }
+            });
 
-            const cFilter = document.getElementById('crm-partner-filter');
-            if (cFilter) cFilter.innerHTML = partnerOptionsHtml.join('');
+            // Sorted Months (e.g. 07/2026 ... 02/2026)
+            const sortedMonths = Array.from(monthsSet).sort((a, b) => {
+                const pA = a.split('/'), pB = b.split('/');
+                const mA = parseInt(pA[0], 10) || 0, yA = parseInt(pA[1], 10) || 0;
+                const mB = parseInt(pB[0], 10) || 0, yB = parseInt(pB[1], 10) || 0;
+                if (yA !== yB) return yB - yA;
+                return mB - mA;
+            });
+
+            // Sorted Years (e.g. 2026, 2025, 2024...)
+            const sortedYears = Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+
+            // Populate Year dropdowns
+            const yearOptionsHtml = ['<option value="all">📅 Όλα τα Έτη</option>'];
+            sortedYears.forEach(y => yearOptionsHtml.push(`<option value="${y}">📅 Έτος ${y}</option>`));
+            ['dash-year-filter', 'agency-year-filter', 'prod-year-filter', 'crm-year-filter', 'subcode-year-filter'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { const cur = el.value; el.innerHTML = yearOptionsHtml.join(''); if (cur && sortedYears.includes(cur)) el.value = cur; }
+            });
+
+            // Populate Month From / To dropdowns
+            const monthFromOptions = ['<option value="all">Από: Όλοι οι Μήνες</option>'];
+            const monthToOptions = ['<option value="all">Έως: Όλοι οι Μήνες</option>'];
+            // For From: chronological order (earliest to latest)
+            const chronoMonths = [...sortedMonths].reverse();
+            chronoMonths.forEach(m => monthFromOptions.push(`<option value="${m}">${m}</option>`));
+            sortedMonths.forEach(m => monthToOptions.push(`<option value="${m}">${m}</option>`));
+
+            ['dash', 'agency', 'prod', 'crm', 'subcode'].forEach(prefix => {
+                const elFrom = document.getElementById(`${prefix}-month-from`);
+                const elTo = document.getElementById(`${prefix}-month-to`);
+                if (elFrom) { const cur = elFrom.value; elFrom.innerHTML = monthFromOptions.join(''); if (cur && sortedMonths.includes(cur)) elFrom.value = cur; }
+                if (elTo) { const cur = elTo.value; elTo.innerHTML = monthToOptions.join(''); if (cur && sortedMonths.includes(cur)) elTo.value = cur; }
+            });
         }
 
         // === 👁️ COLUMN SELECTOR & SORTING ===
@@ -5804,6 +5918,13 @@
 
         // === 📥 EXPORT ENGINE (PRECISE SELECTIVE EXCEL & PDF EXPORT) ===
         function getSelectedExportData(type) {
+            const prefix = (type === 'dashboard' || type === 'dash') ? 'dash' : (type === 'producers' ? 'prod' : type);
+            const year = document.getElementById(`${prefix}-year-filter`)?.value || 'all';
+            const fromMth = document.getElementById(`${prefix}-month-from`)?.value || 'all';
+            const toMth = document.getElementById(`${prefix}-month-to`)?.value || 'all';
+            const partner = document.getElementById(`${prefix}-partner-filter`)?.value || 'all';
+            const q = (document.getElementById(`${prefix}-search`)?.value || '').toLowerCase().trim();
+
             if (type === 'dashboard' || type === 'dash') {
                 const checkedNested = Array.from(document.querySelectorAll('.nested-check:checked'));
                 if (checkedNested.length > 0) {
@@ -5819,11 +5940,8 @@
                     const months = checkedMonths.map(m => m.dataset.month);
                     return globalData.contracts.filter(c => months.includes(c.statement_month));
                 }
-                const q = (document.getElementById('dash-search')?.value || '').toLowerCase().trim();
-                const mth = document.getElementById('dash-month-filter')?.value || 'all';
-                const partner = document.getElementById('dash-partner-filter')?.value || 'all';
                 return (globalData.contracts || []).filter(c => {
-                    const matchMth = (mth === 'all' || c.statement_month === mth);
+                    const matchDate = isMonthInSelectedRange(c.statement_month, year, fromMth, toMth);
                     const pCode = String(c.producer_partner_code || c.producer_code || '0').trim();
                     const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                     const matchQuery = !q || (c.client_name && c.client_name.toLowerCase().includes(q)) ||
@@ -5831,7 +5949,7 @@
                                              (c.producer_name && c.producer_name.toLowerCase().includes(q)) ||
                                              (c.statement_month && c.statement_month.toLowerCase().includes(q)) ||
                                              (c.afm && c.afm.includes(q));
-                    return matchMth && matchPartner && matchQuery;
+                    return matchDate && matchPartner && matchQuery;
                 });
             } else if (type === 'crm') {
                 const checked = Array.from(document.querySelectorAll('.crm-row-check:checked'));
@@ -5839,11 +5957,8 @@
                     const policies = checked.map(c => c.value);
                     return globalData.contracts.filter(c => policies.includes(c.policy_number));
                 }
-                const q = (document.getElementById('crm-search')?.value || '').toLowerCase().trim();
-                const mth = document.getElementById('crm-month-filter')?.value || 'all';
-                const partner = document.getElementById('crm-partner-filter')?.value || 'all';
                 return (globalData.contracts || []).filter(r => {
-                    const matchMth = (mth === 'all' || r.statement_month === mth);
+                    const matchDate = isMonthInSelectedRange(r.statement_month, year, fromMth, toMth);
                     const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
                     const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                     const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
@@ -5851,7 +5966,7 @@
                                              (r.afm && r.afm.includes(q)) ||
                                              (r.phone_mobile && r.phone_mobile.includes(q)) ||
                                              (r.producer_name && r.producer_name.toLowerCase().includes(q));
-                    return matchMth && matchPartner && matchQuery;
+                    return matchDate && matchPartner && matchQuery;
                 });
             } else if (type === 'agency') {
                 const checked = Array.from(document.querySelectorAll('.agency-row-check:checked'));
@@ -5859,11 +5974,8 @@
                     const policies = checked.map(c => c.value);
                     return globalData.agency.filter(c => policies.includes(c.policy_number));
                 }
-                const q = (document.getElementById('agency-search')?.value || '').toLowerCase().trim();
-                const mth = document.getElementById('agency-month-filter')?.value || 'all';
-                const partner = document.getElementById('agency-partner-filter')?.value || 'all';
                 return (globalData.agency || []).filter(r => {
-                    const matchMth = (mth === 'all' || r.statement_month === mth);
+                    const matchDate = isMonthInSelectedRange(r.statement_month, year, fromMth, toMth);
                     const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
                     const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                     const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
@@ -5872,7 +5984,7 @@
                                              (pCode && pCode.toLowerCase().includes(q)) ||
                                              (r.producer_ergo_code && r.producer_ergo_code.toLowerCase().includes(q)) ||
                                              (r.partner_type_label && r.partner_type_label.toLowerCase().includes(q));
-                    return matchMth && matchPartner && matchQuery;
+                    return matchDate && matchPartner && matchQuery;
                 });
             } else if (type === 'producers') {
                 const checked = Array.from(document.querySelectorAll('.prod-row-check:checked'));
@@ -5880,18 +5992,15 @@
                     const policies = checked.map(c => c.value);
                     return globalData.producers.filter(c => policies.includes(c.policy_number));
                 }
-                const q = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
-                const mth = document.getElementById('prod-month-filter')?.value || 'all';
-                const partner = document.getElementById('prod-partner-filter')?.value || 'all';
                 return (globalData.producers || []).filter(r => {
-                    const matchMth = (mth === 'all' || r.statement_month === mth);
+                    const matchDate = isMonthInSelectedRange(r.statement_month, year, fromMth, toMth);
                     const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
                     const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
                     const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
                                              (r.policy_number && r.policy_number.includes(q)) ||
                                              (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
                                              (pCode && pCode.toLowerCase().includes(q));
-                    return matchMth && matchPartner && matchQuery;
+                    return matchDate && matchPartner && matchQuery;
                 });
             } else if (type === 'producersReg') {
                 const checked = Array.from(document.querySelectorAll('.prod-reg-row-check:checked'));
@@ -6079,14 +6188,17 @@
                 else partnerLabel = `Κωδικός Συνεργάτη: ${partnerFilterVal}`;
             }
 
-            // Determine active month label
-            let monthFilterVal = 'all';
-            if (type === 'dashboard' || type === 'dash') monthFilterVal = document.getElementById('dash-month-filter')?.value || 'all';
-            else if (type === 'agency') monthFilterVal = document.getElementById('agency-month-filter')?.value || 'all';
-            else if (type === 'producers') monthFilterVal = document.getElementById('prod-month-filter')?.value || 'all';
-            else if (type === 'crm') monthFilterVal = document.getElementById('crm-month-filter')?.value || 'all';
+            // Determine active period label
+            const prefix = (type === 'dashboard' || type === 'dash') ? 'dash' : (type === 'producers' ? 'prod' : type);
+            const yearVal = document.getElementById(`${prefix}-year-filter`)?.value || 'all';
+            const fromVal = document.getElementById(`${prefix}-month-from`)?.value || 'all';
+            const toVal = document.getElementById(`${prefix}-month-to`)?.value || 'all';
 
-            let monthLabel = (monthFilterVal === 'all') ? "Όλοι οι Μήνες (Συγκεντρωτικό)" : `Μήνας: ${monthFilterVal}`;
+            let monthLabel = "Όλες οι Περίοδοι";
+            if (fromVal !== 'all' && toVal !== 'all') monthLabel = `Από ${fromVal} έως ${toVal}`;
+            else if (fromVal !== 'all') monthLabel = `Από ${fromVal}`;
+            else if (toVal !== 'all') monthLabel = `Έως ${toVal}`;
+            else if (yearVal !== 'all') monthLabel = `Έτος ${yearVal}`;
 
             const isSelectedOnly = (document.querySelectorAll('.nested-check:checked, .crm-row-check:checked, .agency-row-check:checked, .prod-row-check:checked, .dash-month-check:checked').length > 0);
 

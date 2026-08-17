@@ -1548,7 +1548,11 @@ def api_get_subcode_payout_statement():
     """
     params = [producer_code, ergo_code, ergo_code, full_name, producer_code]
     
-    if month and month != "all":
+    month_from = str(data.get("month_from", "all")).strip()
+    month_to = str(data.get("month_to", "all")).strip()
+    year = str(data.get("year", "all")).strip()
+
+    if month and month != "all" and month_from == "all" and month_to == "all" and year == "all":
         query += " AND (m.statement_month = ? OR m.statement_month = ?)"
         params.extend([month, month.replace('/', '_')])
         
@@ -1556,6 +1560,40 @@ def api_get_subcode_payout_statement():
     
     cur.execute(query, params)
     raw_contracts = [dict(r) for r in cur.fetchall()]
+
+    def parse_m_val(m_str):
+        if not m_str or m_str == "all":
+            return None
+        parts = str(m_str).replace("_", "/").split("/")
+        if len(parts) == 2:
+            try:
+                return int(parts[1]) * 12 + int(parts[0])
+            except:
+                return None
+        return None
+
+    def match_m_range(c_month):
+        if not c_month:
+            return True
+        c_clean = str(c_month).replace("_", "/").strip()
+        if year != "all" and year not in c_clean:
+            return False
+        c_val = parse_m_val(c_clean)
+        if not c_val:
+            return True
+        if month_from != "all":
+            f_val = parse_m_val(month_from)
+            if f_val and c_val < f_val:
+                return False
+        if month_to != "all":
+            t_val = parse_m_val(month_to)
+            if t_val and c_val > t_val:
+                return False
+        if month != "all" and c_clean != month and c_clean.replace("/", "_") != month:
+            return False
+        return True
+
+    raw_contracts = [c for c in raw_contracts if match_m_range(c.get("statement_month"))]
         
     # Load Partner Commission Matrix
     cur.execute("SELECT * FROM partner_commission_matrix WHERE producer_code = ?", (producer_code,))

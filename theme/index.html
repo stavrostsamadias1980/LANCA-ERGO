@@ -1245,11 +1245,14 @@
                         <div class="col-selector-dropdown">
                             <button class="btn-pill btn-ghost" onclick="toggleColSelector('dash-cols')">👁️ Στήλες ▾</button>
                             <div id="dash-cols" class="col-selector-menu">
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 2)"> Μικτά (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 3)"> Καθαρά (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 4)"> Προμήθεια Συνεργατών (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 5)"> Agency 3375Α (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleCol('table-dash', 6)"> Συνολική Αμοιβή (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 1, this.checked)"> Α/Α</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 2, this.checked)"> Μήνας Εκκαθάρισης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 3, this.checked)"> Πλήθος Κινήσεων</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 4, this.checked)"> Μικτά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 5, this.checked)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 6, this.checked)"> Προμήθεια Συνεργατών (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 7, this.checked)"> Agency 3375Α (20%) (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 8, this.checked)"> Συνολική Αμοιβή (€)</label>
                             </div>
                         </div>
                         <button class="btn-pill btn-ghost" style="color:var(--accent-rose);" onclick="deleteSelectedRows('dashboard')">🗑️ Διαγραφή Επιλεγμένων</button>
@@ -1384,12 +1387,19 @@
                         <tfoot>
                             <tr>
                                 <td></td>
-                                <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="7" id="agency-footer-label">Συνολικό Overriding Agency 3375Α (20%):</td>
-                                <td id="agency-tot-net" style="font-weight:800;">€ 0,00</td>
-                                <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px; font-weight:800;">€ 0,00</td>
-                                <td id="agency-tot-pct" style="color:var(--brand-blue); font-weight:800;">-</td>
-                                <td colspan="2"></td>
+                                <td><strong>ΣΥΝΟΛΑ</strong></td>
+                                <td>Όλοι</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td id="agency-footer-label" style="font-weight:700;">0 Εγγραφές</td>
+                                <td id="agency-tot-net" style="font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px; font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="agency-tot-pct" style="color:var(--brand-blue); font-weight:800; text-align:center;">-</td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1520,13 +1530,17 @@
                         <tfoot>
                             <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
                                 <td></td>
-                                <td>ΣΥΝΟΛΑ</td>
-                                <td colspan="5" id="subcode-foot-partner-lbl">Εκκαθαριστικό Υποκωδικού</td>
-                                <td id="subcode-foot-net">€ 0,00</td>
-                                <td id="subcode-foot-ergo" style="color:var(--accent-gold);">€ 0,00</td>
+                                <td><strong>ΣΥΝΟΛΑ</strong></td>
                                 <td></td>
-                                <td id="subcode-foot-payout" style="color:var(--accent-emerald); font-size:14px;">€ 0,00</td>
-                                <td id="subcode-foot-retention" style="color:var(--accent-purple); font-size:14px;">€ 0,00</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td id="subcode-foot-partner-lbl" style="font-weight:700;">Εκκαθαριστικό</td>
+                                <td id="subcode-foot-net" style="font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="subcode-foot-ergo" style="color:var(--accent-gold); font-weight:800; text-align:right;">€ 0,00</td>
+                                <td style="text-align:center;">-</td>
+                                <td id="subcode-foot-payout" style="color:var(--accent-emerald); font-size:14px; font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="subcode-foot-retention" style="color:var(--accent-purple); font-size:14px; font-weight:800; text-align:right;">€ 0,00</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1676,19 +1690,14 @@
                             <div id="prod-cols" class="col-selector-menu">
                                 <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 1, this.checked)"> Α/Α</label>
                                 <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 2, this.checked)"> Μήνας</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 3, this.checked)"> Κωδικός</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 3, this.checked)"> Κωδικός Συνεργάτη</label>
                                 <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 4, this.checked)"> Αρ. Συμβολαίου</label>
                                 <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 5, this.checked)"> Πελάτης</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 6, this.checked)"> Πρόγραμμα</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 7, this.checked)"> Συνεργάτης</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 8, this.checked)"> Ομάδα</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 9, this.checked)"> Καθαρά (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 10, this.checked)"> Προμήθεια ERGO (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 11, this.checked)"> % ERGO</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 12, this.checked)"> % Απόδοσης</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 13, this.checked)"> Αμοιβή Υποκωδικού (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 14, this.checked)"> Έσοδο Γραφείου (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 15, this.checked)"> Είδος Κίνησης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 6, this.checked)"> Συνεργάτης (Υποκωδικός)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 7, this.checked)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 8, this.checked)"> Προμήθεια ERGO (€ & %)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 9, this.checked)"> Απόδοση Υποκωδικού (€ & %)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 10, this.checked)"> Έσοδο Γραφείου (€)</label>
                             </div>
                         </div>
                         <select id="prod-month-filter" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterProducersTable()">
@@ -1736,12 +1745,16 @@
                         <tfoot>
                             <tr>
                                 <td></td>
-                                <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="5" id="prod-footer-label">Συνολικές Προμήθειες Συνεργατών:</td>
-                                <td id="prod-foot-net" style="font-weight:800;">€ 0,00</td>
-                                <td id="prod-foot-ergo" style="color:var(--accent-gold); font-size:14px; font-weight:800;">€ 0,00</td>
-                                <td id="producers-total-val" style="color:var(--accent-emerald); font-size:14.5px; font-weight:800;">€ 0,00</td>
-                                <td id="prod-foot-retention" style="color:var(--accent-purple); font-size:14px; font-weight:800;">€ 0,00</td>
+                                <td><strong>ΣΥΝΟΛΑ</strong></td>
+                                <td>Όλοι</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td id="prod-footer-label" style="font-weight:700;">0 Συμβόλαια</td>
+                                <td id="prod-foot-net" style="font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="prod-foot-ergo" style="color:var(--accent-gold); font-size:14px; font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="producers-total-val" style="color:var(--accent-emerald); font-size:14.5px; font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="prod-foot-retention" style="color:var(--accent-purple); font-size:14px; font-weight:800; text-align:right;">€ 0,00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -1997,13 +2010,18 @@
                         <tfoot>
                             <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
                                 <td></td>
-                                <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="6" id="crm-foot-lbl">Συνολικά Αποτελέσματα:</td>
-                                <td id="crm-foot-gross" style="font-weight:800;">€ 0,00</td>
-                                <td id="crm-foot-net" style="font-weight:800;">€ 0,00</td>
-                                <td id="crm-foot-comm" style="color:var(--accent-gold); font-weight:800;">€ 0,00</td>
-                                <td id="crm-foot-agn" style="color:var(--accent-purple); font-weight:800;">€ 0,00</td>
-                                <td id="crm-foot-tot" style="color:var(--accent-emerald); font-weight:800; font-size:14px;">€ 0,00</td>
+                                <td><strong>ΣΥΝΟΛΑ</strong></td>
+                                <td>Όλοι</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td id="crm-foot-lbl" style="font-weight:700;">0 Συμβόλαια</td>
+                                <td id="crm-foot-gross" style="font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="crm-foot-net" style="font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="crm-foot-comm" style="color:var(--accent-gold); font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="crm-foot-agn" style="color:var(--accent-purple); font-weight:800; text-align:right;">€ 0,00</td>
+                                <td id="crm-foot-tot" style="color:var(--accent-emerald); font-weight:800; font-size:14px; text-align:right;">€ 0,00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -4056,6 +4074,7 @@
             document.getElementById('subcode-foot-ergo').innerText = formatEur(totals.total_ergo_commission);
             document.getElementById('subcode-foot-payout').innerText = formatEur(totals.total_subcode_payout);
             document.getElementById('subcode-foot-retention').innerText = formatEur(totals.total_office_retention);
+            reapplyColumnVisibility('subcode-statement-table');
         }
 
         function printSubcodeStatementPDF() {
@@ -5457,14 +5476,14 @@
             if (period === 'Q1') list = list.filter(m => ['02/2026', '03/2026', '04/2026'].includes(m.statement_month));
             else if (period === 'Q2') list = list.filter(m => ['05/2026', '06/2026', '07/2026'].includes(m.statement_month));
             else if (period === '2026') list = list.filter(m => m.statement_month.includes('2026'));
-            renderDashboardTable(list);
+            renderDashboardTable(list); reapplyColumnVisibility('table-dash');
         }
 
         function filterByMonthSelect(val) {
             if (!globalData.summary) return;
             let list = globalData.summary.monthly_summary || [];
             if (val !== 'all') list = list.filter(m => m.statement_month === val);
-            renderDashboardTable(list);
+            renderDashboardTable(list); reapplyColumnVisibility('table-dash');
         }
 
         function filterDashTable() {
@@ -5485,7 +5504,7 @@
                 );
                 return matchMonth || hasMatchingContract;
             });
-            renderDashboardTable(filteredMonths);
+            renderDashboardTable(filteredMonths); reapplyColumnVisibility('table-dash');
         }
 
         

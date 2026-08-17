@@ -1356,7 +1356,7 @@
                             <tr>
                                 <td></td>
                                 <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="6" id="agency-footer-label">Συνολικό Overriding Agency 3375Α (20%):</td>
+                                <td colspan="7" id="agency-footer-label">Συνολικό Overriding Agency 3375Α (20%):</td>
                                 <td id="agency-tot-net" style="font-weight:800;">€ 0,00</td>
                                 <td id="agency-total-val" style="color:var(--accent-purple); font-size:15px; font-weight:800;">€ 0,00</td>
                                 <td id="agency-tot-pct" style="color:var(--brand-blue); font-weight:800;">-</td>
@@ -1478,7 +1478,7 @@
                             <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
                                 <td></td>
                                 <td>ΣΥΝΟΛΑ</td>
-                                <td colspan="4" id="subcode-foot-partner-lbl">Εκκαθαριστικό Υποκωδικού</td>
+                                <td colspan="5" id="subcode-foot-partner-lbl">Εκκαθαριστικό Υποκωδικού</td>
                                 <td id="subcode-foot-net">€ 0,00</td>
                                 <td id="subcode-foot-ergo" style="color:var(--accent-gold);">€ 0,00</td>
                                 <td></td>
@@ -1657,7 +1657,7 @@
                             <tr>
                                 <td></td>
                                 <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="4" id="prod-footer-label">Συνολικές Προμήθειες Συνεργατών:</td>
+                                <td colspan="5" id="prod-footer-label">Συνολικές Προμήθειες Συνεργατών:</td>
                                 <td id="prod-foot-net" style="font-weight:800;">€ 0,00</td>
                                 <td id="prod-foot-ergo" style="color:var(--accent-gold); font-size:14px; font-weight:800;">€ 0,00</td>
                                 <td id="producers-total-val" style="color:var(--accent-emerald); font-size:14.5px; font-weight:800;">€ 0,00</td>
@@ -1883,6 +1883,19 @@
                             </tr>
                         </thead>
                         <tbody id="crm-tbody"></tbody>
+                        <tfoot>
+                            <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
+                                <td></td>
+                                <td>ΣΥΝΟΛΟ</td>
+                                <td colspan="6" id="crm-foot-lbl">Συνολικά Αποτελέσματα:</td>
+                                <td id="crm-foot-gross" style="font-weight:800;">€ 0,00</td>
+                                <td id="crm-foot-net" style="font-weight:800;">€ 0,00</td>
+                                <td id="crm-foot-comm" style="color:var(--accent-gold); font-weight:800;">€ 0,00</td>
+                                <td id="crm-foot-agn" style="color:var(--accent-purple); font-weight:800;">€ 0,00</td>
+                                <td id="crm-foot-tot" style="color:var(--accent-emerald); font-weight:800; font-size:14px;">€ 0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -3648,7 +3661,21 @@
             const tbody = document.getElementById('crm-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            let totGross = 0, totNet = 0, totComm = 0, totAgn = 0, totTot = 0;
+
             list.forEach((r, idx) => {
+                const gross = (r.gross_premium || r.net_premium_total || 0);
+                const net = (r.net_premium_total || 0);
+                const comm = (r.producer_commission_amount || 0);
+                const agn = (r.agency_overriding_amount || 0);
+                const tot = (r.total_office_revenue || (comm + agn));
+
+                totGross += gross;
+                totNet += net;
+                totComm += comm;
+                totAgn += agn;
+                totTot += tot;
+
                 const tr = document.createElement('tr');
                 let typeBadge = `<span class="badge badge-blue">${r.movement_type || 'Νέα Εργασία'}</span>`;
                 if (r.is_zero_offset) typeBadge = `<span class="badge badge-offset">Συμψηφισμός 0,00 €</span>`;
@@ -3661,11 +3688,11 @@
                     <td><strong>${r.client_name||'-'}</strong></td>
                     <td>${r.afm||'-'}</td>
                     <td>${r.phone_mobile || r.phone_landline || '-'}</td>
-                    <td>${formatEur(r.gross_premium)}</td>
-                    <td>${formatEur(r.net_premium_total)}</td>
-                    <td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.producer_commission_amount)}</td>
-                    <td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.agency_overriding_amount)}</td>
-                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(r.total_office_revenue)}</td>
+                    <td>${formatEur(gross)}</td>
+                    <td>${formatEur(net)}</td>
+                    <td style="color:var(--accent-gold); font-weight:700;">${formatEur(comm)}</td>
+                    <td style="color:var(--accent-purple); font-weight:700;">${formatEur(agn)}</td>
+                    <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(tot)}</td>
                     <td style="white-space:nowrap; text-align:center;">
                         <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')">✏️</button>
                         <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px; color:var(--accent-rose);" onclick="deleteSingleContract('${r.policy_number}', '${r.statement_month}')">🗑️</button>
@@ -3673,6 +3700,14 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            // Update CRM Table Footers
+            const fLbl = document.getElementById('crm-foot-lbl'); if (fLbl) fLbl.innerText = `Συνολικά Αποτελέσματα (${list.length} Συμβόλαια):`;
+            const fGross = document.getElementById('crm-foot-gross'); if (fGross) fGross.innerText = formatEur(totGross);
+            const fNet = document.getElementById('crm-foot-net'); if (fNet) fNet.innerText = formatEur(totNet);
+            const fComm = document.getElementById('crm-foot-comm'); if (fComm) fComm.innerText = formatEur(totComm);
+            const fAgn = document.getElementById('crm-foot-agn'); if (fAgn) fAgn.innerText = formatEur(totAgn);
+            const fTot = document.getElementById('crm-foot-tot'); if (fTot) fTot.innerText = formatEur(totTot);
         }
 
         function filterCRMTable() {

@@ -3292,10 +3292,9 @@
             document.getElementById('edit-producer-ergo-code').value = "0";
             document.getElementById('edit-producer-name').value = "ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)";
             document.getElementById('edit-org-team').value = "⚠️ Εκκρεμεί Ανάθεση Συνεργάτη";
-            document.getElementById('edit-prod-comm').value = 0;
 
             const lbl = document.getElementById('edit-producer-team-label');
-            if (lbl) lbl.innerHTML = `🏢 Ομάδα: <strong style="color:#DC2626;">⚠️ Εκκρεμεί Ανάθεση Συνεργάτη</strong> • Κλίμακα: <strong>0%</strong>`;
+            if (lbl) lbl.innerHTML = `🏢 Ομάδα: <strong style="color:#DC2626;">⚠️ Εκκρεμεί Ανάθεση Συνεργάτη</strong> • Απόδοση: <strong>0% (Εκκρεμεί Ανάθεση)</strong>`;
 
             const unassignedAlert = document.getElementById('edit-unassigned-alert');
             if (unassignedAlert) unassignedAlert.style.display = 'flex';
@@ -3337,9 +3336,7 @@
 
                 const unassignedAlert = document.getElementById('edit-unassigned-alert');
                 if (unassignedAlert) unassignedAlert.style.display = 'none';
-
-                // Recalc comm
-                recalcEditModalComms(p.avg_rate || 25);
+                // ERGO commission and Agency overriding amounts remain strictly locked as received from statement files!
             }
         }
 

@@ -1501,6 +1501,7 @@
                                     <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 10, this.checked)"> % Απόδοσης</label>
                                     <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 11, this.checked)"> Αποδιδόμενη Αμοιβή (€)</label>
                                     <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 12, this.checked)"> Παρακράτηση Γραφείου (€)</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 13, this.checked)"> Ενέργειες</label>
                                 </div>
                             </div>
                             <button class="btn-pill btn-primary" style="padding:7px 16px;" onclick="loadSubcodePayoutStatement()">
@@ -1555,10 +1556,11 @@
                                 <th onclick="sortGenericTable('subcode-statement-table', 10)">Ποσοστό Απόδοσης</th>
                                 <th onclick="sortGenericTable('subcode-statement-table', 11)">Αμοιβή Υποκωδικού (€)</th>
                                 <th onclick="sortGenericTable('subcode-statement-table', 12)">Έσοδο Γραφείου (€)</th>
+                                <th>Ενέργειες</th>
                             </tr>
                         </thead>
                         <tbody id="subcode-statement-tbody">
-                            <tr><td colspan="13" style="text-align:center; padding:24px; color:var(--text-muted);">Επιλέξτε συνεργάτη για προβολή εκκαθαριστικού.</td></tr>
+                            <tr><td colspan="14" style="text-align:center; padding:24px; color:var(--text-muted);">Επιλέξτε συνεργάτη για προβολή εκκαθαριστικού.</td></tr>
                         </tbody>
                         <tfoot>
                             <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
@@ -1575,6 +1577,7 @@
                                 <td style="text-align:center;">-</td>
                                 <td id="subcode-foot-payout" style="color:var(--accent-emerald); font-size:14px; font-weight:800; text-align:right;">€ 0,00</td>
                                 <td id="subcode-foot-retention" style="color:var(--accent-purple); font-size:14px; font-weight:800; text-align:right;">€ 0,00</td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -4151,7 +4154,7 @@
             reapplyColumnVisibility('subcode-statement-table');
 
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν καταχωρημένα συμβόλαια για τον συνεργάτη <strong>${partner.full_name || partner.producer_code} (Κωδ. ${partner.producer_code})</strong> στην επιλεγμένη περίοδο.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν καταχωρημένα συμβόλαια για τον συνεργάτη <strong>${partner.full_name || partner.producer_code} (Κωδ. ${partner.producer_code})</strong> στην επιλεγμένη περίοδο.</td></tr>`;
                 return;
             }
 
@@ -4171,6 +4174,12 @@
                     <td><span class="badge badge-purple">${it.subcode_split_pct}%</span></td>
                     <td style="color:var(--accent-emerald); font-weight:800;">${formatEur(it.subcode_payout_amount)}</td>
                     <td style="color:var(--accent-purple); font-weight:800;">${formatEur(it.office_retention_amount)}</td>
+                    <td>
+                        <div style="display:flex; gap:4px; justify-content:center;">
+                            <button class="btn-pill btn-ghost" style="padding:2px 6px; font-size:10px;" onclick="openProducerCard('${it.producer_code || partner.producer_code}', 'comm')" title="Καρτέλα & Απόδοση Συνεργάτη">⚙️</button>
+                            <button class="btn-pill btn-ghost" style="padding:2px 6px; font-size:10px;" onclick="openEditModal('${it.policy_number}')" title="Επεξεργασία Συμβολαίου">✏️</button>
+                        </div>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -4497,7 +4506,7 @@
             let totNet = 0, totErgo = 0, totPayout = 0, totRetention = 0;
 
             if (!list || list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν συμβόλαια προμηθειών για τον επιλεγμένο συνεργάτη / περίοδο.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:35px; color:var(--text-muted); font-size:13px;">⚠️ Δεν βρέθηκαν συμβόλαια προμηθειών για τον επιλεγμένο συνεργάτη / περίοδο.</td></tr>`;
                 const kNet = document.getElementById('prod-kpi-net'); if (kNet) kNet.innerText = formatEur(0);
                 const kErgo = document.getElementById('prod-kpi-ergo'); if (kErgo) kErgo.innerText = formatEur(0);
                 const kPay = document.getElementById('prod-kpi-payout'); if (kPay) kPay.innerText = formatEur(0);

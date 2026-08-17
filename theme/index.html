@@ -1322,7 +1322,36 @@
                             <input type="checkbox" id="agency-select-all" class="custom-checkbox" onchange="toggleSelectAll('agency')">
                             <span>Επιλογή Όλων</span>
                         </label>
-                        <input type="text" id="agency-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Παραγωγού, Κωδικού, Ομάδας..." oninput="filterAgencyTable()" style="min-width:320px;">
+                        <div class="col-selector-dropdown">
+                            <button class="btn-pill btn-ghost" onclick="toggleColSelector('agency-cols')">👁️ Στήλες ▾</button>
+                            <div id="agency-cols" class="col-selector-menu">
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 1, this.checked)"> Α/Α</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 2, this.checked)"> Μήνας</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 3, this.checked)"> Κωδικός</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 4, this.checked)"> Αρ. Συμβολαίου</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 5, this.checked)"> Πελάτης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 6, this.checked)"> Πρόγραμμα</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 7, this.checked)"> Παραγωγός</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 8, this.checked)"> Οργανωτική Ομάδα</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 9, this.checked)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 10, this.checked)"> Υπερπρομήθεια 20% (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 11, this.checked)"> Ποσοστό %</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-agency', 12, this.checked)"> Είδος Κίνησης</label>
+                            </div>
+                        </div>
+                        <select id="agency-month-filter" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterAgencyTable()">
+                            <option value="all">📅 Όλοι οι Μήνες</option>
+                            <option value="02/2026">02/2026</option>
+                            <option value="03/2026">03/2026</option>
+                            <option value="04/2026">04/2026</option>
+                            <option value="05/2026">05/2026</option>
+                            <option value="06/2026">06/2026</option>
+                            <option value="07/2026">07/2026</option>
+                        </select>
+                        <select id="agency-partner-filter" class="glass-select" style="font-size:12px; font-weight:700; max-width:200px;" onchange="filterAgencyTable()">
+                            <option value="all">👤 Όλοι οι Παραγωγοί</option>
+                        </select>
+                        <input type="text" id="agency-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Παραγωγού, Κωδικού, Ομάδας..." oninput="filterAgencyTable()" style="min-width:240px;">
                     </div>
                     <div class="toolbar-right">
                         <button class="btn-pill btn-ghost" onclick="deleteSelectedRows('agency')">🗑️ Διαγραφή Επιλεγμένων</button>
@@ -1415,9 +1444,26 @@
                         </div>
                     </div>
 
-                    <div>
-                        <button class="btn-pill btn-primary" style="width:100%; justify-content:center; padding:10px;" onclick="loadSubcodePayoutStatement()">
-                            🔄 Επανυπολογισμός Εκκαθαριστικού
+                    <div style="display:flex; gap:8px;">
+                        <div class="col-selector-dropdown" style="flex:1;">
+                            <button class="btn-pill btn-ghost" style="width:100%; justify-content:center; padding:10px;" onclick="toggleColSelector('subcode-cols')">👁️ Στήλες ▾</button>
+                            <div id="subcode-cols" class="col-selector-menu">
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 0, this.checked)"> Α/Α</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 1, this.checked)"> Μήνας</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 2, this.checked)"> Κωδικός</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 3, this.checked)"> Αρ. Συμβολαίου</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 4, this.checked)"> Πελάτης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 5, this.checked)"> Πρόγραμμα</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 6, this.checked)"> Έτος</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 7, this.checked)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 8, this.checked)"> Προμήθεια ERGO (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 9, this.checked)"> % Απόδοσης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 10, this.checked)"> Αποδιδόμενη Αμοιβή (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 11, this.checked)"> Παρακράτηση Γραφείου (€)</label>
+                            </div>
+                        </div>
+                        <button class="btn-pill btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="loadSubcodePayoutStatement()">
+                            🔄 Επανυπολογισμός
                         </button>
                     </div>
                 </div>
@@ -1625,7 +1671,44 @@
                             <input type="checkbox" id="prod-select-all" class="custom-checkbox" onchange="toggleSelectAll('prod')">
                             <span>Επιλογή Όλων</span>
                         </label>
-                        <input type="text" id="prod-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Συνεργάτη..." oninput="filterProducersTable()">
+                        <div class="col-selector-dropdown">
+                            <button class="btn-pill btn-ghost" onclick="toggleColSelector('prod-cols')">👁️ Στήλες ▾</button>
+                            <div id="prod-cols" class="col-selector-menu">
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 1, this.checked)"> Α/Α</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 2, this.checked)"> Μήνας</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 3, this.checked)"> Κωδικός</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 4, this.checked)"> Αρ. Συμβολαίου</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 5, this.checked)"> Πελάτης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 6, this.checked)"> Πρόγραμμα</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 7, this.checked)"> Συνεργάτης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 8, this.checked)"> Ομάδα</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 9, this.checked)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 10, this.checked)"> Προμήθεια ERGO (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 11, this.checked)"> % ERGO</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 12, this.checked)"> % Απόδοσης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 13, this.checked)"> Αμοιβή Υποκωδικού (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 14, this.checked)"> Έσοδο Γραφείου (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers', 15, this.checked)"> Είδος Κίνησης</label>
+                            </div>
+                        </div>
+                        <select id="prod-month-filter" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterProducersTable()">
+                            <option value="all">📅 Όλοι οι Μήνες</option>
+                            <option value="02/2026">02/2026</option>
+                            <option value="03/2026">03/2026</option>
+                            <option value="04/2026">04/2026</option>
+                            <option value="05/2026">05/2026</option>
+                            <option value="06/2026">06/2026</option>
+                            <option value="07/2026">07/2026</option>
+                        </select>
+                        <select id="prod-partner-filter" class="glass-select" style="font-size:12px; font-weight:700; max-width:200px;" onchange="filterProducersTable()">
+                            <option value="all">👤 Όλοι οι Συνεργάτες</option>
+                        </select>
+                        <input type="text" id="prod-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Συνεργάτη..." oninput="filterProducersTable()" style="min-width:240px;">
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('producers')">📥 Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('producers')">📄 PDF (Οριζόντια)</button>
+                        <button class="btn-pill btn-ghost" onclick="deleteSelectedRows('producers')">🗑️ Διαγραφή Επιλεγμένων</button>
                     </div>
                 </div>
 
@@ -1851,10 +1934,41 @@
                             <input type="checkbox" id="crm-select-all" class="custom-checkbox" onchange="toggleSelectAll('crm')">
                             <span>Επιλογή Όλων</span>
                         </label>
-                        <input type="text" id="crm-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, ΑΦΜ, Συμβολαίου, Τηλεφώνου..." oninput="filterCRMTable()">
+                        <div class="col-selector-dropdown">
+                            <button class="btn-pill btn-ghost" onclick="toggleColSelector('crm-cols')">👁️ Στήλες ▾</button>
+                            <div id="crm-cols" class="col-selector-menu">
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 1, this.checked)"> Α/Α</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 2, this.checked)"> Μήνας</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 3, this.checked)"> Κωδ. Συνεργάτη</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 4, this.checked)"> Αρ. Συμβολαίου</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 5, this.checked)"> Ονοματεπώνυμο Πελάτη</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 6, this.checked)"> ΑΦΜ</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 7, this.checked)"> Τηλέφωνο</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 8, this.checked)"> Μικτά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 9, this.checked)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 10, this.checked)"> Προμήθεια ERGO (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 11, this.checked)"> Agency 3375Α (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 12, this.checked)"> Συνολική Αμοιβή (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('crm-table', 13, this.checked)"> Τύπος Κίνησης</label>
+                            </div>
+                        </div>
+                        <select id="crm-month-filter" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterCRMTable()">
+                            <option value="all">📅 Όλοι οι Μήνες</option>
+                            <option value="02/2026">02/2026</option>
+                            <option value="03/2026">03/2026</option>
+                            <option value="04/2026">04/2026</option>
+                            <option value="05/2026">05/2026</option>
+                            <option value="06/2026">06/2026</option>
+                            <option value="07/2026">07/2026</option>
+                        </select>
+                        <select id="crm-partner-filter" class="glass-select" style="font-size:12px; font-weight:700; max-width:200px;" onchange="filterCRMTable()">
+                            <option value="all">👤 Όλοι οι Συνεργάτες</option>
+                        </select>
+                        <input type="text" id="crm-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, ΑΦΜ, Συμβολαίου, Τηλεφώνου..." oninput="filterCRMTable()" style="min-width:240px;">
                     </div>
                     <div class="toolbar-right">
-                        <button class="btn-pill btn-ghost" onclick="editSelectedClient()">✏️ Επεξεργασία</button>
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('crm')">📥 Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('crm')">📄 PDF (Οριζόντια)</button>
                         <button class="btn-pill btn-danger" onclick="deleteSelectedRows('crm')">🗑️ Διαγραφή</button>
                     </div>
                 </div>
@@ -1930,14 +2044,28 @@
                 </div>
 
                 <div class="table-toolbar">
-                    <div class="toolbar-left" style="flex:1; max-width:480px;">
+                    <div class="toolbar-left" style="flex:1;">
                         <label class="col-checkbox-label">
                             <input type="checkbox" id="prod-reg-select-all" class="custom-checkbox" onchange="toggleSelectAll('prod-reg')">
                             <span>Επιλογή Όλων</span>
                         </label>
-                        <input type="text" id="prod-reg-search" class="glass-input" placeholder="🔍 Αναζήτηση με Όνομα, Κωδικό Γραφείου, ERGO, Νομό, Τηλέφωνο..." oninput="filterProducersRegTable()" style="width:100%;">
+                        <div class="col-selector-dropdown">
+                            <button class="btn-pill btn-ghost" onclick="toggleColSelector('reg-cols')">👁️ Στήλες ▾</button>
+                            <div id="reg-cols" class="col-selector-menu">
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers-reg', 1, this.checked)"> Α/Α</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers-reg', 2, this.checked)"> Κωδικός Γραφείου</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers-reg', 3, this.checked)"> Κωδικός ERGO</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers-reg', 4, this.checked)"> Ονοματεπώνυμο</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers-reg', 5, this.checked)"> Κατηγορία / Τύπος</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers-reg', 6, this.checked)"> Ιεραρχία</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-producers-reg', 7, this.checked)"> Στοιχεία Συνεργάτη</label>
+                            </div>
+                        </div>
+                        <input type="text" id="prod-reg-search" class="glass-input" placeholder="🔍 Αναζήτηση με Όνομα, Κωδικό Γραφείου, ERGO, Νομό, Τηλέφωνο..." oninput="filterProducersRegTable()" style="min-width:260px;">
                     </div>
-                    <div class="toolbar-right">
+                    <div class="toolbar-right" style="display:flex; gap:8px;">
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('producersReg')">📥 Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('producersReg')">📄 PDF (Οριζόντια)</button>
                         <button class="btn-pill btn-danger" onclick="deleteSelectedProducers()">🗑️ Διαγραφή Επιλεγμένων Συνεργατών</button>
                     </div>
                 </div>
@@ -2928,7 +3056,7 @@
                 try { renderCategoryTables(); } catch(e) { console.error("renderCategoryTables error:", e); }
                 try { renderCoveragesTable(globalData.coverages); } catch(e) { console.error("renderCoveragesTable error:", e); }
                 try { renderReconTable(globalData.reconciliation); } catch(e) { console.error("renderReconTable error:", e); }
-                try { renderProducersRegTable(globalData.producersReg); } catch(e) { console.error("renderProducersRegTable error:", e); }
+                try { renderProducersRegTable(globalData.producersReg); populateAllFilterDropdowns(); } catch(e) { console.error("renderProducersRegTable error:", e); }
                 try { renderPDFDocs(globalData.docs); } catch(e) { console.error("renderPDFDocs error:", e); }
                 try { loadAccount57List(); } catch(e) { console.error("loadAccount57List error:", e); }
                 try { populateProducersDatalists(); } catch(e) { console.error("populateProducersDatalists error:", e); }
@@ -3647,7 +3775,7 @@
                 margin: 10,
                 filename: `LANCA_Kartela_Symvolaiou_${new Date().getTime()}.pdf`,
                 html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             }).from(card).save();
         }
 
@@ -3706,13 +3834,24 @@
         }
 
         function filterCRMTable() {
-            const q = document.getElementById('crm-search').value.toLowerCase();
-            renderCRMTable(globalData.contracts.filter(c => {
-                return !q || (c.client_name && c.client_name.toLowerCase().includes(q)) || 
-                             (c.afm && c.afm.includes(q)) || 
-                             (c.policy_number && c.policy_number.includes(q)) ||
-                             (c.phone_mobile && c.phone_mobile.includes(q));
-            }));
+            const q = (document.getElementById('crm-search')?.value || '').toLowerCase().trim();
+            const mth = document.getElementById('crm-month-filter')?.value || 'all';
+            const partner = document.getElementById('crm-partner-filter')?.value || 'all';
+
+            const filtered = (globalData.contracts || []).filter(r => {
+                const matchMth = (mth === 'all' || r.statement_month === mth);
+                const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
+                const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                                         (r.policy_number && r.policy_number.includes(q)) ||
+                                         (r.afm && r.afm.includes(q)) ||
+                                         (r.phone_mobile && r.phone_mobile.includes(q)) ||
+                                         (r.producer_name && r.producer_name.toLowerCase().includes(q));
+                return matchMth && matchPartner && matchQuery;
+            });
+
+            renderCRMTable(filtered);
+            reapplyColumnVisibility('crm-table');
         }
 
         
@@ -3806,15 +3945,25 @@
         }
 
         function filterAgencyTable() {
-            const q = document.getElementById('agency-search').value.toLowerCase().trim();
-            renderAgencyTable(globalData.agency.filter(r => {
-                return !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
-                             (r.policy_number && r.policy_number.includes(q)) ||
-                             (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
-                             (r.producer_partner_code && r.producer_partner_code.toLowerCase().includes(q)) ||
-                             (r.producer_ergo_code && r.producer_ergo_code.toLowerCase().includes(q)) ||
-                             (r.partner_type_label && r.partner_type_label.toLowerCase().includes(q));
-            }));
+            const q = (document.getElementById('agency-search')?.value || '').toLowerCase().trim();
+            const mth = document.getElementById('agency-month-filter')?.value || 'all';
+            const partner = document.getElementById('agency-partner-filter')?.value || 'all';
+
+            const filtered = (globalData.agency || []).filter(r => {
+                const matchMth = (mth === 'all' || r.statement_month === mth);
+                const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
+                const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                                         (r.policy_number && r.policy_number.includes(q)) ||
+                                         (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
+                                         (pCode && pCode.toLowerCase().includes(q)) ||
+                                         (r.producer_ergo_code && r.producer_ergo_code.toLowerCase().includes(q)) ||
+                                         (r.partner_type_label && r.partner_type_label.toLowerCase().includes(q));
+                return matchMth && matchPartner && matchQuery;
+            });
+
+            renderAgencyTable(filtered);
+            reapplyColumnVisibility('table-agency');
         }
 
         // === 🔹 SUBCODE COMMISSION PAYOUT GENERATOR ENGINE ===
@@ -4028,7 +4177,7 @@
                 margin: [10, 10, 10, 10],
                 filename: `LANCA_Ekatharistirio_${partner.producer_code}_${new Date().getTime()}.pdf`,
                 html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             }).from(printDiv).save();
         }
 
@@ -4247,17 +4396,22 @@
 
         function filterProducersTable() {
             const q = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
-            const list = globalData.producers || [];
-            if (!q) {
-                renderProducersTable(list);
-                return;
-            }
-            renderProducersTable(list.filter(r => {
-                return (r.client_name && r.client_name.toLowerCase().includes(q)) || 
-                       (r.policy_number && r.policy_number.includes(q)) ||
-                       (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
-                       (r.producer_partner_code && r.producer_partner_code.toLowerCase().includes(q));
-            }));
+            const mth = document.getElementById('prod-month-filter')?.value || 'all';
+            const partner = document.getElementById('prod-partner-filter')?.value || 'all';
+
+            const filtered = (globalData.producers || []).filter(r => {
+                const matchMth = (mth === 'all' || r.statement_month === mth);
+                const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
+                const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                                         (r.policy_number && r.policy_number.includes(q)) ||
+                                         (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
+                                         (pCode && pCode.toLowerCase().includes(q));
+                return matchMth && matchPartner && matchQuery;
+            });
+
+            renderProducersTable(filtered);
+            reapplyColumnVisibility('table-producers');
         }
 
         // === 🎯 CATEGORIZED TABLES (Cat A, C, Health, Life) ===
@@ -5334,6 +5488,69 @@
             renderDashboardTable(filteredMonths);
         }
 
+        
+        // ==========================================================================
+        // 👁️ UNIVERSAL COLUMN VISIBILITY & FILTERING ENGINE
+        // ==========================================================================
+        const tableHiddenColumns = {};
+
+        function toggleTableCol(tableId, colIndex, isChecked) {
+            if (!tableHiddenColumns[tableId]) tableHiddenColumns[tableId] = new Set();
+            if (isChecked) {
+                tableHiddenColumns[tableId].delete(colIndex);
+            } else {
+                tableHiddenColumns[tableId].add(colIndex);
+            }
+
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const rows = table.querySelectorAll('tr');
+            rows.forEach(r => {
+                if (r.classList.contains('nested-contracts-row')) return;
+                const cells = r.children;
+                if (cells[colIndex]) {
+                    cells[colIndex].style.display = isChecked ? '' : 'none';
+                }
+            });
+        }
+
+        function reapplyColumnVisibility(tableId) {
+            if (!tableHiddenColumns[tableId] || tableHiddenColumns[tableId].size === 0) return;
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            tableHiddenColumns[tableId].forEach(colIdx => {
+                const rows = table.querySelectorAll('tr');
+                rows.forEach(r => {
+                    if (r.classList.contains('nested-contracts-row')) return;
+                    const cells = r.children;
+                    if (cells[colIdx]) {
+                        cells[colIdx].style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function populateAllFilterDropdowns() {
+            const list = globalData.producersReg || [];
+            const partnerOptionsHtml = ['<option value="all">👤 Όλοι οι Συνεργάτες</option>'];
+            list.forEach(p => {
+                if (p.producer_code !== '0') {
+                    partnerOptionsHtml.push(`<option value="${p.producer_code}">${p.producer_code} | ${p.producer_name}</option>`);
+                }
+            });
+            partnerOptionsHtml.push('<option value="0">🔒 0 | ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)</option>');
+
+            const pFilter = document.getElementById('prod-partner-filter');
+            if (pFilter) pFilter.innerHTML = partnerOptionsHtml.join('');
+
+            const aFilter = document.getElementById('agency-partner-filter');
+            if (aFilter) aFilter.innerHTML = partnerOptionsHtml.join('');
+
+            const cFilter = document.getElementById('crm-partner-filter');
+            if (cFilter) cFilter.innerHTML = partnerOptionsHtml.join('');
+        }
+
         // === 👁️ COLUMN SELECTOR & SORTING ===
         function toggleColSelector(menuId) {
             document.getElementById(menuId)?.classList.toggle('show');
@@ -5401,7 +5618,6 @@
             if (type === 'dashboard' || type === 'dash') {
                 const checkedNested = Array.from(document.querySelectorAll('.nested-check:checked'));
                 if (checkedNested.length > 0) {
-                    // Export ONLY specifically checked contracts
                     return checkedNested.map(c => {
                         const pol = c.value;
                         const mth = c.dataset.month;
@@ -5414,6 +5630,10 @@
                     const months = checkedMonths.map(m => m.dataset.month);
                     return globalData.contracts.filter(c => months.includes(c.statement_month));
                 }
+                const mthFilter = document.getElementById('dash-month-select')?.value;
+                if (mthFilter && mthFilter !== 'all') {
+                    return globalData.contracts.filter(c => c.statement_month === mthFilter);
+                }
                 return globalData.contracts;
             } else if (type === 'crm') {
                 const checked = Array.from(document.querySelectorAll('.crm-row-check:checked'));
@@ -5421,21 +5641,74 @@
                     const policies = checked.map(c => c.value);
                     return globalData.contracts.filter(c => policies.includes(c.policy_number));
                 }
-                return globalData.contracts;
+                const q = (document.getElementById('crm-search')?.value || '').toLowerCase().trim();
+                const mth = document.getElementById('crm-month-filter')?.value || 'all';
+                const partner = document.getElementById('crm-partner-filter')?.value || 'all';
+                return (globalData.contracts || []).filter(r => {
+                    const matchMth = (mth === 'all' || r.statement_month === mth);
+                    const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
+                    const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                    const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                                             (r.policy_number && r.policy_number.includes(q)) ||
+                                             (r.afm && r.afm.includes(q)) ||
+                                             (r.phone_mobile && r.phone_mobile.includes(q)) ||
+                                             (r.producer_name && r.producer_name.toLowerCase().includes(q));
+                    return matchMth && matchPartner && matchQuery;
+                });
             } else if (type === 'agency') {
                 const checked = Array.from(document.querySelectorAll('.agency-row-check:checked'));
                 if (checked.length > 0) {
                     const policies = checked.map(c => c.value);
                     return globalData.agency.filter(c => policies.includes(c.policy_number));
                 }
-                return globalData.agency;
+                const q = (document.getElementById('agency-search')?.value || '').toLowerCase().trim();
+                const mth = document.getElementById('agency-month-filter')?.value || 'all';
+                const partner = document.getElementById('agency-partner-filter')?.value || 'all';
+                return (globalData.agency || []).filter(r => {
+                    const matchMth = (mth === 'all' || r.statement_month === mth);
+                    const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
+                    const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                    const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                                             (r.policy_number && r.policy_number.includes(q)) ||
+                                             (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
+                                             (pCode && pCode.toLowerCase().includes(q)) ||
+                                             (r.producer_ergo_code && r.producer_ergo_code.toLowerCase().includes(q)) ||
+                                             (r.partner_type_label && r.partner_type_label.toLowerCase().includes(q));
+                    return matchMth && matchPartner && matchQuery;
+                });
             } else if (type === 'producers') {
                 const checked = Array.from(document.querySelectorAll('.prod-row-check:checked'));
                 if (checked.length > 0) {
                     const policies = checked.map(c => c.value);
                     return globalData.producers.filter(c => policies.includes(c.policy_number));
                 }
-                return globalData.producers;
+                const q = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
+                const mth = document.getElementById('prod-month-filter')?.value || 'all';
+                const partner = document.getElementById('prod-partner-filter')?.value || 'all';
+                return (globalData.producers || []).filter(r => {
+                    const matchMth = (mth === 'all' || r.statement_month === mth);
+                    const pCode = String(r.producer_partner_code || r.producer_code || '0').trim();
+                    const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                    const matchQuery = !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                                             (r.policy_number && r.policy_number.includes(q)) ||
+                                             (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
+                                             (pCode && pCode.toLowerCase().includes(q));
+                    return matchMth && matchPartner && matchQuery;
+                });
+            } else if (type === 'producersReg') {
+                const checked = Array.from(document.querySelectorAll('.prod-reg-row-check:checked'));
+                if (checked.length > 0) {
+                    const codes = checked.map(c => c.value);
+                    return (globalData.producersReg || []).filter(p => codes.includes(p.producer_code));
+                }
+                const q = (document.getElementById('producers-reg-search')?.value || '').toLowerCase().trim();
+                return (globalData.producersReg || []).filter(p => {
+                    const matchType = (currentProducerFilter === 'ALL' || p.partner_type === currentProducerFilter);
+                    const matchQuery = !q || (p.producer_name && p.producer_name.toLowerCase().includes(q)) ||
+                                             (p.producer_code && p.producer_code.toLowerCase().includes(q)) ||
+                                             (p.ergo_code && p.ergo_code.toLowerCase().includes(q));
+                    return matchType && matchQuery;
+                });
             } else if (type === 'reconciliation') {
                 return globalData.reconciliation;
             }
@@ -5449,7 +5722,20 @@
             const data = getSelectedExportData(type);
 
             let rows = [];
-            if (type === 'reconciliation') {
+            if (type === 'producersReg') {
+                rows = data.map((p, idx) => ({
+                    "Α/Α": idx + 1,
+                    "Κωδικός Γραφείου": p.producer_code,
+                    "Κωδικός ERGO": p.ergo_code || '-',
+                    "Ονοματεπώνυμο": p.producer_name,
+                    "Κατηγορία / Ρόλος": p.partner_type_label || p.partner_type,
+                    "Οργανωτική Ομάδα": p.org_team || '40071',
+                    "Συμφωνημένη Απόδοση (%)": (p.commission_rate || 70) + '%',
+                    "Κατάσταση": p.status || 'Ενεργός',
+                    "Τηλέφωνο": p.phone || '-',
+                    "Email": p.email || '-'
+                }));
+            } else if (type === 'reconciliation') {
                 rows = data.map((r, idx) => ({
                     "Α/Α": idx + 1,
                     "Μήνας Εκκαθάρισης": r.statement_month,
@@ -5603,7 +5889,39 @@
             let theadHtml = '';
             let tfootHtml = '';
 
-            if (type === 'agency') {
+            if (type === 'producersReg') {
+                theadHtml = `
+                    <tr style="background:#F8FAFC; border-top:1px solid #CBD5E1; border-bottom:2px solid #CBD5E1; color:#0F172A; font-weight:bold;">
+                        <th style="padding:8px 6px; text-align:center;">Α/Α</th>
+                        <th style="padding:8px 6px;">Κωδικός Γραφείου</th>
+                        <th style="padding:8px 6px;">Κωδικός ERGO</th>
+                        <th style="padding:8px 6px;">Ονοματεπώνυμο Συνεργάτη</th>
+                        <th style="padding:8px 6px;">Κατηγορία / Ρόλος</th>
+                        <th style="padding:8px 6px;">Οργανωτική Ομάδα</th>
+                        <th style="padding:8px 6px; text-align:center;">Απόδοση (%)</th>
+                        <th style="padding:8px 6px; text-align:center;">Κατάσταση</th>
+                    </tr>
+                `;
+                data.forEach((p, idx) => {
+                    rowsHtml += `
+                        <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
+                            <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>
+                            <td style="padding:8px 6px; font-weight:bold; color:#1D4ED8;">${p.producer_code}</td>
+                            <td style="padding:8px 6px;">${p.ergo_code || '-'}</td>
+                            <td style="padding:8px 6px; font-weight:bold;">${p.producer_name}</td>
+                            <td style="padding:8px 6px;">${p.partner_type_label || p.partner_type}</td>
+                            <td style="padding:8px 6px;">${p.org_team || '40071'}</td>
+                            <td style="padding:8px 6px; text-align:center; font-weight:bold; color:#6D28D9;">${p.commission_rate || 70}%</td>
+                            <td style="padding:8px 6px; text-align:center;">${p.status || 'Ενεργός'}</td>
+                        </tr>
+                    `;
+                });
+                tfootHtml = `
+                    <tr style="background:#F1F5F9; border-top:2px solid #CBD5E1; font-weight:bold; font-size:12px; color:#0F172A;">
+                        <td colspan="8" style="padding:10px 8px;">Σύνολο Συνεργατών: ${data.length}</td>
+                    </tr>
+                `;
+            } else if (type === 'agency') {
                 theadHtml = `
                     <tr style="background:#F8FAFC; border-top:1px solid #CBD5E1; border-bottom:2px solid #CBD5E1; color:#0F172A; font-weight:bold;">
                         <th style="padding:8px 6px; text-align:center;">Α/Α</th>

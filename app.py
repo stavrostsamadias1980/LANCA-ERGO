@@ -1211,6 +1211,9 @@ def api_get_agency():
     """)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
+    for r in rows:
+        agn = float(r.get("agency_overriding_amount") or 0.0)
+        r["agency_overriding_rate_pct"] = 0.0 if abs(agn) < 0.001 else 20.0
     return jsonify({
         "tier": "Κλίμακα Γ (Agency 20%)",
         "overridings": rows,

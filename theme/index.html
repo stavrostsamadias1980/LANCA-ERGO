@@ -3740,12 +3740,10 @@
             list.forEach((r, idx) => {
                 const net = (r.net_premium_total || 0);
                 const agn = (r.agency_overriding_amount || 0);
-                // When overriding is 0€, percentage is strictly 0.00%
+                // Agency overriding percentage is fixed at 20.00% (or 0.00% if overriding is 0) regardless of partner code
                 let pct;
                 if (Math.abs(agn) < 0.001) {
                     pct = '0.00%';
-                } else if (net !== 0) {
-                    pct = (Math.abs(agn / net) * 100).toFixed(2) + '%';
                 } else {
                     pct = '20.00%';
                 }
@@ -5444,7 +5442,7 @@
                 }));
             } else if (type === 'agency') {
                 rows = data.map((c, idx) => {
-                    const pct = (Math.abs(c.agency_overriding_amount || 0) < 0.001) ? '0.00%' : ((c.net_premium_total !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%');
+                    const pct = (Math.abs(c.agency_overriding_amount || 0) < 0.001) ? '0.00%' : '20.00%';
                     return {
                         "Α/Α": idx + 1,
                         "Μήνας": c.statement_month || '-',
@@ -5602,7 +5600,7 @@
                     </tr>
                 `;
                 data.forEach((c, idx) => {
-                    const pct = (Math.abs(c.agency_overriding_amount || 0) < 0.001) ? '0.00%' : ((c.net_premium_total !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%');
+                    const pct = (Math.abs(c.agency_overriding_amount || 0) < 0.001) ? '0.00%' : '20.00%';
                     rowsHtml += `
                         <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
                             <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>

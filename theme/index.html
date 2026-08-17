@@ -1444,63 +1444,69 @@
                 </div>
 
                 <!-- Subcode Selector & Parameters Card -->
-                <div style="background:rgba(255,255,255,0.75); padding:18px; border-radius:18px; border:1px solid var(--glass-border); display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:14px; align-items:flex-end;">
-                    <div>
-                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">👤 Επιλογή Συνεργάτη / Υποκωδικού:</label>
-                        <select id="subcode-partner-select" class="glass-select" style="width:100%; font-weight:700; font-size:13px; color:var(--brand-navy);" onchange="onSubcodePartnerSelectChanged(this.value)">
-                            <option value="1">👑 (1) ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ ΝΙΚΟΣ (Agency Manager)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📅 Επιλογή Έτους:</label>
-                        <select id="subcode-year-filter" class="glass-select" style="width:100%; font-weight:700;" onchange="loadSubcodePayoutStatement()">
-                            <option value="all">📅 Όλα τα Έτη</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">📅 Εύρος Μηνών (Από ➔ Έως):</label>
-                        <div style="display:flex; gap:4px; align-items:center;">
-                            <select id="subcode-month-from" class="glass-select" style="flex:1; font-weight:700; font-size:12px;" onchange="loadSubcodePayoutStatement()">
-                                <option value="all">Από: Όλοι</option>
-                            </select>
-                            <span style="font-size:12px; font-weight:700; color:var(--text-secondary);">➔</span>
-                            <select id="subcode-month-to" class="glass-select" style="flex:1; font-weight:700; font-size:12px;" onchange="loadSubcodePayoutStatement()">
-                                <option value="all">Έως: Όλοι</option>
+                <div style="background:#FFFFFF; padding:18px 20px; border-radius:18px; border:1px solid #CBD5E1; box-shadow:0 4px 16px -2px rgba(15,23,42,0.06); display:flex; flex-direction:column; gap:14px; margin-bottom:14px;">
+                    <!-- Row 1: Filters (Partner, Year, Date Range) -->
+                    <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+                        <div style="flex:2; min-width:260px;">
+                            <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:5px;">👤 Επιλογή Συνεργάτη / Υποκωδικού:</label>
+                            <select id="subcode-partner-select" class="glass-select" style="width:100%; font-weight:700; font-size:13px; color:var(--brand-navy);" onchange="onSubcodePartnerSelectChanged(this.value)">
+                                <option value="1">👑 (1) ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ ΝΙΚΟΣ (Agency Manager)</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div>
-                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">🎯 Συμφωνημένη Απόδοση Καρτέλας (%):</label>
-                        <div style="display:flex; gap:6px; align-items:center;">
-                            <input type="number" step="0.5" id="subcode-split-input" class="glass-input" style="width:100%; font-weight:800; color:var(--accent-purple); font-size:13.5px;" placeholder="70" oninput="loadSubcodePayoutStatement()">
-                            <span style="font-size:13px; font-weight:800; color:var(--brand-navy);">%</span>
+                        <div style="flex:1; min-width:140px;">
+                            <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:5px;">📅 Επιλογή Έτους:</label>
+                            <select id="subcode-year-filter" class="glass-select" style="width:100%; font-weight:700;" onchange="loadSubcodePayoutStatement()">
+                                <option value="all">📅 Όλα τα Έτη</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <div style="display:flex; gap:8px;">
-                        <div class="col-selector-dropdown" style="flex:1;">
-                            <button class="btn-pill btn-ghost" style="width:100%; justify-content:center; padding:10px;" onclick="toggleColSelector('subcode-cols')">👁️ Στήλες ▾</button>
-                            <div id="subcode-cols" class="col-selector-menu">
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 1, this.checked)"> Α/Α</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 2, this.checked)"> Μήνας</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 3, this.checked)"> Κωδικός</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 4, this.checked)"> Αρ. Συμβολαίου</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 5, this.checked)"> Πελάτης</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 6, this.checked)"> Πρόγραμμα</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 7, this.checked)"> Έτος</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 8, this.checked)"> Καθαρά (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 9, this.checked)"> Προμήθεια ERGO (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 10, this.checked)"> % Απόδοσης</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 11, this.checked)"> Αποδιδόμενη Αμοιβή (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 12, this.checked)"> Παρακράτηση Γραφείου (€)</label>
+                        <div style="flex:2; min-width:280px;">
+                            <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:5px;">📅 Εύρος Μηνών (Από ➔ Έως):</label>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <select id="subcode-month-from" class="glass-select" style="flex:1; font-weight:700; font-size:12px;" onchange="loadSubcodePayoutStatement()">
+                                    <option value="all">Από: Όλοι</option>
+                                </select>
+                                <span style="font-size:13px; font-weight:800; color:var(--text-secondary);">➔</span>
+                                <select id="subcode-month-to" class="glass-select" style="flex:1; font-weight:700; font-size:12px;" onchange="loadSubcodePayoutStatement()">
+                                    <option value="all">Έως: Όλοι</option>
+                                </select>
                             </div>
                         </div>
-                        <button class="btn-pill btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="loadSubcodePayoutStatement()">
-                            🔄 Επανυπολογισμός
-                        </button>
+                    </div>
+
+                    <!-- Row 2: Rate and Actions (Split Rate, Columns, Recalculate) -->
+                    <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; border-top:1px solid #E2E8F0; padding-top:12px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <label style="font-size:12px; font-weight:700; color:var(--text-secondary); white-space:nowrap;">🎯 Συμφωνημένη Απόδοση Καρτέλας (%):</label>
+                            <div style="display:flex; gap:4px; align-items:center;">
+                                <input type="number" step="0.5" id="subcode-split-input" class="glass-input" style="width:75px; text-align:center; font-weight:800; color:var(--accent-purple); font-size:14px;" placeholder="70" oninput="loadSubcodePayoutStatement()">
+                                <span style="font-size:14px; font-weight:800; color:var(--brand-navy);">%</span>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:8px; margin-left:auto;">
+                            <div class="col-selector-dropdown">
+                                <button class="btn-pill btn-ghost" style="padding:7px 14px;" onclick="toggleColSelector('subcode-cols')">👁️ Στήλες ▾</button>
+                                <div id="subcode-cols" class="col-selector-menu">
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 1, this.checked)"> Α/Α</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 2, this.checked)"> Μήνας</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 3, this.checked)"> Κωδικός</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 4, this.checked)"> Αρ. Συμβολαίου</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 5, this.checked)"> Πελάτης</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 6, this.checked)"> Πρόγραμμα</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 7, this.checked)"> Έτος</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 8, this.checked)"> Καθαρά (€)</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 9, this.checked)"> Προμήθεια ERGO (€)</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 10, this.checked)"> % Απόδοσης</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 11, this.checked)"> Αποδιδόμενη Αμοιβή (€)</label>
+                                    <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 12, this.checked)"> Παρακράτηση Γραφείου (€)</label>
+                                </div>
+                            </div>
+                            <button class="btn-pill btn-primary" style="padding:7px 16px;" onclick="loadSubcodePayoutStatement()">
+                                🔄 Επανυπολογισμός
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -4240,11 +4246,7 @@
             printDiv.style.fontFamily = 'Arial, sans-serif';
             printDiv.style.color = '#0F172A';
             printDiv.style.background = '#FFFFFF';
-            printDiv.style.position = 'fixed';
-            printDiv.style.left = '0';
-            printDiv.style.top = '0';
             printDiv.style.width = '1080px';
-            printDiv.style.zIndex = '999999';
             printDiv.style.boxSizing = 'border-box';
 
             let itemsRows = '';
@@ -4291,7 +4293,7 @@
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#F8FAFC; padding:14px; border-radius:10px; margin-bottom:18px; font-size:12px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#F8FAFC; padding:14px; border-radius:10px; margin-bottom:18px; font-size:12px; border:1px solid #E2E8F0;">
                     <div>
                         <div><strong>Ονοματεπώνυμο Συνεργάτη:</strong> ${partner.full_name || partner.producer_name || '-'}</div>
                         <div><strong>Κωδικός Γραφείου:</strong> ${partner.producer_code || '-'} | <strong>Κωδικός ERGO:</strong> ${partner.ergo_code || '-'}</div>
@@ -4323,7 +4325,7 @@
                 </table>
 
                 <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
-                    <div style="background:#F1F5F9; padding:16px; border-radius:10px; width:340px; font-size:12.5px;">
+                    <div style="background:#F1F5F9; padding:16px; border-radius:10px; width:340px; font-size:12.5px; border:1px solid #CBD5E1;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                             <span>Σύνολο Καθαρών Ασφαλίστρων:</span>
                             <strong>€ ${totals.total_net.toFixed(2)}</strong>
@@ -4361,30 +4363,56 @@
                 </div>
             `;
 
-            document.body.appendChild(printDiv);
-            try {
+            // Open clean Print Window with print & save to PDF
+            const printWin = window.open('', '_blank', 'width=1150,height=850');
+            if (printWin) {
+                printWin.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>LANCA_Ekatharistirio_${partner.producer_code || 'Partner'}</title>
+                        <style>
+                            @page { size: landscape; margin: 8mm; }
+                            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #0F172A; background: #FFF; }
+                            @media print {
+                                body { padding: 0; }
+                                .no-print { display: none !important; }
+                            }
+                        </style>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\\/script>
+                    </head>
+                    <body>
+                        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; background:#F1F5F9; border:1px solid #CBD5E1; padding:10px 16px; margin-bottom:16px; border-radius:8px;">
+                            <div style="font-weight:bold; font-size:13px; color:#1E3A8A;">📄 Προεπισκόπηση & Έκδοση Εκκαθαριστικού (${partner.full_name || partner.producer_name || partner.producer_code})</div>
+                            <div style="display:flex; gap:10px;">
+                                <button onclick="window.print()" style="background:#1D4ED8; color:#FFF; border:none; padding:8px 18px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">🖨️ Εκτύπωση / Αποθήκευση PDF</button>
+                                <button onclick="window.close()" style="background:#64748B; color:#FFF; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">✕ Κλείσιμο</button>
+                            </div>
+                        </div>
+                        <div id="print-content">
+                            ${printDiv.innerHTML}
+                        </div>
+                    </body>
+                    </html>
+                `);
+                printWin.document.close();
+                printWin.focus();
+                setTimeout(() => {
+                    printWin.print();
+                }, 300);
+            } else {
+                // If popup blocked, download via html2pdf directly
+                document.body.appendChild(printDiv);
                 const opt = {
                     margin: [8, 8, 8, 8],
                     filename: `LANCA_Ekatharistirio_${partner.producer_code || 'Partner'}_${new Date().getTime()}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
+                    html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
                 };
-                await html2pdf().set(opt).from(printDiv).save();
-            } catch(e) {
-                console.error("PDF Export Error:", e);
-                // Fallback to printable window
-                const printWin = window.open('', '_blank');
-                if (printWin) {
-                    printWin.document.write(`<html><head><title>Εκκαθαριστικό Υποκωδικού</title><style>body { font-family:Arial, sans-serif; padding:20px; color:#0F172A; } table { width:100%; border-collapse:collapse; } th, td { border:1px solid #CBD5E1; padding:6px; font-size:12px; } th { background:#1E3A8A; color:#FFF; }</style></head><body>${printDiv.innerHTML}</body></html>`);
-                    printWin.document.close();
-                    printWin.focus();
-                    printWin.print();
-                } else {
-                    alert("Σφάλμα κατά την παραγωγή PDF: " + e.message);
-                }
-            } finally {
-                printDiv.remove();
+                html2pdf().set(opt).from(printDiv).save().then(() => {
+                    printDiv.remove();
+                });
             }
         }
 
@@ -6488,13 +6516,46 @@
                 </div>
             `;
 
-            printWrapper.style.position = 'fixed';
-            printWrapper.style.left = '-9999px';
-            printWrapper.style.top = '0';
-            printWrapper.style.width = '1120px';
-            document.body.appendChild(printWrapper);
-
-            try {
+            // Open clean Print Window with print & save to PDF
+            const printWin = window.open('', '_blank', 'width=1150,height=850');
+            if (printWin) {
+                printWin.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${filename.replace('.pdf', '')}</title>
+                        <style>
+                            @page { size: landscape; margin: 8mm; }
+                            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #0F172A; background: #FFF; }
+                            @media print {
+                                body { padding: 0; }
+                                .no-print { display: none !important; }
+                            }
+                        </style>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\\/script>
+                    </head>
+                    <body>
+                        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; background:#F1F5F9; border:1px solid #CBD5E1; padding:10px 16px; margin-bottom:16px; border-radius:8px;">
+                            <div style="font-weight:bold; font-size:13px; color:#1E3A8A;">📄 Προεπισκόπηση & Έκδοση (${titleLabel})</div>
+                            <div style="display:flex; gap:10px;">
+                                <button onclick="window.print()" style="background:#1D4ED8; color:#FFF; border:none; padding:8px 18px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">🖨️ Εκτύπωση / Αποθήκευση PDF</button>
+                                <button onclick="window.close()" style="background:#64748B; color:#FFF; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">✕ Κλείσιμο</button>
+                            </div>
+                        </div>
+                        <div id="print-content">
+                            ${printWrapper.innerHTML}
+                        </div>
+                    </body>
+                    </html>
+                `);
+                printWin.document.close();
+                printWin.focus();
+                setTimeout(() => {
+                    printWin.print();
+                }, 300);
+            } else {
+                // If popup blocked, download via html2pdf directly
+                document.body.appendChild(printWrapper);
                 const opt = {
                     margin: [8, 8, 8, 8],
                     filename: filename,
@@ -6502,12 +6563,9 @@
                     html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
                 };
-                await html2pdf().set(opt).from(printWrapper).save();
-            } catch (err) {
-                console.error("PDF generation error:", err);
-                alert("Σφάλμα κατά την παραγωγή PDF: " + err.message);
-            } finally {
-                printWrapper.remove();
+                html2pdf().set(opt).from(printWrapper).save().then(() => {
+                    printWrapper.remove();
+                });
             }
         }
 

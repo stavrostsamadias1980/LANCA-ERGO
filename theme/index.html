@@ -1336,7 +1336,8 @@
                                 <th style="width:40px;"></th>
                                 <th onclick="sortGenericTable('table-agency', 1)">Α/Α</th>
                                 <th onclick="sortGenericTable('table-agency', 2)">Μήνας</th>
-                                <th onclick="sortGenericTable('table-agency', 3)">Αρ. Συμβολαίου</th>
+                                <th onclick="sortGenericTable('table-agency', 3)">Κωδ. Συνεργάτη</th>
+                                <th onclick="sortGenericTable('table-agency', 4)">Αρ. Συμβολαίου</th>
                                 <th onclick="sortGenericTable('table-agency', 4)">Ονοματεπώνυμο Πελάτη</th>
                                 <th onclick="sortGenericTable('table-agency', 5)">Πρόγραμμα ERGO</th>
                                 <th onclick="sortGenericTable('table-agency', 6)">Παραγωγός Συνεργάτης</th>
@@ -1458,6 +1459,7 @@
                             <tr>
                                 <th>Α/Α</th>
                                 <th>Μήνας</th>
+                                <th>Κωδ. Συνεργάτη</th>
                                 <th>Αρ. Συμβολαίου</th>
                                 <th>Ονοματεπώνυμο Πελάτη</th>
                                 <th>Πρόγραμμα ERGO</th>
@@ -1637,7 +1639,8 @@
                                 <th style="width:40px;"></th>
                                 <th onclick="sortGenericTable('table-producers', 1)">Α/Α</th>
                                 <th onclick="sortGenericTable('table-producers', 2)">Μήνας</th>
-                                <th onclick="sortGenericTable('table-producers', 3)">Αρ. Συμβολαίου</th>
+                                <th onclick="sortGenericTable('table-producers', 3)">Κωδ. Συνεργάτη</th>
+                                <th onclick="sortGenericTable('table-producers', 4)">Αρ. Συμβολαίου</th>
                                 <th onclick="sortGenericTable('table-producers', 4)">Ονοματεπώνυμο Πελάτη</th>
                                 <th onclick="sortGenericTable('table-producers', 5)">Συνεργάτης (Υποκωδικός)</th>
                                 <th onclick="sortGenericTable('table-producers', 6)">Καθαρά (€)</th>
@@ -1866,7 +1869,8 @@
                                 <th style="width:40px;"></th>
                                 <th onclick="sortGenericTable('crm-table', 1)">Α/Α</th>
                                 <th onclick="sortGenericTable('crm-table', 2)">Μήνας</th>
-                                <th onclick="sortGenericTable('crm-table', 3)">Αρ. Συμβολαίου</th>
+                                <th onclick="sortGenericTable('crm-table', 3)">Κωδ. Συνεργάτη</th>
+                                <th onclick="sortGenericTable('crm-table', 4)">Αρ. Συμβολαίου</th>
                                 <th onclick="sortGenericTable('crm-table', 4)">Ονοματεπώνυμο Πελάτη</th>
                                 <th onclick="sortGenericTable('crm-table', 5)">ΑΦΜ</th>
                                 <th onclick="sortGenericTable('crm-table', 6)">Τηλέφωνο</th>
@@ -2954,6 +2958,7 @@
                         <tr class="contract-row" data-policy="${c.policy_number}" data-month="${m.statement_month}">
                             <td><input type="checkbox" class="custom-checkbox nested-check" value="${c.policy_number}" data-month="${m.statement_month}" onchange="updateDashboardTotals()"></td>
                             <td>${cIdx+1}</td>
+                            <td>${renderPartnerCodeBadge(c.producer_partner_code || c.producer_code, c.producer_name)}</td>
                             <td>
                                 <a class="policy-link" onclick="openPolicyModal('${c.policy_number}')">
                                     ${c.policy_number}
@@ -2993,6 +2998,7 @@
                                     <tr style="background:#F1F5F9;">
                                         <th style="width:30px;"></th>
                                         <th>Α/Α</th>
+                                        <th>Κωδ. Συνεργάτη</th>
                                         <th>Αρ. Συμβολαίου (Κλικ)</th>
                                         <th>Ονοματεπώνυμο Πελάτη</th>
                                         <th>Πρόγραμμα ERGO</th>
@@ -3457,6 +3463,7 @@
                     <td><input type="checkbox" class="custom-checkbox crm-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('crm')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
+                    <td>${renderPartnerCodeBadge(r.producer_partner_code || r.producer_code, r.producer_name)}</td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
                     <td><strong>${r.client_name||'-'}</strong></td>
                     <td>${r.afm||'-'}</td>
@@ -3485,6 +3492,16 @@
             }));
         }
 
+        
+        function renderPartnerCodeBadge(code, name) {
+            const pCode = (code !== undefined && code !== null && String(code).trim() !== '' && String(code).trim() !== 'None') ? String(code).trim() : '0';
+            const pName = name || '';
+            if (pCode === '0' || pCode === 'ΧΩΡΙΣ' || pCode.includes('ΧΩΡΙΣ')) {
+                return `<span class="badge badge-ghost" style="color:var(--accent-red); font-size:11px; font-weight:800; padding:2px 7px; border-radius:8px; display:inline-flex; align-items:center; gap:3px; cursor:pointer;" onclick="openProducerHistoryModal('0')" title="Χωρίς Συνεργάτη (0)"><span style="font-size:10px;">👤</span> 0</span>`;
+            }
+            return `<span class="badge badge-purple" style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:3.5px; box-shadow:0 1px 3px rgba(124,58,237,0.18); cursor:pointer;" onclick="openProducerHistoryModal('${pCode}')" title="${pName ? pName + ' (Κωδ. ' + pCode + ')' : 'Κωδικός Συνεργάτη: ' + pCode}"><span style="font-size:10.5px;">👤</span> ${pCode}</span>`;
+        }
+
         // === 🏢 AGENCY TABLE (ENRICHED WITH PRODUCER & TEAM ORIGIN) ===
         function renderAgencyTable(list) {
             const tbody = document.getElementById('agency-tbody');
@@ -3511,6 +3528,7 @@
                     <td><input type="checkbox" class="custom-checkbox agency-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('agency')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
+                    <td>${renderPartnerCodeBadge(pCode, pName)}</td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
                     <td><strong>${r.client_name||'-'}</strong></td>
                     <td><span style="font-size:12px; color:var(--text-secondary);">${r.package_name || 'ERGO Health Care'}</span></td>
@@ -3613,6 +3631,7 @@
                 tr.innerHTML = `
                     <td>${idx+1}</td>
                     <td><strong>${it.statement_month || '-'}</strong></td>
+                    <td>${renderPartnerCodeBadge(it.producer_code, it.producer_name)}</td>
                     <td><a class="policy-link" onclick="openPolicyModal('${it.policy_number}')">${it.policy_number}</a></td>
                     <td><strong>${it.client_name || '-'}</strong></td>
                     <td><span style="font-size:12px;">${it.package_name || 'ERGO Health Care Superior'}</span></td>
@@ -3892,6 +3911,7 @@
                     <td><input type="checkbox" class="custom-checkbox prod-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('prod')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
+                    <td>${renderPartnerCodeBadge(pCode, pName)}</td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
                     <td><strong>${r.client_name||'-'}</strong></td>
                     <td>
@@ -3972,7 +3992,7 @@
                 catATbody.innerHTML = '';
                 globalData.producers.forEach((r, idx) => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${idx+1}</td><td>${r.statement_month}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.producer_commission_amount)}</td><td><span class="badge badge-gold">25% - 29%</span></td>`;
+                    tr.innerHTML = `<td>${idx+1}</td><td>${r.statement_month}</td><td>${renderPartnerCodeBadge(r.producer_partner_code || r.producer_code, r.producer_name)}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-gold); font-weight:700;">${formatEur(r.producer_commission_amount)}</td><td><span class="badge badge-gold">25% - 29%</span></td>`;
                     catATbody.appendChild(tr);
                 });
             }
@@ -3982,7 +4002,7 @@
                 catCTbody.innerHTML = '';
                 globalData.agency.forEach((r, idx) => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${idx+1}</td><td>${r.statement_month}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.agency_overriding_amount)}</td>`;
+                    tr.innerHTML = `<td>${idx+1}</td><td>${r.statement_month}</td><td>${renderPartnerCodeBadge(r.producer_partner_code || r.producer_code, r.producer_name)}</td><td><code>${r.policy_number}</code></td><td>${r.client_name||'-'}</td><td>${formatEur(r.net_premium_total)}</td><td style="color:var(--accent-purple); font-weight:700;">${formatEur(r.agency_overriding_amount)}</td>`;
                     catCTbody.appendChild(tr);
                 });
             }

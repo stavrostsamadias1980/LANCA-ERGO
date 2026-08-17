@@ -1408,14 +1408,11 @@
                     </div>
 
                     <div>
-                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">⚖️ Καθεστώς / Ποσοστό Επιμερισμού (%):</label>
-                        <select id="subcode-split-select" class="glass-select" style="width:100%; font-weight:700; color:var(--brand-blue);" onchange="loadSubcodePayoutStatement()">
-                            <option value="50">50% Απόδοση στον Υποκωδικό (50% Γραφείο)</option>
-                            <option value="60">60% Απόδοση στον Υποκωδικό (40% Γραφείο)</option>
-                            <option value="70">70% Απόδοση στον Υποκωδικό (30% Γραφείο)</option>
-                            <option value="80">80% Απόδοση στον Υποκωδικό (20% Γραφείο)</option>
-                            <option value="100">100% Πλήρης Προμήθεια (Άμεσος Πράκτορας)</option>
-                        </select>
+                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">🎯 Συμφωνημένη Απόδοση Καρτέλας (%):</label>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="number" step="0.5" id="subcode-split-input" class="glass-input" style="width:100%; font-weight:800; color:var(--accent-purple); font-size:13.5px;" placeholder="70" oninput="loadSubcodePayoutStatement()">
+                            <span style="font-size:13px; font-weight:800; color:var(--brand-navy);">%</span>
+                        </div>
                     </div>
 
                     <div>
@@ -3824,14 +3821,28 @@
         let currentSubcodeStatementData = null;
 
         function onSubcodePartnerSelected(val) {
-            loadSubcodePayoutStatement();
+            loadSubcodePayoutStatement(true);
         }
 
-        async function loadSubcodePayoutStatement() {
+        async function loadSubcodePayoutStatement(forcePartnerRate = false) {
             const pInput = document.getElementById('subcode-partner-search')?.value || '';
             const pCode = pInput.split('|')[0].trim() || '1';
             const month = document.getElementById('subcode-month-select')?.value || 'all';
-            const splitPct = parseFloat(document.getElementById('subcode-split-select')?.value) || 50.0;
+
+            // Lookup partner's saved rate from producers catalog
+            const pInfo = (globalData.producersReg || []).find(x => 
+                String(x.producer_code).toLowerCase() === pCode.toLowerCase() || 
+                (x.ergo_code && String(x.ergo_code).toLowerCase() === pCode.toLowerCase())
+            );
+
+            const splitInput = document.getElementById('subcode-split-input');
+            if (pInfo && pInfo.commission_rate !== undefined && pInfo.commission_rate !== null) {
+                if (forcePartnerRate || !splitInput || !splitInput.value) {
+                    if (splitInput) splitInput.value = pInfo.commission_rate;
+                }
+            }
+
+            const splitPct = splitInput && splitInput.value ? parseFloat(splitInput.value) : (pInfo ? (pInfo.commission_rate || 70.0) : 70.0);
 
             try {
                 const res = await fetch(`/api/subcodes/payout-statement?producer_code=${encodeURIComponent(pCode)}&month=${encodeURIComponent(month)}&split_pct=${splitPct}`);

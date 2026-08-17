@@ -1443,8 +1443,9 @@
                 <div style="background:rgba(255,255,255,0.75); padding:18px; border-radius:18px; border:1px solid var(--glass-border); display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; align-items:flex-end;">
                     <div>
                         <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">👤 Επιλογή Συνεργάτη / Υποκωδικού:</label>
-                        <input type="text" id="subcode-partner-search" class="glass-input" list="subcode-partners-datalist" placeholder="🔍 Κωδικός (π.χ. 1, 4Α, 11523) ή Όνομα..." onchange="onSubcodePartnerSelected(this.value)" style="width:100%; font-weight:700;">
-                        <datalist id="subcode-partners-datalist"></datalist>
+                        <select id="subcode-partner-select" class="glass-select" style="width:100%; font-weight:700; font-size:13px; color:var(--brand-navy);" onchange="onSubcodePartnerSelectChanged(this.value)">
+                            <option value="1">👑 (1) ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ ΝΙΚΟΣ (Agency Manager)</option>
+                        </select>
                     </div>
 
                     <div>
@@ -1472,18 +1473,18 @@
                         <div class="col-selector-dropdown" style="flex:1;">
                             <button class="btn-pill btn-ghost" style="width:100%; justify-content:center; padding:10px;" onclick="toggleColSelector('subcode-cols')">👁️ Στήλες ▾</button>
                             <div id="subcode-cols" class="col-selector-menu">
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 0, this.checked)"> Α/Α</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 1, this.checked)"> Μήνας</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 2, this.checked)"> Κωδικός</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 3, this.checked)"> Αρ. Συμβολαίου</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 4, this.checked)"> Πελάτης</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 5, this.checked)"> Πρόγραμμα</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 6, this.checked)"> Έτος</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 7, this.checked)"> Καθαρά (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 8, this.checked)"> Προμήθεια ERGO (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 9, this.checked)"> % Απόδοσης</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 10, this.checked)"> Αποδιδόμενη Αμοιβή (€)</label>
-                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 11, this.checked)"> Παρακράτηση Γραφείου (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 1, this.checked)"> Α/Α</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 2, this.checked)"> Μήνας</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 3, this.checked)"> Κωδικός</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 4, this.checked)"> Αρ. Συμβολαίου</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 5, this.checked)"> Πελάτης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 6, this.checked)"> Πρόγραμμα</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 7, this.checked)"> Έτος</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 8, this.checked)"> Καθαρά (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 9, this.checked)"> Προμήθεια ERGO (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 10, this.checked)"> % Απόδοσης</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 11, this.checked)"> Αποδιδόμενη Αμοιβή (€)</label>
+                                <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('subcode-statement-table', 12, this.checked)"> Παρακράτηση Γραφείου (€)</label>
                             </div>
                         </div>
                         <button class="btn-pill btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="loadSubcodePayoutStatement()">
@@ -1524,27 +1525,29 @@
                     <table class="glass-table" id="subcode-statement-table">
                         <thead>
                             <tr>
-                                <th>Α/Α</th>
-                                <th>Μήνας</th>
-                                <th>Κωδ. Συνεργάτη</th>
-                                <th>Αρ. Συμβολαίου</th>
-                                <th>Ονοματεπώνυμο Πελάτη</th>
-                                <th>Πρόγραμμα ERGO</th>
-                                <th>Έτος</th>
-                                <th>Καθαρά (€)</th>
-                                <th>Προμήθεια ERGO (€)</th>
-                                <th>Ποσοστό Απόδοσης</th>
-                                <th>Αμοιβή Υποκωδικού (€)</th>
-                                <th>Έσοδο Γραφείου (€)</th>
+                                <th style="width:38px;"><input type="checkbox" id="subcode-select-all" class="custom-checkbox" onchange="toggleSelectAll('subcode')"></th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 1)">Α/Α</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 2)">Μήνας</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 3)">Κωδ. Συνεργάτη</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 4)">Αρ. Συμβολαίου</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 5)">Ονοματεπώνυμο Πελάτη</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 6)">Πρόγραμμα ERGO</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 7)">Έτος</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 8)">Καθαρά (€)</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 9)">Προμήθεια ERGO (€)</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 10)">Ποσοστό Απόδοσης</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 11)">Αμοιβή Υποκωδικού (€)</th>
+                                <th onclick="sortGenericTable('subcode-statement-table', 12)">Έσοδο Γραφείου (€)</th>
                             </tr>
                         </thead>
                         <tbody id="subcode-statement-tbody">
-                            <tr><td colspan="11" style="text-align:center; padding:24px; color:var(--text-muted);">Επιλέξτε συνεργάτη για προβολή εκκαθαριστικού.</td></tr>
+                            <tr><td colspan="13" style="text-align:center; padding:24px; color:var(--text-muted);">Επιλέξτε συνεργάτη για προβολή εκκαθαριστικού.</td></tr>
                         </tbody>
                         <tfoot>
                             <tr style="background:#F1F5F9; font-weight:800; border-top:2px solid #CBD5E1;">
                                 <td></td>
                                 <td><strong>ΣΥΝΟΛΑ</strong></td>
+                                <td>Όλοι</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -3447,11 +3450,24 @@
                 }
             });
 
-            // Set default subcode partner in search box if empty
-            const subInput = document.getElementById('subcode-partner-search');
-            if (subInput && !subInput.value && list.length > 0) {
-                const def = list.find(x => x.producer_code === '11523') || list.find(x => x.producer_code === '1411') || list[0];
-                subInput.value = `${def.producer_code} | ${def.producer_name} (ERGO: ${def.ergo_code || '-'})`;
+            // Populate subcode partner select dropdown
+            const subSelect = document.getElementById('subcode-partner-select');
+            if (subSelect) {
+                const currentVal = subSelect.value;
+                let subOptionsHtml = ['<option value="ALL_PRODUCERS">👥 Όλοι οι Συνεργάτες (Συγκεντρωτικό Εκκαθαριστικό)</option>'];
+                list.forEach(p => {
+                    if (p.producer_code !== '0') {
+                        const icon = p.partner_type === 'AGENCY_MANAGER' ? '👑' : (p.partner_type === 'DIRECT_AGENT' ? '🏢' : '🔹');
+                        subOptionsHtml.push(`<option value="${p.producer_code}">${icon} (${p.producer_code}) ${p.producer_name} [${p.partner_type_label || p.partner_type}]</option>`);
+                    }
+                });
+                subOptionsHtml.push('<option value="0">🔒 (0) ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)</option>');
+                subSelect.innerHTML = subOptionsHtml.join('');
+                if (currentVal && list.some(x => x.producer_code === currentVal)) {
+                    subSelect.value = currentVal;
+                } else if (list.length > 0) {
+                    subSelect.value = '1';
+                }
             }
         }
 
@@ -4033,13 +4049,21 @@
         // === 🔹 SUBCODE COMMISSION PAYOUT GENERATOR ENGINE ===
         let currentSubcodeStatementData = null;
 
+        function onSubcodePartnerSelectChanged(pCode) {
+            loadSubcodePayoutStatement(true);
+        }
+
         function onSubcodePartnerSelected(val) {
             loadSubcodePayoutStatement(true);
         }
 
         async function loadSubcodePayoutStatement(forcePartnerRate = false) {
-            const pInput = document.getElementById('subcode-partner-search')?.value || '';
-            const pCode = pInput.split('|')[0].trim() || '1';
+            const pSelect = document.getElementById('subcode-partner-select');
+            let pCode = pSelect ? pSelect.value : '1';
+            if (!pCode) {
+                const pInput = document.getElementById('subcode-partner-search')?.value || '';
+                pCode = pInput.split('|')[0].trim() || '1';
+            }
             const month = document.getElementById('subcode-month-select')?.value || 'all';
 
             // Lookup partner's saved rate from producers catalog
@@ -4106,6 +4130,7 @@
             items.forEach((it, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td><input type="checkbox" class="custom-checkbox subcode-row-check" value="${it.policy_number}" onchange="updateSubcodeSelectionTotals()"></td>
                     <td>${idx+1}</td>
                     <td><strong>${it.statement_month || '-'}</strong></td>
                     <td>${renderPartnerCodeBadge(it.producer_code, it.producer_name)}</td>
@@ -4123,6 +4148,37 @@
             });
         }
 
+        function updateSubcodeSelectionTotals() {
+            if (!currentSubcodeStatementData || !currentSubcodeStatementData.items) return;
+            const checkedBoxes = Array.from(document.querySelectorAll('.subcode-row-check:checked'));
+            const fLbl = document.getElementById('subcode-foot-partner-lbl');
+            if (checkedBoxes.length > 0) {
+                const checkedPols = new Set(checkedBoxes.map(c => c.value));
+                const filteredItems = currentSubcodeStatementData.items.filter(it => checkedPols.has(it.policy_number));
+                let sNet = 0, sErgo = 0, sPay = 0, sRet = 0;
+                filteredItems.forEach(it => {
+                    sNet += (it.net_premium || 0);
+                    sErgo += (it.ergo_commission_total || 0);
+                    sPay += (it.subcode_payout_amount || 0);
+                    sRet += (it.office_retention_amount || 0);
+                });
+                if (fLbl) fLbl.innerText = `Επιλεγμένα: ${filteredItems.length} από ${currentSubcodeStatementData.items.length} Συμβόλαια`;
+                document.getElementById('subcode-foot-net').innerText = formatEur(sNet);
+                document.getElementById('subcode-foot-ergo').innerText = formatEur(sErgo);
+                document.getElementById('subcode-foot-payout').innerText = formatEur(sPay);
+                document.getElementById('subcode-foot-retention').innerText = formatEur(sRet);
+            } else {
+                const partner = currentSubcodeStatementData.partner || {};
+                const items = currentSubcodeStatementData.items || [];
+                const totals = currentSubcodeStatementData.totals || {};
+                if (fLbl) fLbl.innerText = `Εκκαθαριστικό: ${partner.full_name || partner.producer_code} - ${items.length} Συμβόλαια`;
+                document.getElementById('subcode-foot-net').innerText = formatEur(totals.total_net || 0);
+                document.getElementById('subcode-foot-ergo').innerText = formatEur(totals.total_ergo_commission || 0);
+                document.getElementById('subcode-foot-payout').innerText = formatEur(totals.total_subcode_payout || 0);
+                document.getElementById('subcode-foot-retention').innerText = formatEur(totals.total_office_retention || 0);
+            }
+        }
+
         function printSubcodeStatementPDF() {
             if (!currentSubcodeStatementData || !currentSubcodeStatementData.items || currentSubcodeStatementData.items.length === 0) {
                 alert("Παρακαλώ επιλέξτε συνεργάτη με συμβόλαια για την έκδοση εκκαθαριστικού.");
@@ -4130,7 +4186,32 @@
             }
             const data = currentSubcodeStatementData;
             const partner = data.partner;
-            const totals = data.totals;
+            
+            // Check if user checked specific rows
+            const checkedBoxes = Array.from(document.querySelectorAll('.subcode-row-check:checked'));
+            let activeItems = data.items;
+            if (checkedBoxes.length > 0) {
+                const checkedPols = new Set(checkedBoxes.map(c => c.value));
+                activeItems = data.items.filter(it => checkedPols.has(it.policy_number));
+            }
+
+            let totNet = 0, totErgo = 0, totPayout = 0, totRetention = 0;
+            activeItems.forEach(it => {
+                totNet += (it.net_premium || 0);
+                totErgo += (it.ergo_commission_total || 0);
+                totPayout += (it.subcode_payout_amount || 0);
+                totRetention += (it.office_retention_amount || 0);
+            });
+            const taxDed = roundEur(totPayout * 0.20);
+            const netPay = roundEur(totPayout * 0.80);
+            const totals = {
+                total_net: totNet,
+                total_ergo_commission: totErgo,
+                total_subcode_payout: totPayout,
+                total_office_retention: totRetention,
+                tax_deduction: taxDed,
+                net_payable: netPay
+            };
 
             const printDiv = document.createElement('div');
             printDiv.style.padding = '24px';
@@ -4139,7 +4220,7 @@
             printDiv.style.background = '#FFFFFF';
 
             let itemsRows = '';
-            data.items.forEach((it, i) => {
+            activeItems.forEach((it, i) => {
                 itemsRows += `
                     <tr style="border-bottom:1px solid #E2E8F0; font-size:11px;">
                         <td style="padding:6px 8px;">${i+1}</td>
@@ -4177,7 +4258,7 @@
                     <div>
                         <div><strong>Περίοδος Εκκαθάρισης:</strong> ${data.period === 'all' ? 'Όλοι οι Μήνες' : data.period}</div>
                         <div><strong>Συμφωνία Επιμερισμού:</strong> ${data.split_pct}% επί προμήθειας ERGO</div>
-                        <div><strong>Συνολικά Συμβόλαια:</strong> ${data.items.length}</div>
+                        <div><strong>Συνολικά Συμβόλαια:</strong> ${activeItems.length}</div>
                     </div>
                 </div>
 
@@ -4251,7 +4332,13 @@
                 alert("Δεν υπάρχουν δεδομένα προς εξαγωγή.");
                 return;
             }
-            const data = currentSubcodeStatementData.items.map((it, i) => ({
+            const checkedBoxes = Array.from(document.querySelectorAll('.subcode-row-check:checked'));
+            let activeItems = currentSubcodeStatementData.items;
+            if (checkedBoxes.length > 0) {
+                const checkedPols = new Set(checkedBoxes.map(c => c.value));
+                activeItems = currentSubcodeStatementData.items.filter(it => checkedPols.has(it.policy_number));
+            }
+            const data = activeItems.map((it, i) => ({
                 "Α/Α": i + 1,
                 "Μήνας": it.statement_month,
                 "Αριθμός Συμβολαίου": it.policy_number,

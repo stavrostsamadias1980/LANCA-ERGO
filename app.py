@@ -1083,12 +1083,12 @@ def api_dashboard_summary():
     
     cur.execute("""
         SELECT 
-            COUNT(movement_id) as total_count,
-            SUM(gross_premium) as total_gross,
-            SUM(net_premium_total) as total_net,
-            SUM(producer_commission_amount) as total_producer_comm,
-            SUM(agency_overriding_amount) as total_agency_comm,
-            SUM(total_office_revenue) as total_office_revenue
+            COALESCE(COUNT(movement_id), 0) as total_count,
+            ROUND(COALESCE(SUM(gross_premium), 0.0), 2) as total_gross,
+            ROUND(COALESCE(SUM(net_premium_total), 0.0), 2) as total_net,
+            ROUND(COALESCE(SUM(producer_commission_amount), 0.0), 2) as total_producer_comm,
+            ROUND(COALESCE(SUM(agency_overriding_amount), 0.0), 2) as total_agency_comm,
+            ROUND(COALESCE(SUM(total_office_revenue), 0.0), 2) as total_office_revenue
         FROM financial_movements;
     """)
     kpi = dict(cur.fetchone())
@@ -1096,12 +1096,12 @@ def api_dashboard_summary():
     cur.execute("""
         SELECT 
             statement_month,
-            COUNT(movement_id) as count,
-            SUM(gross_premium) as gross,
-            SUM(net_premium_total) as net,
-            SUM(producer_commission_amount) as comm_syn,
-            SUM(agency_overriding_amount) as comm_agn,
-            SUM(total_office_revenue) as total_rev
+            COALESCE(COUNT(movement_id), 0) as count,
+            ROUND(COALESCE(SUM(gross_premium), 0.0), 2) as gross,
+            ROUND(COALESCE(SUM(net_premium_total), 0.0), 2) as net,
+            ROUND(COALESCE(SUM(producer_commission_amount), 0.0), 2) as comm_syn,
+            ROUND(COALESCE(SUM(agency_overriding_amount), 0.0), 2) as comm_agn,
+            ROUND(COALESCE(SUM(total_office_revenue), 0.0), 2) as total_rev
         FROM financial_movements
         GROUP BY statement_month
         ORDER BY statement_month;
@@ -1111,12 +1111,12 @@ def api_dashboard_summary():
     cur.execute("""
         SELECT 
             movement_type,
-            COUNT(movement_id) as count,
-            SUM(gross_premium) as gross,
-            SUM(net_premium_total) as net,
-            SUM(producer_commission_amount) as comm_syn,
-            SUM(agency_overriding_amount) as comm_agn,
-            SUM(total_office_revenue) as total_rev
+            COALESCE(COUNT(movement_id), 0) as count,
+            ROUND(COALESCE(SUM(gross_premium), 0.0), 2) as gross,
+            ROUND(COALESCE(SUM(net_premium_total), 0.0), 2) as net,
+            ROUND(COALESCE(SUM(producer_commission_amount), 0.0), 2) as comm_syn,
+            ROUND(COALESCE(SUM(agency_overriding_amount), 0.0), 2) as comm_agn,
+            ROUND(COALESCE(SUM(total_office_revenue), 0.0), 2) as total_rev
         FROM financial_movements
         GROUP BY movement_type;
     """)

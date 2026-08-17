@@ -2990,20 +2990,17 @@
 
         // === ⚡ DYNAMIC REACTIVE TOTALS (DASHBOARD & ALL TABLES) ===
         function updateDashboardTotals() {
-            const checkedBoxes = Array.from(document.querySelectorAll('.nested-check:checked, .dash-month-check:checked'));
             const checkedPolicies = new Set();
             document.querySelectorAll('.nested-check:checked').forEach(c => checkedPolicies.add(c.value));
 
-            // Also if a month row is checked, add all its policies
             document.querySelectorAll('.dash-month-check:checked').forEach(mCheck => {
                 const m = mCheck.dataset.month;
-                globalData.contracts.filter(c => c.statement_month === m).forEach(c => checkedPolicies.add(c.policy_number));
+                (globalData.contracts || []).filter(c => c.statement_month === m).forEach(c => checkedPolicies.add(c.policy_number));
             });
 
-            // If user checked specific rows, sum ONLY those!
             if (checkedPolicies.size > 0) {
                 let sumGross = 0, sumNet = 0, sumSyn = 0, sumAgn = 0, sumTot = 0, sumCount = 0;
-                globalData.contracts.filter(c => checkedPolicies.has(c.policy_number)).forEach(c => {
+                (globalData.contracts || []).filter(c => checkedPolicies.has(c.policy_number)).forEach(c => {
                     sumCount++;
                     sumGross += (c.gross_premium || c.net_premium_total || 0);
                     sumNet += (c.net_premium_total || 0);
@@ -3012,7 +3009,12 @@
                     sumTot += (c.total_office_revenue || 0);
                 });
 
-                // Update Table Footer
+                sumGross = Math.round(sumGross * 100) / 100;
+                sumNet = Math.round(sumNet * 100) / 100;
+                sumSyn = Math.round(sumSyn * 100) / 100;
+                sumAgn = Math.round(sumAgn * 100) / 100;
+                sumTot = Math.round(sumTot * 100) / 100;
+
                 document.getElementById('tot-m-count').innerText = `${sumCount} (επιλεγμένα)`;
                 document.getElementById('tot-m-gross').innerText = formatEur(sumGross);
                 document.getElementById('tot-m-net').innerText = formatEur(sumNet);
@@ -3020,7 +3022,6 @@
                 document.getElementById('tot-m-agn').innerText = formatEur(sumAgn);
                 document.getElementById('tot-m-rev').innerText = formatEur(sumTot);
 
-                // Update 4 Expanding KPI Cards Live!
                 document.getElementById('kpi-gross').innerText = formatEur(sumGross);
                 document.getElementById('kpi-net').innerText = formatEur(sumNet);
                 document.getElementById('kpi-comm-syn').innerText = formatEur(sumSyn);
@@ -3028,7 +3029,6 @@
                 document.getElementById('exp-total-rev').innerText = formatEur(sumTot);
                 document.getElementById('exp-count').innerText = sumCount;
             } else {
-                // Restore full dashboard sums
                 if (globalData.summary && globalData.summary.kpis) {
                     const k = globalData.summary.kpis;
                     document.getElementById('tot-m-count').innerText = k.total_count || globalData.contracts.length;
@@ -3042,10 +3042,11 @@
                     document.getElementById('kpi-net').innerText = formatEur(k.total_net);
                     document.getElementById('kpi-comm-syn').innerText = formatEur(k.total_producer_comm);
                     document.getElementById('kpi-comm-agn').innerText = formatEur(k.total_agency_comm);
-                    document.getElementById('exp-total-rev').innerText = formatEur(k.total_producer_comm + k.total_agency_comm);
+                    document.getElementById('exp-total-rev').innerText = formatEur(k.total_office_revenue);
                     document.getElementById('exp-count').innerText = k.total_count || globalData.contracts.length;
                 }
             }
+        }
 
             // Highlight tr rows
             document.querySelectorAll('.nested-check').forEach(c => {

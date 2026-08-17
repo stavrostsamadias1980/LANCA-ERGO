@@ -1076,6 +1076,10 @@
                         <a class="dropdown-item" onclick="switchTab('tab-docs')">
                             <span class="icon">📖</span> Οδηγός Προγραμμάτων & PDF Library
                         </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" style="color:var(--accent-rose); font-weight:700;" onclick="clearFullDatabase()">
+                            <span class="icon">🗑️</span> Ολικό Άδειασμα Βάσης & Αρχείων
+                        </a>
                     </div>
                 </div>
             </div>
@@ -3215,6 +3219,31 @@
                 }
             } catch (err) {
                 alert("❌ Σφάλμα δικτύου κατά την αποθήκευση!");
+            }
+        }
+
+        async function clearFullDatabase() {
+            if (!confirm("⚠️ ΠΡΟΣΟΧΗ! ΟΛΙΚΟ ΑΔΕΙΑΣΜΑ ΒΑΣΗΣ & ΑΡΧΕΙΩΝ\n\nΕίστε βέβαιοι ότι θέλετε να διαγράψετε ΠΛΗΡΩΣ όλα τα αποθηκευμένα συμβόλαια, τις εκκαθαρίσεις και τα ανεβασμένα αρχεία CSV/PDF;\n\nΗ ενέργεια αυτή θα μηδενίσει τη βάση δεδομένων.")) {
+                return;
+            }
+            try {
+                if (typeof showGlobalLoadingSpinner === 'function') showGlobalLoadingSpinner(true);
+                const res = await fetch('/api/clear-database', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ delete_files: true })
+                });
+                const d = await res.json();
+                if (typeof showGlobalLoadingSpinner === 'function') showGlobalLoadingSpinner(false);
+                if (d.status === 'success' || d.success) {
+                    alert("✅ " + (d.message || "Η βάση δεδομένων και τα αρχεία αδειάστηκαν πλήρως!"));
+                    window.location.reload();
+                } else {
+                    alert("❌ Σφάλμα: " + (d.message || "Αποτυχία αδειάσματος βάσης."));
+                }
+            } catch(e) {
+                if (typeof showGlobalLoadingSpinner === 'function') showGlobalLoadingSpinner(false);
+                alert("❌ Σφάλμα δικτύου κατά το αδειασμα της βάσης.");
             }
         }
 

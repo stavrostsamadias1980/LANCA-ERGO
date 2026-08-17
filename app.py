@@ -931,13 +931,16 @@ def serve_index():
 @app.route("/api/clear-database", methods=["POST"])
 def api_clear_database():
     user = get_authenticated_user()
+    req_data = request.get_json(silent=True) or {}
+    delete_files = req_data.get("delete_files", True)
     
     # 1. Clear SQLite
     try:
         conn_sq = sqlite3.connect(SQLITE_PATH)
         cur_sq = conn_sq.cursor()
         for t in ["financial_movements", "policy_coverages", "policies", "insured_persons", "clients", "insurance_products", "monthly_reconciliations", "account_57_transactions", "ergo_statements_1411", "ergo_company_payouts"]:
-            cur_sq.execute(f"DELETE FROM {t};")
+            try: cur_sq.execute(f"DELETE FROM {t};")
+            except: pass
         conn_sq.commit()
         conn_sq.close()
     except Exception as e:
@@ -948,18 +951,31 @@ def api_clear_database():
         pg_conn = get_pg_connection()
         if pg_conn:
             pg_cur = pg_conn.cursor()
-            for t in ["ergo_statements_1411", "ergo_company_payouts"]:
-                pg_cur.execute(f"DELETE FROM {t};")
+            for t in ["financial_movements", "policy_coverages", "policies", "insured_persons", "clients", "insurance_products", "monthly_reconciliations", "account_57_transactions", "ergo_statements_1411", "ergo_company_payouts"]:
+                try: pg_cur.execute(f"DELETE FROM {t};")
+                except: pass
             pg_conn.commit()
             pg_conn.close()
     except Exception as e:
         print("[Clear DB PG Error]", e)
 
-    log_gdpr_audit(user["username"], "CLEAR_DATABASE", "User emptied all tables in the database")
+    # 3. Delete uploaded files in YPOLOGISMOS_DIR if requested
+    deleted_files_count = 0
+    if delete_files and os.path.exists(YPOLOGISMOS_DIR):
+        for fname in os.listdir(YPOLOGISMOS_DIR):
+            fpath = os.path.join(YPOLOGISMOS_DIR, fname)
+            if os.path.isfile(fpath) and not fname.endswith('.py') and not fname.endswith('.db'):
+                try:
+                    os.remove(fpath)
+                    deleted_files_count += 1
+                except Exception:
+                    pass
+
+    log_gdpr_audit(user.get("username", "admin") if isinstance(user, dict) else "admin", "CLEAR_DATABASE", f"User emptied all database tables and deleted {deleted_files_count} files")
     return jsonify({
         "status": "success",
         "success": True,
-        "message": "Η βάση δεδομένων αδειάστηκε πλήρως (0 εγγραφές)!"
+        "message": f"Η βάση δεδομένων αδειάστηκε πλήρως και διαγράφηκαν {deleted_files_count} αρχεία δεδομένων!"
     })
 
 @app.route("/api/health")

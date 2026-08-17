@@ -651,7 +651,7 @@ def run_etl_seeder(force=False):
         prd_id, prd_name = package_map.get(pol, ("PRD-SUP-1500", "ERGO Health Care"))
         
         # Restore saved assignment or fallback to default
-        pcode, pergo, pname, pteam, agn = saved_assignments.get(str(pol).strip(), ("1411", "40071 / 1411", "ΕΡΓΟ Α.Ε.", "", "1411"))
+        pcode, pergo, pname, pteam, agn = saved_assignments.get(str(pol).strip(), ("1", "40071 / 1411", "(1)ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ  ΝΙΚΟΣ", "👑 Agency Manager (ERGO 40071 / 1411)", "3375Α"))
         
         cur.execute("""
         INSERT OR REPLACE INTO policies
@@ -769,7 +769,7 @@ def run_etl_seeder(force=False):
         prd_id, prd_name = package_map.get(pol, ("PRD-SUP-1500", "ERGO Health Care Superior"))
         
         # Restore saved assignment or fallback
-        pcode, pergo, pname, pteam, agn = saved_assignments.get(str(pol).strip(), saved_assignments.get(c_name.strip(), ("1411", "40071 / 1411", "ΕΡΓΟ Α.Ε.", "", "1411")))
+        pcode, pergo, pname, pteam, agn = saved_assignments.get(str(pol).strip(), saved_assignments.get(c_name.strip(), ("1", "40071 / 1411", "(1)ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ  ΝΙΚΟΣ", "👑 Agency Manager (ERGO 40071 / 1411)", "3375Α")))
         
         net_final = round(m["net_tot"], 2)
         syn_final = round(m["producer_prom_tot"], 2)

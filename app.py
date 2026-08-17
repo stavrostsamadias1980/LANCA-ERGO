@@ -1144,8 +1144,8 @@ def api_get_contracts():
             COALESCE(p.partner_type_label, m.producer_org_team, '🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)') as partner_type_label,
             c.afm, c.phone_mobile, c.phone_landline, c.email, c.address_street, c.city, c.postal_code
         FROM financial_movements m
-        LEFT JOIN producers_catalog p ON (p.producer_code = m.producer_partner_code OR p.ergo_code = m.producer_partner_code OR p.ergo_code = m.producer_ergo_code)
-        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN producers_catalog p ON p.producer_code = m.producer_partner_code
+        LEFT JOIN clients c ON c.full_name = m.client_name
         ORDER BY m.iso_date, m.policy_number;
     """)
     contracts_raw = [dict(r) for r in cur.fetchall()]
@@ -1213,8 +1213,8 @@ def api_get_agency():
             COALESCE(p.partner_type, 'DIRECT_AGENT') as partner_type,
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
-        LEFT JOIN producers_catalog p ON (p.producer_code = m.producer_partner_code OR p.ergo_code = m.producer_partner_code OR p.ergo_code = m.producer_ergo_code)
-        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN producers_catalog p ON p.producer_code = m.producer_partner_code
+        LEFT JOIN clients c ON c.full_name = m.client_name
         WHERE m.has_agency_role = 1
         ORDER BY m.iso_date, m.policy_number;
     """)
@@ -1241,8 +1241,8 @@ def api_get_producers():
             COALESCE(p.ergo_code, m.producer_ergo_code, '0') as producer_ergo_code,
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
-        LEFT JOIN producers_catalog p ON (p.producer_code = m.producer_partner_code OR p.ergo_code = m.producer_partner_code OR p.ergo_code = m.producer_ergo_code)
-        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN producers_catalog p ON p.producer_code = m.producer_partner_code
+        LEFT JOIN clients c ON c.full_name = m.client_name
         WHERE m.has_producer_role = 1
         ORDER BY m.iso_date, m.policy_number;
     """)
@@ -1414,7 +1414,7 @@ def api_get_producer_history(producer_code):
             m.*,
             c.afm, c.phone_mobile, c.email, c.city
         FROM financial_movements m
-        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN clients c ON c.full_name = m.client_name
         WHERE m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ?
         ORDER BY m.iso_date DESC;
     """, (producer_code, profile.get("ergo_code", ""), producer_code, profile.get("full_name", "")))
@@ -1476,7 +1476,7 @@ def api_get_subcode_payout_statement():
             c.afm, c.phone_mobile, c.email, c.city,
             pol.issue_date
         FROM financial_movements m
-        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN clients c ON c.full_name = m.client_name
         LEFT JOIN policies pol ON pol.policy_number = m.policy_number
         WHERE (m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ? OR ? = 'ALL_PRODUCERS')
     """
@@ -1498,7 +1498,7 @@ def api_get_subcode_payout_statement():
                 c.afm, c.phone_mobile, c.email, c.city,
                 pol.issue_date
             FROM financial_movements m
-            LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+            LEFT JOIN clients c ON c.full_name = m.client_name
             LEFT JOIN policies pol ON pol.policy_number = m.policy_number
             ORDER BY m.iso_date DESC LIMIT 20;
         """)
@@ -2377,7 +2377,7 @@ def api_get_contract_details(policy_number):
             m.*,
             c.client_id, c.afm, c.phone_mobile, c.phone_landline, c.email, c.address_street, c.city, c.postal_code
         FROM financial_movements m
-        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN clients c ON c.full_name = m.client_name
         WHERE m.policy_number = ?
         ORDER BY m.iso_date DESC;
     """, (policy_number,))
@@ -2435,7 +2435,7 @@ def api_get_clients():
             SUM(m.net_premium_total) as total_net,
             MAX(m.statement_month) as last_statement
         FROM financial_movements m
-        LEFT JOIN clients c ON c.full_name = m.client_name OR c.client_id LIKE '%' || m.policy_number || '%'
+        LEFT JOIN clients c ON c.full_name = m.client_name
         WHERE m.client_name IS NOT NULL AND m.client_name != ''
         GROUP BY m.client_name
         ORDER BY m.client_name ASC;

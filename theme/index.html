@@ -3704,7 +3704,15 @@
             list.forEach((r, idx) => {
                 const net = (r.net_premium_total || 0);
                 const agn = (r.agency_overriding_amount || 0);
-                const pct = (net !== 0 && agn !== 0) ? (Math.abs(agn / net) * 100).toFixed(2) + '%' : (r.agency_overriding_rate ? (r.agency_overriding_rate * 100).toFixed(2) + '%' : '20.00%');
+                // When overriding is 0€, percentage is strictly 0.00%
+                let pct;
+                if (Math.abs(agn) < 0.001) {
+                    pct = '0.00%';
+                } else if (net !== 0) {
+                    pct = (Math.abs(agn / net) * 100).toFixed(2) + '%';
+                } else {
+                    pct = '20.00%';
+                }
                 const movType = r.movement_type || 'Νέα Παραγωγή';
 
                 totNet += net;
@@ -4110,7 +4118,7 @@
                     retentionBadge = `<span style="font-size:10px; color:var(--text-secondary);">${(100 - splitRate).toFixed(1)}% Γραφείο</span>`;
                 }
 
-                const ergoRate = (net !== 0) ? (Math.abs(ergoComm / net) * 100).toFixed(2) + '%' : (r.producer_commission_rate ? r.producer_commission_rate + '%' : '25.00%');
+                const ergoRate = (Math.abs(ergoComm) < 0.001) ? '0.00%' : ((net !== 0) ? (Math.abs(ergoComm / net) * 100).toFixed(2) + '%' : '25.00%');
 
                 totNet += net;
                 totErgo += ergoComm;
@@ -5400,7 +5408,7 @@
                 }));
             } else if (type === 'agency') {
                 rows = data.map((c, idx) => {
-                    const pct = (c.net_premium_total !== 0 && c.agency_overriding_amount !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%';
+                    const pct = (Math.abs(c.agency_overriding_amount || 0) < 0.001) ? '0.00%' : ((c.net_premium_total !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%');
                     return {
                         "Α/Α": idx + 1,
                         "Μήνας": c.statement_month || '-',
@@ -5558,7 +5566,7 @@
                     </tr>
                 `;
                 data.forEach((c, idx) => {
-                    const pct = (c.net_premium_total !== 0 && c.agency_overriding_amount !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%';
+                    const pct = (Math.abs(c.agency_overriding_amount || 0) < 0.001) ? '0.00%' : ((c.net_premium_total !== 0) ? (Math.abs(c.agency_overriding_amount / c.net_premium_total) * 100).toFixed(2) + '%' : '20.00%');
                     rowsHtml += `
                         <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
                             <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>

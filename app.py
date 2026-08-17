@@ -1220,7 +1220,7 @@ def api_get_agency():
 
 @app.route("/api/producers", methods=["GET"])
 def api_get_producers():
-    """Returns Producer commissions (Sheet 9 - 12 rows, €926.53)."""
+    """Returns Producer commissions (Sheet 9 - 12 rows, €926.53) enriched with subcode split calculations."""
     conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -1230,6 +1230,9 @@ def api_get_producers():
             COALESCE(p.full_name, m.producer_name, '0') as producer_name,
             COALESCE(p.producer_code, m.producer_partner_code, '0') as producer_partner_code,
             COALESCE(p.ergo_code, m.producer_ergo_code, '0') as producer_ergo_code,
+            COALESCE(p.commission_rate, 70.0) as subcode_split_rate,
+            COALESCE(p.partner_type, 'SUBCODE_1411') as partner_type,
+            COALESCE(p.partner_type_label, '🔹 Έμμεσος Υποκωδικός (Μέσω 1411)') as partner_type_label,
             c.afm, c.phone_mobile, c.email, c.address_street, c.city
         FROM financial_movements m
         LEFT JOIN producers_catalog p ON p.producer_code = m.producer_partner_code
@@ -1239,11 +1242,29 @@ def api_get_producers():
     """)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
+
+    # Enrich rows with exact partner payout and office share computations
+    for r in rows:
+        net = float(r.get("net_premium_total") or 0.0)
+        ergo_comm = float(r.get("producer_commission_amount") or 0.0)
+        split_rate = float(r.get("subcode_split_rate") or 70.0)
+        ergo_rate = round((abs(ergo_comm) / abs(net) * 100), 2) if net != 0 else (r.get("producer_commission_rate") or 25.0)
+        partner_payout = round(ergo_comm * (split_rate / 100.0), 2)
+        office_retention = round(ergo_comm - partner_payout, 2)
+        
+        r["ergo_commission_rate_pct"] = ergo_rate
+        r["partner_payout_amount"] = partner_payout
+        r["office_retention_amount"] = office_retention
+        r["office_retention_pct"] = round(100.0 - split_rate, 2)
+
     return jsonify({
         "tier": "Κατηγορία Α (Παραγωγός)",
         "commissions": rows,
         "count": len(rows),
-        "total_commission": sum(r["producer_commission_amount"] for r in rows)
+        "total_net": round(sum(r.get("net_premium_total", 0) for r in rows), 2),
+        "total_ergo_commission": round(sum(r.get("producer_commission_amount", 0) for r in rows), 2),
+        "total_partner_payout": round(sum(r.get("partner_payout_amount", 0) for r in rows), 2),
+        "total_office_retention": round(sum(r.get("office_retention_amount", 0) for r in rows), 2)
     })
 
 @app.route("/api/producers/search", methods=["GET"])

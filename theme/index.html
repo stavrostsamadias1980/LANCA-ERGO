@@ -1586,10 +1586,37 @@
         <div id="tab-producers" class="tab-panel">
             <div class="glass-box">
                 <div class="box-header">
-                    <div class="box-title">🤝 Προμήθειες Συνεργατών & Πρακτόρων (Κατηγορία Α)</div>
+                    <div>
+                        <div class="box-title">🤝 Προμήθειες Συνεργατών & Υποκωδικών (Κατηγορία Α & Επιμερισμός)</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Ανάλυση καθαρών, προμήθειας ERGO, ποσοστού απόδοσης υποκωδικού και καθαρών εσόδων γραφείου.</div>
+                    </div>
                     <div style="display:flex; gap:8px;">
                         <button class="btn-pill btn-excel" onclick="exportToExcel('producers')">📥 Εξαγωγή Excel</button>
                         <button class="btn-pill btn-pdf" onclick="exportToPDF('producers')">📄 Εξαγωγή PDF</button>
+                    </div>
+                </div>
+
+                <!-- 4 KPI Summary Cards -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:16px;">
+                    <div class="kpi-card" style="background:linear-gradient(135deg, rgba(255,255,255,0.8), rgba(241,245,249,0.9)); border:1px solid rgba(203,213,225,0.8); border-radius:14px; padding:14px;">
+                        <span style="font-size:11px; font-weight:700; color:var(--text-muted);">💶 ΚΑΘΑΡΑ ΑΣΦΑΛΙΣΤΡΑ:</span>
+                        <div id="prod-kpi-net" style="font-size:18px; font-weight:800; color:var(--brand-navy); margin-top:4px;">€ 0,00</div>
+                        <span id="prod-kpi-count" style="font-size:11px; color:var(--brand-blue); font-weight:600;">12 Συμβόλαια</span>
+                    </div>
+                    <div class="kpi-card" style="background:linear-gradient(135deg, rgba(254,243,199,0.5), rgba(255,255,255,0.9)); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:14px;">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-gold);">🏢 ΠΡΟΜΗΘΕΙΑ ERGO ΓΡΑΦΕΙΟΥ:</span>
+                        <div id="prod-kpi-ergo" style="font-size:18px; font-weight:800; color:var(--accent-gold); margin-top:4px;">€ 0,00</div>
+                        <span style="font-size:11px; color:var(--text-muted); font-weight:600;">Επίσημη εκκαθάριση ERGO</span>
+                    </div>
+                    <div class="kpi-card" style="background:linear-gradient(135deg, rgba(209,250,229,0.5), rgba(255,255,255,0.9)); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:14px;">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-emerald);">👥 ΑΜΟΙΒΗ ΥΠΟΚΩΔΙΚΩΝ / ΣΥΝΕΡΓΑΤΩΝ:</span>
+                        <div id="prod-kpi-payout" style="font-size:18px; font-weight:800; color:var(--accent-emerald); margin-top:4px;">€ 0,00</div>
+                        <span style="font-size:11px; color:var(--accent-emerald); font-weight:600;">Βάσει ποσοστού υποκωδικού</span>
+                    </div>
+                    <div class="kpi-card" style="background:linear-gradient(135deg, rgba(237,233,254,0.5), rgba(255,255,255,0.9)); border:1px solid rgba(124,58,237,0.3); border-radius:14px; padding:14px;">
+                        <span style="font-size:11px; font-weight:700; color:var(--accent-purple);">💼 ΚΑΘΑΡΟ ΕΣΟΔΟ ΓΡΑΦΕΙΟΥ:</span>
+                        <div id="prod-kpi-retention" style="font-size:18px; font-weight:800; color:var(--accent-purple); margin-top:4px;">€ 0,00</div>
+                        <span style="font-size:11px; color:var(--accent-purple); font-weight:600;">Παρακράτηση γραφείου</span>
                     </div>
                 </div>
 
@@ -1599,7 +1626,7 @@
                             <input type="checkbox" id="prod-select-all" class="custom-checkbox" onchange="toggleSelectAll('prod')">
                             <span>Επιλογή Όλων</span>
                         </label>
-                        <input type="text" id="prod-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, ΑΦΜ..." oninput="filterProducersTable()">
+                        <input type="text" id="prod-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Συνεργάτη..." oninput="filterProducersTable()">
                     </div>
                 </div>
 
@@ -1611,11 +1638,13 @@
                                 <th onclick="sortGenericTable('table-producers', 1)">Α/Α</th>
                                 <th onclick="sortGenericTable('table-producers', 2)">Μήνας</th>
                                 <th onclick="sortGenericTable('table-producers', 3)">Αρ. Συμβολαίου</th>
-                                <th onclick="sortGenericTable('table-producers', 4)">Πελάτης</th>
-                                <th onclick="sortGenericTable('table-producers', 5)">Καθαρά (€)</th>
-                                <th onclick="sortGenericTable('table-producers', 6)">Ποσοστό %</th>
-                                <th onclick="sortGenericTable('table-producers', 7)">Προμήθεια Συνεργάτη (€)</th>
-                                <th>Κατηγορία</th>
+                                <th onclick="sortGenericTable('table-producers', 4)">Ονοματεπώνυμο Πελάτη</th>
+                                <th onclick="sortGenericTable('table-producers', 5)">Συνεργάτης (Υποκωδικός)</th>
+                                <th onclick="sortGenericTable('table-producers', 6)">Καθαρά (€)</th>
+                                <th onclick="sortGenericTable('table-producers', 7)">Προμήθεια ERGO (€ & %)</th>
+                                <th onclick="sortGenericTable('table-producers', 8)">Απόδοση Υποκωδικού (€ & %)</th>
+                                <th onclick="sortGenericTable('table-producers', 9)">Έσοδο Γραφείου (€)</th>
+                                <th>Ενέργειες</th>
                             </tr>
                         </thead>
                         <tbody id="producers-tbody">
@@ -1625,8 +1654,11 @@
                             <tr>
                                 <td></td>
                                 <td>ΣΥΝΟΛΟ</td>
-                                <td colspan="5" id="prod-footer-label">Συνολικές Προμήθειες Συνεργατών:</td>
-                                <td id="producers-total-val" style="color:var(--accent-gold); font-size:15px; font-weight:800;">€ 0,00</td>
+                                <td colspan="4" id="prod-footer-label">Συνολικές Προμήθειες Συνεργατών:</td>
+                                <td id="prod-foot-net" style="font-weight:800;">€ 0,00</td>
+                                <td id="prod-foot-ergo" style="color:var(--accent-gold); font-size:14px; font-weight:800;">€ 0,00</td>
+                                <td id="producers-total-val" style="color:var(--accent-emerald); font-size:14.5px; font-weight:800;">€ 0,00</td>
+                                <td id="prod-foot-retention" style="color:var(--accent-purple); font-size:14px; font-weight:800;">€ 0,00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -3090,6 +3122,41 @@
             document.querySelectorAll(`.${type}-row-check`).forEach(c => {
                 c.closest('tr')?.classList.toggle('selected', c.checked);
             });
+
+            if (type === 'prod') {
+                const checked = Array.from(document.querySelectorAll('.prod-row-check:checked')).map(c => c.value);
+                const list = checked.length > 0 ? (globalData.producers || []).filter(c => checked.includes(c.policy_number)) : (globalData.producers || []);
+                
+                let totNet = 0, totErgo = 0, totPayout = 0, totRetention = 0;
+                list.forEach(r => {
+                    const net = (r.net_premium_total || 0);
+                    const ergoComm = (r.producer_commission_amount || 0);
+                    const splitRate = r.subcode_split_rate !== undefined ? r.subcode_split_rate : (r.commission_rate || 70);
+                    const payout = r.partner_payout_amount !== undefined ? r.partner_payout_amount : Math.round(ergoComm * (splitRate / 100.0) * 100) / 100;
+                    const retention = r.office_retention_amount !== undefined ? r.office_retention_amount : Math.round((ergoComm - payout) * 100) / 100;
+                    totNet += net;
+                    totErgo += ergoComm;
+                    totPayout += payout;
+                    totRetention += retention;
+                });
+
+                totNet = Math.round(totNet * 100) / 100;
+                totErgo = Math.round(totErgo * 100) / 100;
+                totPayout = Math.round(totPayout * 100) / 100;
+                totRetention = Math.round(totRetention * 100) / 100;
+
+                const kNet = document.getElementById('prod-kpi-net'); if (kNet) kNet.innerText = formatEur(totNet);
+                const kErgo = document.getElementById('prod-kpi-ergo'); if (kErgo) kErgo.innerText = formatEur(totErgo);
+                const kPay = document.getElementById('prod-kpi-payout'); if (kPay) kPay.innerText = formatEur(totPayout);
+                const kRet = document.getElementById('prod-kpi-retention'); if (kRet) kRet.innerText = formatEur(totRetention);
+                const kCnt = document.getElementById('prod-kpi-count'); if (kCnt) kCnt.innerText = checked.length > 0 ? `${list.length} Επιλεγμένα` : `${list.length} Συμβόλαια`;
+
+                const fLbl = document.getElementById('prod-footer-label'); if (fLbl) fLbl.innerText = checked.length > 0 ? `Συνολικές Προμήθειες (${list.length} Επιλεγμένα):` : `Συνολικές Προμήθειες (${list.length} Συμβόλαια):`;
+                const fNet = document.getElementById('prod-foot-net'); if (fNet) fNet.innerText = formatEur(totNet);
+                const fErgo = document.getElementById('prod-foot-ergo'); if (fErgo) fErgo.innerText = formatEur(totErgo);
+                const fVal = document.getElementById('producers-total-val'); if (fVal) fVal.innerText = formatEur(totPayout);
+                const fRet = document.getElementById('prod-foot-retention'); if (fRet) fRet.innerText = formatEur(totRetention);
+            }
         }
 
         // === 👥 POPULATE PRODUCER DATALISTS & SEARCH SUGGESTIONS ===
@@ -3796,42 +3863,105 @@
             document.getElementById('producerHistoryModal').classList.remove('open');
         }
 
-        // === 🤝 PRODUCERS TABLE ===
+        // === 🤝 PRODUCERS TABLE (ENRICHED WITH SUBCODE SPLIT & OFFICE RETENTION) ===
         function renderProducersTable(list) {
             const tbody = document.getElementById('producers-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            let totProd = 0;
+            let totNet = 0, totErgo = 0, totPayout = 0, totRetention = 0;
+
             list.forEach((r, idx) => {
-                totProd += (r.producer_commission_amount || 0);
+                const net = (r.net_premium_total || 0);
+                const ergoComm = (r.producer_commission_amount || 0);
+                const splitRate = r.subcode_split_rate !== undefined ? r.subcode_split_rate : (r.commission_rate || 70);
+                const ergoRate = (net !== 0) ? (Math.abs(ergoComm / net) * 100).toFixed(2) + '%' : (r.producer_commission_rate ? r.producer_commission_rate + '%' : '25.00%');
+                const payout = r.partner_payout_amount !== undefined ? r.partner_payout_amount : Math.round(ergoComm * (splitRate / 100.0) * 100) / 100;
+                const retention = r.office_retention_amount !== undefined ? r.office_retention_amount : Math.round((ergoComm - payout) * 100) / 100;
+
+                totNet += net;
+                totErgo += ergoComm;
+                totPayout += payout;
+                totRetention += retention;
+
+                const pName = (r.producer_name && r.producer_name !== '0') ? r.producer_name : 'ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)';
+                const pCode = r.producer_partner_code || r.producer_code || '0';
+                const pErgo = r.producer_ergo_code || '1';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="custom-checkbox prod-row-check" value="${r.policy_number}" onchange="updateGenericSelectionTotals('prod')"></td>
                     <td>${idx+1}</td>
                     <td><strong>${r.statement_month}</strong></td>
                     <td><a class="policy-link" onclick="openPolicyModal('${r.policy_number}')">${r.policy_number}</a></td>
-                    <td>${r.client_name||'-'}</td>
-                    <td>${formatEur(r.net_premium_total)}</td>
-                    <td><span class="badge badge-gold">${r.producer_commission_rate||25}%</span></td>
-                    <td style="color:var(--accent-gold); font-weight:800;">${formatEur(r.producer_commission_amount)}</td>
-                    <td><span class="badge badge-gold">Κατηγορία Α</span></td>
+                    <td><strong>${r.client_name||'-'}</strong></td>
                     <td>
-                        <button class="btn-pill btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="openEditModal('${r.policy_number}')">✏️</button>
+                        <div style="font-weight:700; color:var(--brand-navy); font-size:12px;">${pName}</div>
+                        <div style="font-size:10.5px; color:var(--brand-blue); display:flex; gap:4px; align-items:center; margin-top:2px;">
+                            <span class="badge badge-purple" style="padding:1px 5px; font-size:9.5px;">Κωδ: ${pCode}</span>
+                            <span class="badge badge-ghost" style="padding:1px 5px; font-size:9.5px;">ERGO: ${pErgo}</span>
+                        </div>
+                    </td>
+                    <td>${formatEur(net)}</td>
+                    <td>
+                        <strong style="color:var(--accent-gold);">${formatEur(ergoComm)}</strong>
+                        <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">
+                            <span class="badge badge-gold" style="padding:1px 5px; font-size:9.5px;">${ergoRate}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <strong style="color:var(--accent-emerald); font-size:13.5px;">${formatEur(payout)}</strong>
+                        <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">
+                            <span class="badge badge-purple" style="padding:1px 5px; font-size:9.5px;">Απόδοση: ${splitRate}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <strong style="color:var(--accent-purple); font-size:13px;">${formatEur(retention)}</strong>
+                        <div style="font-size:10px; color:var(--text-secondary); margin-top:1px;">
+                            ${(100 - splitRate).toFixed(1)}% Γραφείο
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-pill btn-ghost" style="padding:2px 6px; font-size:10px;" onclick="openProducerCard('${pCode}', 'comm')" title="Καρτέλα & Απόδοση Συνεργάτη">⚙️</button>
+                            <button class="btn-pill btn-ghost" style="padding:2px 6px; font-size:10px;" onclick="openEditModal('${r.policy_number}')" title="Επεξεργασία Συμβολαίου">✏️</button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-            const footerLbl = document.getElementById('prod-footer-label');
-            if (footerLbl) footerLbl.innerText = `Συνολικές Προμήθειες Συνεργατών (${list.length} Εγγραφές):`;
-            const footerVal = document.getElementById('producers-total-val');
-            if (footerVal) footerVal.innerText = formatEur(totProd);
+
+            totNet = Math.round(totNet * 100) / 100;
+            totErgo = Math.round(totErgo * 100) / 100;
+            totPayout = Math.round(totPayout * 100) / 100;
+            totRetention = Math.round(totRetention * 100) / 100;
+
+            // 1. Update 4 KPI Cards
+            const kNet = document.getElementById('prod-kpi-net'); if (kNet) kNet.innerText = formatEur(totNet);
+            const kErgo = document.getElementById('prod-kpi-ergo'); if (kErgo) kErgo.innerText = formatEur(totErgo);
+            const kPay = document.getElementById('prod-kpi-payout'); if (kPay) kPay.innerText = formatEur(totPayout);
+            const kRet = document.getElementById('prod-kpi-retention'); if (kRet) kRet.innerText = formatEur(totRetention);
+            const kCnt = document.getElementById('prod-kpi-count'); if (kCnt) kCnt.innerText = `${list.length} Συμβόλαια`;
+
+            // 2. Update Table Footers
+            const fLbl = document.getElementById('prod-footer-label'); if (fLbl) fLbl.innerText = `Συνολικές Προμήθειες (${list.length} Συμβόλαια):`;
+            const fNet = document.getElementById('prod-foot-net'); if (fNet) fNet.innerText = formatEur(totNet);
+            const fErgo = document.getElementById('prod-foot-ergo'); if (fErgo) fErgo.innerText = formatEur(totErgo);
+            const fVal = document.getElementById('producers-total-val'); if (fVal) fVal.innerText = formatEur(totPayout);
+            const fRet = document.getElementById('prod-foot-retention'); if (fRet) fRet.innerText = formatEur(totRetention);
         }
 
         function filterProducersTable() {
-            const q = document.getElementById('prod-search').value.toLowerCase();
-            renderProducersTable(globalData.producers.filter(r => {
-                return !q || (r.client_name && r.client_name.toLowerCase().includes(q)) || 
-                             (r.policy_number && r.policy_number.includes(q));
+            const q = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
+            const list = globalData.producers || [];
+            if (!q) {
+                renderProducersTable(list);
+                return;
+            }
+            renderProducersTable(list.filter(r => {
+                return (r.client_name && r.client_name.toLowerCase().includes(q)) || 
+                       (r.policy_number && r.policy_number.includes(q)) ||
+                       (r.producer_name && r.producer_name.toLowerCase().includes(q)) ||
+                       (r.producer_partner_code && r.producer_partner_code.toLowerCase().includes(q));
             }));
         }
 
@@ -5059,6 +5189,49 @@
                     "Ποσοστό %": "",
                     "Είδος Κίνησης": ""
                 });
+            } else if (type === 'producers') {
+                rows = data.map((c, idx) => {
+                    const net = c.net_premium_total || 0;
+                    const ergoComm = c.producer_commission_amount || 0;
+                    const splitRate = c.subcode_split_rate !== undefined ? c.subcode_split_rate : (c.commission_rate || 70);
+                    const ergoRate = (net !== 0) ? (Math.abs(ergoComm / net) * 100).toFixed(2) + '%' : '25.00%';
+                    const payout = c.partner_payout_amount !== undefined ? c.partner_payout_amount : Math.round(ergoComm * (splitRate / 100.0) * 100) / 100;
+                    const retention = c.office_retention_amount !== undefined ? c.office_retention_amount : Math.round((ergoComm - payout) * 100) / 100;
+                    return {
+                        "Α/Α": idx + 1,
+                        "Μήνας": c.statement_month || '-',
+                        "Αρ. Συμβολαίου": c.policy_number,
+                        "Ονοματεπώνυμο Πελάτη": c.client_name || '-',
+                        "ΑΦΜ": c.afm || '-',
+                        "Συνεργάτης": c.producer_name || '-',
+                        "Κωδικός Γραφείου": c.producer_partner_code || '-',
+                        "Καθαρά Ασφάλιστρα (€)": net,
+                        "Προμήθεια ERGO (€)": ergoComm,
+                        "% ERGO": ergoRate,
+                        "% Απόδοσης Υποκωδικού": splitRate + '%',
+                        "Αμοιβή Συνεργάτη (€)": payout,
+                        "Έσοδο Γραφείου (€)": retention
+                    };
+                });
+                const totNet = data.reduce((s, x) => s + (x.net_premium_total || 0), 0);
+                const totErgo = data.reduce((s, x) => s + (x.producer_commission_amount || 0), 0);
+                const totPayout = data.reduce((s, x) => s + (x.partner_payout_amount !== undefined ? x.partner_payout_amount : (x.producer_commission_amount || 0) * ((x.subcode_split_rate || 70)/100)), 0);
+                const totRetention = totErgo - totPayout;
+                rows.push({
+                    "Α/Α": "ΣΥΝΟΛΟ",
+                    "Μήνας": `${data.length} Εγγραφές`,
+                    "Αρ. Συμβολαίου": "",
+                    "Ονοματεπώνυμο Πελάτη": "",
+                    "ΑΦΜ": "",
+                    "Συνεργάτης": "",
+                    "Κωδικός Γραφείου": "",
+                    "Καθαρά Ασφάλιστρα (€)": Math.round(totNet * 100) / 100,
+                    "Προμήθεια ERGO (€)": Math.round(totErgo * 100) / 100,
+                    "% ERGO": "",
+                    "% Απόδοσης Υποκωδικού": "",
+                    "Αμοιβή Συνεργάτη (€)": Math.round(totPayout * 100) / 100,
+                    "Έσοδο Γραφείου (€)": Math.round(totRetention * 100) / 100
+                });
             } else {
                 rows = data.map((c, idx) => ({
                     "Α/Α": idx + 1,
@@ -5164,6 +5337,62 @@
                         <td style="padding:10px 6px; text-align:right;">${formatEur(totNet)}</td>
                         <td style="padding:10px 6px; text-align:right; color:#6D28D9; font-size:13px;">${formatEur(totAgn)}</td>
                         <td colspan="2"></td>
+                    </tr>
+                `;
+            } else if (type === 'producers') {
+                theadHtml = `
+                    <tr style="background:#F8FAFC; border-top:1px solid #CBD5E1; border-bottom:2px solid #CBD5E1; color:#0F172A; font-weight:bold;">
+                        <th style="padding:8px 6px; text-align:center;">Α/Α</th>
+                        <th style="padding:8px 6px;">Μήνας</th>
+                        <th style="padding:8px 6px;">Αρ. Συμβολαίου</th>
+                        <th style="padding:8px 6px;">Ονοματεπώνυμο Πελάτη</th>
+                        <th style="padding:8px 6px;">Συνεργάτης</th>
+                        <th style="padding:8px 6px; text-align:right;">Καθαρά (€)</th>
+                        <th style="padding:8px 6px; text-align:right;">Προμήθεια ERGO (€)</th>
+                        <th style="padding:8px 6px; text-align:center;">% ERGO</th>
+                        <th style="padding:8px 6px; text-align:center;">% Υποκ.</th>
+                        <th style="padding:8px 6px; text-align:right;">Αμοιβή Συνεργάτη (€)</th>
+                        <th style="padding:8px 6px; text-align:right;">Έσοδο Γραφείου (€)</th>
+                    </tr>
+                `;
+                let sumNet = 0, sumErgo = 0, sumPay = 0, sumRet = 0;
+                data.forEach((c, idx) => {
+                    const net = c.net_premium_total || 0;
+                    const ergoComm = c.producer_commission_amount || 0;
+                    const splitRate = c.subcode_split_rate !== undefined ? c.subcode_split_rate : (c.commission_rate || 70);
+                    const ergoRate = (net !== 0) ? (Math.abs(ergoComm / net) * 100).toFixed(2) + '%' : '25.00%';
+                    const payout = c.partner_payout_amount !== undefined ? c.partner_payout_amount : Math.round(ergoComm * (splitRate / 100.0) * 100) / 100;
+                    const retention = c.office_retention_amount !== undefined ? c.office_retention_amount : Math.round((ergoComm - payout) * 100) / 100;
+                    
+                    sumNet += net;
+                    sumErgo += ergoComm;
+                    sumPay += payout;
+                    sumRet += retention;
+
+                    rowsHtml += `
+                        <tr style="border-bottom: 1px solid #CBD5E1; font-size:11px; color:#0F172A; background:#FFFFFF;">
+                            <td style="padding:8px 6px; text-align:center; font-weight:bold;">${idx+1}</td>
+                            <td style="padding:8px 6px; font-weight:bold;">${c.statement_month || '-'}</td>
+                            <td style="padding:8px 6px; font-family:monospace; font-weight:bold; color:#1D4ED8;">${c.policy_number}</td>
+                            <td style="padding:8px 6px; font-weight:bold; color:#0F172A;">${c.client_name || '-'}</td>
+                            <td style="padding:8px 6px; color:#1E293B;">${c.producer_name || '-'} (${c.producer_partner_code || '-'})</td>
+                            <td style="padding:8px 6px; text-align:right; font-weight:600;">${formatEur(net)}</td>
+                            <td style="padding:8px 6px; text-align:right; color:#B45309; font-weight:bold;">${formatEur(ergoComm)}</td>
+                            <td style="padding:8px 6px; text-align:center; font-size:10px;">${ergoRate}</td>
+                            <td style="padding:8px 6px; text-align:center; font-size:10px; font-weight:bold; color:#6D28D9;">${splitRate}%</td>
+                            <td style="padding:8px 6px; text-align:right; color:#047857; font-weight:bold;">${formatEur(payout)}</td>
+                            <td style="padding:8px 6px; text-align:right; color:#6D28D9; font-weight:bold;">${formatEur(retention)}</td>
+                        </tr>
+                    `;
+                });
+                tfootHtml = `
+                    <tr style="background:#F1F5F9; border-top:2px solid #CBD5E1; font-weight:bold; font-size:12px; color:#0F172A;">
+                        <td colspan="5" style="padding:10px 8px; text-align:right;">ΣΥΝΟΛΟ (${data.length} Συμβόλαια):</td>
+                        <td style="padding:10px 6px; text-align:right;">${formatEur(sumNet)}</td>
+                        <td style="padding:10px 6px; text-align:right; color:#B45309;">${formatEur(sumErgo)}</td>
+                        <td colspan="2"></td>
+                        <td style="padding:10px 6px; text-align:right; color:#047857; font-size:13px;">${formatEur(sumPay)}</td>
+                        <td style="padding:10px 6px; text-align:right; color:#6D28D9; font-size:13px;">${formatEur(sumRet)}</td>
                     </tr>
                 `;
             } else {

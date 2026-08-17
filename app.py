@@ -485,14 +485,6 @@ def init_databases():
         WHERE producer_name IS NULL OR producer_partner_code IS NULL OR producer_partner_code = '11523';
     """)
     
-    # Auto-migrate Agency 3375A 20% overriding for any zero rows
-    cur.execute("""
-        UPDATE financial_movements
-        SET agency_overriding_amount = ROUND(producer_commission_amount * 0.20, 2),
-            total_office_revenue = ROUND(producer_commission_amount * 1.20, 2)
-        WHERE agency_overriding_amount = 0.0 AND producer_commission_amount > 0;
-    """)
-
     cur.execute("""
         UPDATE financial_movements 
         SET producer_name = '0',
@@ -667,19 +659,19 @@ def run_etl_seeder(force=False):
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, (pol, c["client_id"], c["client_id"], pcode, agn, prd_id, "2026-01-01", "Ετήσια", 1, 1, "ACTIVE", pergo, pname))
 
-    # 3. Parse Commission Statement CSV Files
-    prom_files = find_candidate_files("*.csv")
+    # 3. Parse Commission Statement CSV Files (Only official ΠΡΟΜΗΘΕΙΕΣ - ΥΠΕΡΠΡΟΜΗΘΕΙΕΣ files)
+    all_csvs = find_candidate_files("*.csv")
+    prom_files = [f for f in all_csvs if "ΠΡΟΜΗΘΕΙΕΣ" in os.path.basename(f).upper() or "OVERRID" in os.path.basename(f).upper()]
+    if not prom_files:
+        prom_files = [f for f in all_csvs if "UATOP" not in os.path.basename(f).upper() and "ΜΗΤΡΩΟ" not in os.path.basename(f).upper() and "ΠΙΝΑΚΙΟ" not in os.path.basename(f).upper()]
+        
     events = {}
     
     for f in prom_files:
         fname = os.path.basename(f)
-        if "UATOP" in fname.upper():
-            continue
-            
         m = re.search(r'(\d{2})[_-](\d{4})', fname)
         st_month = f"{m.group(1)}/{m.group(2)}" if m else "02/2026"
         
-        # Omit test month 08/2026 if requested
         if "08_2026" in fname or "08/2026" in fname:
             continue
             
@@ -696,19 +688,17 @@ def run_etl_seeder(force=False):
         if not lines:
             continue
 
-        # Check delimiter
         delimiter = ';' if ';' in lines[0] else ','
 
         for l in lines[1:]:
             p = [x.strip().strip('"') for x in l.split(delimiter)]
-            if len(p) < 15:
+            if len(p) < 21:
                 continue
-            role = p[0] if len(p) > 0 else ""
-            # Policy number is in column 4 (p[4]), receipt number is in column 6 (p[6])
-            pol_no = p[4] if len(p) > 4 else ""
-            if not pol_no or not any(c.isdigit() for c in pol_no) or "LANCA" in pol_no.upper() or "ΣΥΜΒΟΛΑΙΟ" in pol_no.upper():
+            role = p[0].upper() if len(p) > 0 else ""
+            pol_no = p[6] if len(p) > 6 else ""
+            if not pol_no or not any(c.isdigit() for c in pol_no) or "ΣΥΜΒΟΛΑΙΟ" in pol_no.upper():
                 continue
-            rcpt_no = p[6] if len(p) > 6 else "1"
+            rcpt_no = p[7] if len(p) > 7 else "1"
             cust_last = p[9] if len(p) > 9 else ""
             cust_first = p[10] if len(p) > 10 else ""
             tr_plir = p[11] if len(p) > 11 else "Ετήσια"
@@ -784,8 +774,6 @@ def run_etl_seeder(force=False):
         net_final = round(m["net_tot"], 2)
         syn_final = round(m["producer_prom_tot"], 2)
         agn_final = round(m["agency_prom_tot"], 2)
-        if agn_final == 0.0 and syn_final != 0.0:
-            agn_final = round(syn_final * 0.20, 2)
             
         tot_rev = round(syn_final + agn_final, 2)
         

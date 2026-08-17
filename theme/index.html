@@ -2686,7 +2686,7 @@
             }
         }
 
-        function userLogout() {
+        async function userLogout() {
             if (confirm("Επιβεβαίωση αποσύνδεσης από την πλατφόρμα LANCA Ι.Κ.Ε.;")) {
                 try {
                     await fetch('/api/auth/logout', { method: 'POST' });
@@ -3043,7 +3043,6 @@
             document.querySelectorAll('.nested-check').forEach(c => {
                 c.closest('tr')?.classList.toggle('selected', c.checked);
             });
-        }
 
         function updateGenericSelectionTotals(type) {
             const checkedBoxes = document.querySelectorAll(`.${type}-row-check:checked`);

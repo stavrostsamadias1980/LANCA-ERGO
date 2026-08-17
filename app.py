@@ -657,6 +657,9 @@ def run_etl_seeder(force=False):
     
     for f in prom_files:
         fname = os.path.basename(f)
+        if "UATOP" in fname.upper():
+            continue
+            
         m = re.search(r'(\d{2})[_-](\d{4})', fname)
         st_month = f"{m.group(1)}/{m.group(2)}" if m else "02/2026"
         
@@ -685,10 +688,11 @@ def run_etl_seeder(force=False):
             if len(p) < 15:
                 continue
             role = p[0] if len(p) > 0 else ""
-            pol_no = p[6] if len(p) > 6 else ""
-            if not pol_no or pol_no.lower() in ["nan", "none", "συμβόλαιο", "policy"]:
+            # Policy number is in column 4 (p[4]), receipt number is in column 6 (p[6])
+            pol_no = p[4] if len(p) > 4 else ""
+            if not pol_no or not any(c.isdigit() for c in pol_no) or "LANCA" in pol_no.upper() or "ΣΥΜΒΟΛΑΙΟ" in pol_no.upper():
                 continue
-            rcpt_no = p[7] if len(p) > 7 else "1"
+            rcpt_no = p[6] if len(p) > 6 else "1"
             cust_last = p[9] if len(p) > 9 else ""
             cust_first = p[10] if len(p) > 10 else ""
             tr_plir = p[11] if len(p) > 11 else "Ετήσια"

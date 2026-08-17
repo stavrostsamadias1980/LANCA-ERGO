@@ -4206,7 +4206,7 @@
             }
         }
 
-                async function printSubcodeStatementPDF() {
+                        async function printSubcodeStatementPDF() {
             if (!currentSubcodeStatementData || !currentSubcodeStatementData.items || currentSubcodeStatementData.items.length === 0) {
                 alert("Παρακαλώ επιλέξτε συνεργάτη με συμβόλαια για την έκδοση εκκαθαριστικού.");
                 return;
@@ -4240,14 +4240,18 @@
                 net_payable: netPay
             };
 
-            const printDiv = document.createElement('div');
-            printDiv.id = 'temp-subcode-print-div';
-            printDiv.style.padding = '30px';
-            printDiv.style.fontFamily = 'Arial, sans-serif';
-            printDiv.style.color = '#0F172A';
-            printDiv.style.background = '#FFFFFF';
-            printDiv.style.width = '1080px';
-            printDiv.style.boxSizing = 'border-box';
+            const pdfContainer = document.createElement('div');
+            pdfContainer.id = 'pdf-render-container';
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '0px';
+            pdfContainer.style.top = '0px';
+            pdfContainer.style.width = '1100px';
+            pdfContainer.style.padding = '30px';
+            pdfContainer.style.backgroundColor = '#ffffff';
+            pdfContainer.style.color = '#0f172a';
+            pdfContainer.style.fontFamily = 'Arial, Helvetica, sans-serif';
+            pdfContainer.style.zIndex = '9999999';
+            pdfContainer.style.boxSizing = 'border-box';
 
             let itemsRows = '';
             activeItems.forEach((it, i) => {
@@ -4256,22 +4260,21 @@
                 const payVal = Number(it.subcode_payout_amount || 0).toFixed(2);
                 const retVal = Number(it.office_retention_amount || 0).toFixed(2);
                 itemsRows += `
-                    <tr style="border-bottom:1px solid #E2E8F0; font-size:11px;">
-                        <td style="padding:6px 8px; text-align:center;">${i+1}</td>
-                        <td style="padding:6px 8px; text-align:center;">${it.statement_month || '-'}</td>
-                        <td style="padding:6px 8px; font-weight:bold; color:#1D4ED8;">${it.policy_number}</td>
-                        <td style="padding:6px 8px; font-weight:bold;">${it.client_name || '-'}</td>
-                        <td style="padding:6px 8px;">${it.package_name || 'ERGO Health'}</td>
-                        <td style="padding:6px 8px; text-align:right;">€ ${netVal}</td>
-                        <td style="padding:6px 8px; text-align:right; color:#B45309; font-weight:bold;">€ ${ergoVal}</td>
-                        <td style="padding:6px 8px; text-align:center; font-weight:bold;">${it.subcode_split_pct}%</td>
-                        <td style="padding:6px 8px; text-align:right; font-weight:bold; color:#065F46;">€ ${payVal}</td>
-                        <td style="padding:6px 8px; text-align:right; color:#5B21B6;">€ ${retVal}</td>
+                    <tr style="border-bottom: 1px solid #cbd5e1; font-size: 11px; color: #0f172a;">
+                        <td style="padding: 6px 8px; text-align: center;">${i+1}</td>
+                        <td style="padding: 6px 8px; text-align: center;">${it.statement_month || '-'}</td>
+                        <td style="padding: 6px 8px; font-weight: bold; color: #1d4ed8;">${it.policy_number}</td>
+                        <td style="padding: 6px 8px; font-weight: bold;">${it.client_name || '-'}</td>
+                        <td style="padding: 6px 8px;">${it.package_name || 'ERGO Health'}</td>
+                        <td style="padding: 6px 8px; text-align: right;">€ ${netVal}</td>
+                        <td style="padding: 6px 8px; text-align: right; color: #b45309; font-weight: bold;">€ ${ergoVal}</td>
+                        <td style="padding: 6px 8px; text-align: center; font-weight: bold;">${it.subcode_split_pct}%</td>
+                        <td style="padding: 6px 8px; text-align: right; font-weight: bold; color: #065f46;">€ ${payVal}</td>
+                        <td style="padding: 6px 8px; text-align: right; color: #5b21b6;">€ ${retVal}</td>
                     </tr>
                 `;
             });
 
-            // Determine active period label
             const yearVal = document.getElementById('subcode-year-filter')?.value || 'all';
             const fromVal = document.getElementById('subcode-month-from')?.value || 'all';
             const toVal = document.getElementById('subcode-month-to')?.value || 'all';
@@ -4281,7 +4284,7 @@
             else if (toVal !== 'all') periodLabel = `Έως ${toVal}`;
             else if (yearVal !== 'all') periodLabel = `Έτος ${yearVal}`;
 
-            printDiv.innerHTML = `
+            pdfContainer.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:14px; margin-bottom:18px;">
                     <div>
                         <h2 style="color:#1E3A8A; margin:0; font-size:20px; font-weight:800;">LANCA Ι.Κ.Ε. - AGENCY 1411 (ERGO)</h2>
@@ -4306,7 +4309,7 @@
                     </div>
                 </div>
 
-                <table style="width:100%; border-collapse:collapse; margin-bottom:18px;">
+                <table style="width:100%; border-collapse:collapse; margin-bottom:18px; background:#ffffff;">
                     <thead>
                         <tr style="background:#1E3A8A; color:#FFFFFF; font-size:11px; text-align:left;">
                             <th style="padding:8px; text-align:center;">Α/Α</th>
@@ -4363,56 +4366,33 @@
                 </div>
             `;
 
-            // Open clean Print Window with print & save to PDF
-            const printWin = window.open('', '_blank', 'width=1150,height=850');
-            if (printWin) {
-                printWin.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>LANCA_Ekatharistirio_${partner.producer_code || 'Partner'}</title>
-                        <style>
-                            @page { size: landscape; margin: 8mm; }
-                            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #0F172A; background: #FFF; }
-                            @media print {
-                                body { padding: 0; }
-                                .no-print { display: none !important; }
-                            }
-                        </style>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\\/script>
-                    </head>
-                    <body>
-                        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; background:#F1F5F9; border:1px solid #CBD5E1; padding:10px 16px; margin-bottom:16px; border-radius:8px;">
-                            <div style="font-weight:bold; font-size:13px; color:#1E3A8A;">📄 Προεπισκόπηση & Έκδοση Εκκαθαριστικού (${partner.full_name || partner.producer_name || partner.producer_code})</div>
-                            <div style="display:flex; gap:10px;">
-                                <button onclick="window.print()" style="background:#1D4ED8; color:#FFF; border:none; padding:8px 18px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">🖨️ Εκτύπωση / Αποθήκευση PDF</button>
-                                <button onclick="window.close()" style="background:#64748B; color:#FFF; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">✕ Κλείσιμο</button>
-                            </div>
-                        </div>
-                        <div id="print-content">
-                            ${printDiv.innerHTML}
-                        </div>
-                    </body>
-                    </html>
-                `);
-                printWin.document.close();
-                printWin.focus();
-                setTimeout(() => {
-                    printWin.print();
-                }, 300);
-            } else {
-                // If popup blocked, download via html2pdf directly
-                document.body.appendChild(printDiv);
-                const opt = {
-                    margin: [8, 8, 8, 8],
-                    filename: `LANCA_Ekatharistirio_${partner.producer_code || 'Partner'}_${new Date().getTime()}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-                };
-                html2pdf().set(opt).from(printDiv).save().then(() => {
-                    printDiv.remove();
-                });
+            document.body.appendChild(pdfContainer);
+
+            const filename = `LANCA_Ekatharistirio_${partner.producer_code || 'Partner'}_${new Date().getTime()}.pdf`;
+            
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true,
+                    scrollY: 0,
+                    scrollX: 0,
+                    windowWidth: 1200
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            try {
+                await html2pdf().set(opt).from(pdfContainer).save();
+            } catch (err) {
+                console.error("PDF generation error:", err);
+                alert("Σφάλμα κατά την παραγωγή PDF: " + err.message);
+            } finally {
+                if (pdfContainer && pdfContainer.parentNode) {
+                    pdfContainer.parentNode.removeChild(pdfContainer);
+                }
             }
         }
 
@@ -6516,56 +6496,39 @@
                 </div>
             `;
 
-            // Open clean Print Window with print & save to PDF
-            const printWin = window.open('', '_blank', 'width=1150,height=850');
-            if (printWin) {
-                printWin.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>${filename.replace('.pdf', '')}</title>
-                        <style>
-                            @page { size: landscape; margin: 8mm; }
-                            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #0F172A; background: #FFF; }
-                            @media print {
-                                body { padding: 0; }
-                                .no-print { display: none !important; }
-                            }
-                        </style>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\\/script>
-                    </head>
-                    <body>
-                        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; background:#F1F5F9; border:1px solid #CBD5E1; padding:10px 16px; margin-bottom:16px; border-radius:8px;">
-                            <div style="font-weight:bold; font-size:13px; color:#1E3A8A;">📄 Προεπισκόπηση & Έκδοση (${titleLabel})</div>
-                            <div style="display:flex; gap:10px;">
-                                <button onclick="window.print()" style="background:#1D4ED8; color:#FFF; border:none; padding:8px 18px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">🖨️ Εκτύπωση / Αποθήκευση PDF</button>
-                                <button onclick="window.close()" style="background:#64748B; color:#FFF; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">✕ Κλείσιμο</button>
-                            </div>
-                        </div>
-                        <div id="print-content">
-                            ${printWrapper.innerHTML}
-                        </div>
-                    </body>
-                    </html>
-                `);
-                printWin.document.close();
-                printWin.focus();
-                setTimeout(() => {
-                    printWin.print();
-                }, 300);
-            } else {
-                // If popup blocked, download via html2pdf directly
-                document.body.appendChild(printWrapper);
-                const opt = {
-                    margin: [8, 8, 8, 8],
-                    filename: filename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-                };
-                html2pdf().set(opt).from(printWrapper).save().then(() => {
-                    printWrapper.remove();
-                });
+                        printWrapper.id = 'pdf-export-wrapper';
+            printWrapper.style.position = 'absolute';
+            printWrapper.style.left = '0px';
+            printWrapper.style.top = '0px';
+            printWrapper.style.width = '1120px';
+            printWrapper.style.backgroundColor = '#ffffff';
+            printWrapper.style.zIndex = '9999999';
+
+            document.body.appendChild(printWrapper);
+
+            const opt = {
+                margin: [8, 8, 8, 8],
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true,
+                    scrollY: 0,
+                    scrollX: 0,
+                    windowWidth: 1200
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            try {
+                await html2pdf().set(opt).from(printWrapper).save();
+            } catch (err) {
+                console.error("PDF generation error:", err);
+                alert("Σφάλμα κατά την παραγωγή PDF: " + err.message);
+            } finally {
+                if (printWrapper && printWrapper.parentNode) {
+                    printWrapper.parentNode.removeChild(printWrapper);
+                }
             }
         }
 

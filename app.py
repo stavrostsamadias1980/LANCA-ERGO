@@ -1221,6 +1221,16 @@ def api_get_agency():
         else:
             rate_pct = 20.0
         r["agency_overriding_rate_pct"] = rate_pct
+
+        # Special Rule: When coordinator Nikos Anagnostopoulos (Code 1 / 3375A) is the producer on Agency Overridings:
+        # Display his Agency Company: LANCA ΕΠΕ (3375Α), because Nikos is the coordinator & Agency owner!
+        p_code = str(r.get("producer_partner_code") or "").strip().upper()
+        p_name = str(r.get("producer_name") or "")
+        if p_code in ["1", "3375A", "3375Α"] or "ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ" in p_name:
+            r["producer_name"] = "LANCA ΕΠΕ"
+            r["producer_partner_code"] = "3375Α"
+            r["producer_ergo_code"] = "40071 / 1411"
+            r["partner_type_label"] = "👑 Agency Manager (ERGO 40071 / 1411)" 
     return jsonify({
         "tier": "Κλίμακα Γ (Agency 20%)",
         "overridings": rows,

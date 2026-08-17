@@ -3751,11 +3751,20 @@
                 totNet += net;
                 totAgency += agn;
 
-                const pName = (r.producer_name && r.producer_name !== '0') ? r.producer_name : 'ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)';
+                let pName = (r.producer_name && r.producer_name !== '0') ? r.producer_name : 'ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)';
+                let pCode = r.producer_partner_code || r.producer_code || '0';
+                let pErgo = r.producer_ergo_code || '1';
+                let pTeam = r.partner_type_label || r.producer_org_team || '🏢 Οργανωτική Ομάδα 40071';
+
+                // Special rule for Coordinator Nikos Anagnostopoulos (Code 1 / 3375A):
+                // On Agency Overridings, display his Agency company LANCA ΕΠΕ (3375Α) instead of individual name
+                if (String(pCode).trim() === '1' || String(pCode).trim().toUpperCase() === '3375A' || String(pCode).trim().toUpperCase() === '3375Α' || (pName && pName.includes('ΑΝΑΓΝΩΣΤΟΠΟΥΛΟΣ'))) {
+                    pCode = '3375Α';
+                    pName = 'LANCA ΕΠΕ';
+                    pErgo = '40071 / 1411';
+                    pTeam = '👑 Agency Manager (ERGO 40071 / 1411)';
+                }
                 const pNameColor = pName.includes('ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ') ? 'color:var(--accent-red);' : '';
-                const pCode = r.producer_partner_code || r.producer_code || '0';
-                const pErgo = r.producer_ergo_code || '1';
-                const pTeam = r.partner_type_label || r.producer_org_team || '🏢 Οργανωτική Ομάδα 40071';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `

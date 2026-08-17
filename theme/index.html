@@ -1255,10 +1255,24 @@
                                 <label class="col-checkbox-label"><input type="checkbox" checked onchange="toggleTableCol('table-dash', 8, this.checked)"> Συνολική Αμοιβή (€)</label>
                             </div>
                         </div>
-                        <button class="btn-pill btn-ghost" style="color:var(--accent-rose);" onclick="deleteSelectedRows('dashboard')">🗑️ Διαγραφή Επιλεγμένων</button>
+                        <select id="dash-month-filter" class="glass-select" style="font-size:12px; font-weight:700;" onchange="filterDashTable()">
+                            <option value="all">📅 Όλοι οι Μήνες</option>
+                            <option value="02/2026">02/2026</option>
+                            <option value="03/2026">03/2026</option>
+                            <option value="04/2026">04/2026</option>
+                            <option value="05/2026">05/2026</option>
+                            <option value="06/2026">06/2026</option>
+                            <option value="07/2026">07/2026</option>
+                        </select>
+                        <select id="dash-partner-filter" class="glass-select" style="font-size:12px; font-weight:700; max-width:200px;" onchange="filterDashTable()">
+                            <option value="all">👤 Όλοι οι Συνεργάτες</option>
+                        </select>
+                        <input type="text" id="dash-search" class="glass-input" placeholder="🔍 Αναζήτηση Πελάτη, Συμβολαίου, Συνεργάτη, Μήνα..." oninput="filterDashTable()" style="min-width:220px;">
                     </div>
                     <div class="toolbar-right">
-                        <input type="text" id="dash-search" class="glass-input" placeholder="🔍 Αναζήτηση σε μήνες..." oninput="filterDashTable()">
+                        <button class="btn-pill btn-excel" onclick="exportToExcel('dashboard')">📥 Excel</button>
+                        <button class="btn-pill btn-pdf" onclick="exportToPDF('dashboard')">📄 PDF (Οριζόντια)</button>
+                        <button class="btn-pill btn-ghost" style="color:var(--accent-rose);" onclick="deleteSelectedRows('dashboard')">🗑️ Διαγραφή</button>
                     </div>
                 </div>
 
@@ -3090,17 +3104,18 @@
         }
 
         // === 📈 3-TIER MASTER-DETAIL DASHBOARD TABLE WITH EXPAND & DRILLDOWN ===
-        function renderDashboardTable(monthlyList) {
+        function renderDashboardTable(monthlyList, filteredContractsList) {
             const tbody = document.getElementById('dash-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
             let tgross=0, tnet=0, tsyn=0, tagn=0, trev=0, tcnt=0;
+            const contractsSource = filteredContractsList || globalData.contracts || [];
 
             monthlyList.forEach((m, idx) => {
                 tcnt += m.count; tgross += m.gross; tnet += m.net; tsyn += m.comm_syn; tagn += m.comm_agn; trev += m.total_rev;
 
-                // Match contracts of this specific month
-                const monthContracts = globalData.contracts.filter(c => {
+                // Match contracts of this specific month from contractsSource
+                const monthContracts = contractsSource.filter(c => {
                     const cMonth = (c.statement_month || '').trim();
                     const mMonth = (m.statement_month || '').trim();
                     return cMonth === mMonth || cMonth.replace('/', '_') === mMonth.replace('/', '_');
@@ -5487,24 +5502,43 @@
         }
 
         function filterDashTable() {
-            const q = document.getElementById('dash-search')?.value.toLowerCase().trim() || '';
+            const q = (document.getElementById('dash-search')?.value || '').toLowerCase().trim();
+            const mth = document.getElementById('dash-month-filter')?.value || 'all';
+            const partner = document.getElementById('dash-partner-filter')?.value || 'all';
+
             if (!globalData.summary || !globalData.summary.monthly_summary) return;
-            if (!q) {
-                renderDashboardTable(globalData.summary.monthly_summary);
-                return;
-            }
-            const filteredMonths = globalData.summary.monthly_summary.filter(m => {
-                const matchMonth = m.statement_month.toLowerCase().includes(q);
-                const hasMatchingContract = globalData.contracts.some(c => 
-                    c.statement_month === m.statement_month && (
-                        (c.client_name && c.client_name.toLowerCase().includes(q)) ||
-                        (c.policy_number && c.policy_number.toLowerCase().includes(q)) ||
-                        (c.afm && c.afm.includes(q))
-                    )
-                );
-                return matchMonth || hasMatchingContract;
+
+            // Filter contracts first
+            const matchedContracts = (globalData.contracts || []).filter(c => {
+                const matchMth = (mth === 'all' || c.statement_month === mth);
+                const pCode = String(c.producer_partner_code || c.producer_code || '0').trim();
+                const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                const matchQuery = !q || (c.client_name && c.client_name.toLowerCase().includes(q)) ||
+                                         (c.policy_number && c.policy_number.includes(q)) ||
+                                         (c.producer_name && c.producer_name.toLowerCase().includes(q)) ||
+                                         (c.statement_month && c.statement_month.toLowerCase().includes(q)) ||
+                                         (c.afm && c.afm.includes(q));
+                return matchMth && matchPartner && matchQuery;
             });
-            renderDashboardTable(filteredMonths); reapplyColumnVisibility('table-dash');
+
+            // Group matched contracts by month
+            const monthMap = {};
+            matchedContracts.forEach(c => {
+                const m = c.statement_month || '02/2026';
+                if (!monthMap[m]) {
+                    monthMap[m] = { statement_month: m, count: 0, gross: 0, net: 0, comm_syn: 0, comm_agn: 0, total_rev: 0 };
+                }
+                monthMap[m].count += 1;
+                monthMap[m].gross += (c.gross_premium || c.net_premium_total || 0);
+                monthMap[m].net += (c.net_premium_total || 0);
+                monthMap[m].comm_syn += (c.producer_commission_amount || 0);
+                monthMap[m].comm_agn += (c.agency_overriding_amount || 0);
+                monthMap[m].total_rev += (c.total_office_revenue || 0);
+            });
+
+            const monthsList = Object.values(monthMap).sort((a, b) => b.statement_month.localeCompare(a.statement_month));
+            renderDashboardTable(monthsList, matchedContracts);
+            reapplyColumnVisibility('table-dash');
         }
 
         
@@ -5559,6 +5593,9 @@
                 }
             });
             partnerOptionsHtml.push('<option value="0">🔒 0 | ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)</option>');
+
+            const dFilter = document.getElementById('dash-partner-filter');
+            if (dFilter) dFilter.innerHTML = partnerOptionsHtml.join('');
 
             const pFilter = document.getElementById('prod-partner-filter');
             if (pFilter) pFilter.innerHTML = partnerOptionsHtml.join('');
@@ -5649,11 +5686,20 @@
                     const months = checkedMonths.map(m => m.dataset.month);
                     return globalData.contracts.filter(c => months.includes(c.statement_month));
                 }
-                const mthFilter = document.getElementById('dash-month-select')?.value;
-                if (mthFilter && mthFilter !== 'all') {
-                    return globalData.contracts.filter(c => c.statement_month === mthFilter);
-                }
-                return globalData.contracts;
+                const q = (document.getElementById('dash-search')?.value || '').toLowerCase().trim();
+                const mth = document.getElementById('dash-month-filter')?.value || 'all';
+                const partner = document.getElementById('dash-partner-filter')?.value || 'all';
+                return (globalData.contracts || []).filter(c => {
+                    const matchMth = (mth === 'all' || c.statement_month === mth);
+                    const pCode = String(c.producer_partner_code || c.producer_code || '0').trim();
+                    const matchPartner = (partner === 'all' || pCode.toLowerCase() === partner.toLowerCase());
+                    const matchQuery = !q || (c.client_name && c.client_name.toLowerCase().includes(q)) ||
+                                             (c.policy_number && c.policy_number.includes(q)) ||
+                                             (c.producer_name && c.producer_name.toLowerCase().includes(q)) ||
+                                             (c.statement_month && c.statement_month.toLowerCase().includes(q)) ||
+                                             (c.afm && c.afm.includes(q));
+                    return matchMth && matchPartner && matchQuery;
+                });
             } else if (type === 'crm') {
                 const checked = Array.from(document.querySelectorAll('.crm-row-check:checked'));
                 if (checked.length > 0) {
@@ -5885,6 +5931,30 @@
             let filename = `LANCA_Ekatharistiko_${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, '0')}.pdf`;
             const data = getSelectedExportData(type);
 
+            // Determine active partner label
+            let partnerFilterVal = 'all';
+            if (type === 'dashboard' || type === 'dash') partnerFilterVal = document.getElementById('dash-partner-filter')?.value || 'all';
+            else if (type === 'agency') partnerFilterVal = document.getElementById('agency-partner-filter')?.value || 'all';
+            else if (type === 'producers') partnerFilterVal = document.getElementById('prod-partner-filter')?.value || 'all';
+            else if (type === 'crm') partnerFilterVal = document.getElementById('crm-partner-filter')?.value || 'all';
+
+            let partnerLabel = "Όλοι οι Συνεργάτες & Υποκωδικοί";
+            if (partnerFilterVal !== 'all') {
+                const pObj = (globalData.producersReg || []).find(x => x.producer_code === partnerFilterVal);
+                if (pObj) partnerLabel = `${pObj.producer_name} (Κωδικός: ${pObj.producer_code})`;
+                else if (partnerFilterVal === '0') partnerLabel = "🔒 ΧΩΡΙΣ ΣΥΝΕΡΓΑΤΗ (0)";
+                else partnerLabel = `Κωδικός Συνεργάτη: ${partnerFilterVal}`;
+            }
+
+            // Determine active month label
+            let monthFilterVal = 'all';
+            if (type === 'dashboard' || type === 'dash') monthFilterVal = document.getElementById('dash-month-filter')?.value || 'all';
+            else if (type === 'agency') monthFilterVal = document.getElementById('agency-month-filter')?.value || 'all';
+            else if (type === 'producers') monthFilterVal = document.getElementById('prod-month-filter')?.value || 'all';
+            else if (type === 'crm') monthFilterVal = document.getElementById('crm-month-filter')?.value || 'all';
+
+            let monthLabel = (monthFilterVal === 'all') ? "Όλοι οι Μήνες (Συγκεντρωτικό)" : `Μήνας: ${monthFilterVal}`;
+
             const isSelectedOnly = (document.querySelectorAll('.nested-check:checked, .crm-row-check:checked, .agency-row-check:checked, .prod-row-check:checked, .dash-month-check:checked').length > 0);
 
             const totNet = data.reduce((s, x) => s + (x.net_premium_total || 0), 0);
@@ -6085,6 +6155,19 @@
                         <strong style="font-size:12.5px; color:#0F172A;">LANCA ΑΣΦΑΛΙΣΤΙΚΕΣ ΧΡΗΜΑΤΟΟΙΚΟΝΟΜΙΚΕΣ ΥΠΗΡΕΣΙΕΣ Ι.Κ.Ε.</strong><br>
                         Agency 3375Α (ERGO) • Συντονιστής: Νίκος Αναγνωστόπουλος<br>
                         Τέρμα Τρικούπη, 30200 Μεσολόγγι • ΑΦΜ: 800217829 • ΔΟΥ: Μεσολογγίου • Τηλ: 26310 51222 • Email: info@lanca.gr
+                    </div>
+                </div>
+
+                <!-- Partner & Period Information Box -->
+                <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:8px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
+                    <div>
+                        <strong>👤 Συνεργάτης:</strong> <span style="color:#1D4ED8; font-weight:bold; font-size:12.5px;">${partnerLabel}</span>
+                    </div>
+                    <div>
+                        <strong>📅 Περίοδος:</strong> <span style="color:#0F172A; font-weight:bold;">${monthLabel}</span>
+                    </div>
+                    <div>
+                        <strong>📋 Εγγραφές:</strong> <span style="color:#047857; font-weight:bold;">${data.length} Συμβόλαια</span>
                     </div>
                 </div>
 

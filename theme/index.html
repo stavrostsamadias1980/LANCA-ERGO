@@ -3516,7 +3516,8 @@
                         producer_ergo_code: pergo,
                         producer_name: pname,
                         org_team: pteam,
-                        package_name: pkg
+                        package_name: pkg,
+                        agency_code: document.getElementById('edit-agency-code')?.value.trim() || (acomm > 0 ? '3375Α' : '0')
                     })
                 });
                 const d = await res.json();

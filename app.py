@@ -2771,6 +2771,8 @@ def api_update_contract():
             ergo_code = ergo_code or p_row[1]
             org_team = org_team or p_row[2]
 
+    agency_code = str(data.get("agency_code", "")).strip() or ("3375Α" if acomm > 0 else "0")
+
     cur.execute("""
         UPDATE financial_movements 
         SET client_name = COALESCE(NULLIF(?, ''), client_name),
@@ -2781,9 +2783,10 @@ def api_update_contract():
             producer_ergo_code = ?,
             producer_name = ?,
             producer_org_team = ?,
+            agency_partner_code = ?,
             package_name = COALESCE(NULLIF(?, ''), package_name)
         WHERE TRIM(policy_number) = ?
-    """, (cname, net, pcomm, acomm, pcode, ergo_code, pname, org_team, pkg, pol))
+    """, (cname, net, pcomm, acomm, pcode, ergo_code, pname, org_team, agency_code, pkg, pol))
     
     cur.execute("""
         UPDATE clients

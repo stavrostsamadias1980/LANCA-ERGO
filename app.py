@@ -1534,7 +1534,8 @@ def api_get_subcode_payout_statement():
         FROM financial_movements m
         LEFT JOIN clients c ON c.full_name = m.client_name
         LEFT JOIN policies pol ON pol.policy_number = m.policy_number
-        WHERE (m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ? OR ? = 'ALL_PRODUCERS')
+        WHERE m.has_producer_role = 1 
+          AND (m.producer_partner_code = ? OR m.producer_partner_code = ? OR m.producer_ergo_code = ? OR m.producer_name = ? OR ? = 'ALL_PRODUCERS')
     """
     params = [producer_code, partner.get("ergo_code", ""), producer_code, partner.get("full_name", ""), producer_code]
     
@@ -1556,6 +1557,7 @@ def api_get_subcode_payout_statement():
             FROM financial_movements m
             LEFT JOIN clients c ON c.full_name = m.client_name
             LEFT JOIN policies pol ON pol.policy_number = m.policy_number
+            WHERE m.has_producer_role = 1
             ORDER BY m.iso_date DESC LIMIT 20;
         """)
         raw_contracts = [dict(r) for r in cur.fetchall()]
@@ -1577,9 +1579,9 @@ def api_get_subcode_payout_statement():
     
     for c in raw_contracts:
         net = float(c.get("net_premium_total", 0.0))
+        # STRICT RULE: In Subcode Payout Statement, include ONLY producer commissions (has_producer_role = 1), NOT agency overridings!
         ergo_syn_comm = float(c.get("producer_commission_amount", 0.0))
-        ergo_agn_over = float(c.get("agency_overriding_amount", 0.0))
-        ergo_total_comm = ergo_syn_comm + ergo_agn_over
+        ergo_total_comm = ergo_syn_comm
         
         # Determine Product
         package = c.get("package_name") or ""

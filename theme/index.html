@@ -3113,6 +3113,10 @@
             }
         }
 
+        function roundEur(val) {
+            return Math.round((Number(val) || 0) * 100) / 100;
+        }
+
         function formatEur(val) {
             return '€ ' + Number(val || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
@@ -4196,13 +4200,13 @@
             }
         }
 
-        function printSubcodeStatementPDF() {
+        async function printSubcodeStatementPDF() {
             if (!currentSubcodeStatementData || !currentSubcodeStatementData.items || currentSubcodeStatementData.items.length === 0) {
                 alert("Παρακαλώ επιλέξτε συνεργάτη με συμβόλαια για την έκδοση εκκαθαριστικού.");
                 return;
             }
             const data = currentSubcodeStatementData;
-            const partner = data.partner;
+            const partner = data.partner || {};
             
             // Check if user checked specific rows
             const checkedBoxes = Array.from(document.querySelectorAll('.subcode-row-check:checked'));
@@ -4235,24 +4239,42 @@
             printDiv.style.fontFamily = 'Arial, sans-serif';
             printDiv.style.color = '#0F172A';
             printDiv.style.background = '#FFFFFF';
+            printDiv.style.position = 'fixed';
+            printDiv.style.left = '-9999px';
+            printDiv.style.top = '0';
+            printDiv.style.width = '1120px';
 
             let itemsRows = '';
             activeItems.forEach((it, i) => {
+                const netVal = Number(it.net_premium || 0).toFixed(2);
+                const ergoVal = Number(it.ergo_commission_total || 0).toFixed(2);
+                const payVal = Number(it.subcode_payout_amount || 0).toFixed(2);
+                const retVal = Number(it.office_retention_amount || 0).toFixed(2);
                 itemsRows += `
                     <tr style="border-bottom:1px solid #E2E8F0; font-size:11px;">
                         <td style="padding:6px 8px;">${i+1}</td>
-                        <td style="padding:6px 8px;">${it.statement_month}</td>
+                        <td style="padding:6px 8px;">${it.statement_month || '-'}</td>
                         <td style="padding:6px 8px; font-weight:bold;">${it.policy_number}</td>
-                        <td style="padding:6px 8px;">${it.client_name}</td>
+                        <td style="padding:6px 8px;">${it.client_name || '-'}</td>
                         <td style="padding:6px 8px;">${it.package_name || 'ERGO Health'}</td>
-                        <td style="padding:6px 8px; text-align:right;">€ ${it.net_premium.toFixed(2)}</td>
-                        <td style="padding:6px 8px; text-align:right;">€ ${it.ergo_commission_total.toFixed(2)}</td>
+                        <td style="padding:6px 8px; text-align:right;">€ ${netVal}</td>
+                        <td style="padding:6px 8px; text-align:right;">€ ${ergoVal}</td>
                         <td style="padding:6px 8px; text-align:center;">${it.subcode_split_pct}%</td>
-                        <td style="padding:6px 8px; text-align:right; font-weight:bold; color:#065F46;">€ ${it.subcode_payout_amount.toFixed(2)}</td>
-                        <td style="padding:6px 8px; text-align:right; color:#5B21B6;">€ ${it.office_retention_amount.toFixed(2)}</td>
+                        <td style="padding:6px 8px; text-align:right; font-weight:bold; color:#065F46;">€ ${payVal}</td>
+                        <td style="padding:6px 8px; text-align:right; color:#5B21B6;">€ ${retVal}</td>
                     </tr>
                 `;
             });
+
+            // Determine active period label
+            const yearVal = document.getElementById('subcode-year-filter')?.value || 'all';
+            const fromVal = document.getElementById('subcode-month-from')?.value || 'all';
+            const toVal = document.getElementById('subcode-month-to')?.value || 'all';
+            let periodLabel = "Όλες οι Περίοδοι";
+            if (fromVal !== 'all' && toVal !== 'all') periodLabel = `Από ${fromVal} έως ${toVal}`;
+            else if (fromVal !== 'all') periodLabel = `Από ${fromVal}`;
+            else if (toVal !== 'all') periodLabel = `Έως ${toVal}`;
+            else if (yearVal !== 'all') periodLabel = `Έτος ${yearVal}`;
 
             printDiv.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1D4ED8; padding-bottom:14px; margin-bottom:18px;">
@@ -4268,12 +4290,12 @@
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#F8FAFC; padding:14px; border-radius:10px; margin-bottom:18px; font-size:12px;">
                     <div>
-                        <div><strong>Ονοματεπώνυμο Συνεργάτη:</strong> ${partner.full_name}</div>
-                        <div><strong>Κωδικός Γραφείου:</strong> ${partner.producer_code} | <strong>Κωδικός ERGO:</strong> ${partner.ergo_code || '-'}</div>
-                        <div><strong>Ιεραρχία / Κατηγορία:</strong> ${partner.partner_type_label || 'Υποκωδικός'}</div>
+                        <div><strong>Ονοματεπώνυμο Συνεργάτη:</strong> ${partner.full_name || partner.producer_name || '-'}</div>
+                        <div><strong>Κωδικός Γραφείου:</strong> ${partner.producer_code || '-'} | <strong>Κωδικός ERGO:</strong> ${partner.ergo_code || '-'}</div>
+                        <div><strong>Ιεραρχία / Κατηγορία:</strong> ${partner.partner_type_label || partner.partner_type || 'Υποκωδικός'}</div>
                     </div>
                     <div>
-                        <div><strong>Περίοδος Εκκαθάρισης:</strong> ${data.period === 'all' ? 'Όλοι οι Μήνες' : data.period}</div>
+                        <div><strong>Περίοδος Εκκαθάρισης:</strong> ${periodLabel}</div>
                         <div><strong>Συμφωνία Επιμερισμού:</strong> ${data.split_pct}% επί προμήθειας ERGO</div>
                         <div><strong>Συνολικά Συμβόλαια:</strong> ${activeItems.length}</div>
                     </div>
@@ -4326,7 +4348,7 @@
                     <div style="width:200px;">
                         <div>Ο Συνεργάτης</div>
                         <div style="margin-top:40px;">_______________________</div>
-                        <div style="font-size:11px; color:#64748B; margin-top:4px;">${partner.full_name}</div>
+                        <div style="font-size:11px; color:#64748B; margin-top:4px;">${partner.full_name || partner.producer_name || ''}</div>
                     </div>
                     <div style="width:200px;">
                         <div>Για την LANCA Ι.Κ.Ε. (Agency 3375Α)</div>
@@ -4336,12 +4358,22 @@
                 </div>
             `;
 
-            html2pdf().set({
-                margin: [10, 10, 10, 10],
-                filename: `LANCA_Ekatharistirio_${partner.producer_code}_${new Date().getTime()}.pdf`,
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            }).from(printDiv).save();
+            document.body.appendChild(printDiv);
+            try {
+                const opt = {
+                    margin: [8, 8, 8, 8],
+                    filename: `LANCA_Ekatharistirio_${partner.producer_code || 'Partner'}_${new Date().getTime()}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                };
+                await html2pdf().set(opt).from(printDiv).save();
+            } catch(e) {
+                console.error("PDF Export Error:", e);
+                alert("Σφάλμα κατά την παραγωγή PDF: " + e.message);
+            } finally {
+                printDiv.remove();
+            }
         }
 
         function exportSubcodeToExcel() {
@@ -6167,7 +6199,7 @@
             XLSX.writeFile(wb, filename);
         }
 
-        function exportToPDF(type) {
+        async function exportToPDF(type) {
             const d = new Date();
             const dateStr = String(d.getDate()).padStart(2, '0') + "/" + String(d.getMonth() + 1).padStart(2, '0') + "/" + d.getFullYear();
             let filename = `LANCA_Ekatharistiko_${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, '0')}.pdf`;
@@ -6444,12 +6476,27 @@
                 </div>
             `;
 
-            html2pdf().set({
-                margin: [8, 8, 8, 8],
-                filename: filename,
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            }).from(printWrapper).save();
+            printWrapper.style.position = 'fixed';
+            printWrapper.style.left = '-9999px';
+            printWrapper.style.top = '0';
+            printWrapper.style.width = '1120px';
+            document.body.appendChild(printWrapper);
+
+            try {
+                const opt = {
+                    margin: [8, 8, 8, 8],
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                };
+                await html2pdf().set(opt).from(printWrapper).save();
+            } catch (err) {
+                console.error("PDF generation error:", err);
+                alert("Σφάλμα κατά την παραγωγή PDF: " + err.message);
+            } finally {
+                printWrapper.remove();
+            }
         }
 
         function exportFilteredDashboard(type) {

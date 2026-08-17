@@ -2658,12 +2658,16 @@ def api_save_producer():
         data = request.get_json(force=True) or {}
         pname = str(data.get("producer_name") or data.get("full_name") or "").strip()
         pcode = str(data.get("producer_code") or "").strip()
-        ergo_code = str(data.get("ergo_code") or ("1411" if pcode.isdigit() else "ERGO Portal")).strip()
-        ptype = str(data.get("partner_type") or ("SUBCODE_1411" if pcode.isdigit() else "DIRECT_AGENT")).strip()
-        if pcode in ['1', '3375', '3375A', '3375Α']:
-            ptype = 'AGENCY_MANAGER'
+        ergo_code = str(data.get("ergo_code") or "1411").strip()
         
-        ptype_label = "👑 Agency Manager (ERGO 40071 / 1411)" if ptype == 'AGENCY_MANAGER' else ("🔹 Έμμεσος Υποκωδικός (Μέσω ERGO 1411)" if ptype == 'SUBCODE_1411' else "🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)")
+        # Allow user full flexibility to select partner type freely
+        ptype = str(data.get("partner_type") or "DIRECT_AGENT").strip()
+        if ptype == 'AGENCY_MANAGER':
+            ptype_label = "👑 Agency Manager (ERGO 40071 / 1411)"
+        elif ptype == 'SUBCODE_1411':
+            ptype_label = "🔹 Έμμεσος Υποκωδικός (Μέσω ERGO 1411)"
+        else:
+            ptype_label = "🏢 Άμεσος Πράκτορας (Οργανωτική Ομάδα 40071)"
         
         role = str(data.get("role") or "Ασφαλιστικός Πράκτορας").strip()
         hierarchy = str(data.get("hierarchy") or "ΠΑΡΑΓΩΓΟΣ").strip()
@@ -2703,12 +2707,27 @@ def api_save_producer():
                 notes = excluded.notes;
         """, (pcode, ergo_code, pname, ptype, ptype_label, role, hierarchy, tier, manager, phone, email, address, nomos, status, rate, notes))
         
-        # Update matching movements
-        cur.execute("UPDATE financial_movements SET producer_name = ? WHERE producer_code = ?;", (pname, pcode))
+        # Update matching movements in financial_movements using producer_partner_code
+        cur.execute("""
+            UPDATE financial_movements 
+            SET producer_name = ?,
+                producer_ergo_code = ?,
+                producer_org_team = ?
+            WHERE producer_partner_code = ?;
+        """, (pname, ergo_code, ptype_label, pcode))
+
+        # Also update policies
+        cur.execute("""
+            UPDATE policies 
+            SET producer_name = ?,
+                producer_ergo_code = ?
+            WHERE producer_partner_code = ?;
+        """, (pname, ergo_code, pcode))
+
         conn.commit()
         conn.close()
         
-        log_gdpr_audit(username, "SAVE_PRODUCER", f"Saved producer {pcode} - {pname}")
+        log_gdpr_audit(username, "SAVE_PRODUCER", f"Saved producer {pcode} - {pname} (Type: {ptype})")
         return jsonify({"status": "success", "success": True, "message": f"Ο συνεργάτης '{pname}' ({pcode}) αποθηκεύτηκε επιτυχώς!"})
     except Exception as e:
         print("[Save Producer Error]", e)
